@@ -45,4 +45,16 @@ public class User {
         inverseJoinColumns = @JoinColumn(name = "RoleID")
     )
     private Set<Role> roles;
+
+    @OneToMany(mappedBy = "user")
+    private Set<Address> addresses;
+
+    @OneToMany(mappedBy = "user")
+    private Set<Cart> carts;
+
+    @OneToMany(mappedBy = "user")
+    private Set<Order> orders;
+
+    @OneToMany(mappedBy = "user")
+    private Set<Review> reviews;
 } 

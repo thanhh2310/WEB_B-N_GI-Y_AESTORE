@@ -3,6 +3,7 @@ package com.example.demo.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Data
 @Entity
@@ -20,9 +21,13 @@ public class OrderDetail {
     @JoinColumn(name = "ProductID")
     private Product product;
 
-    @ManyToOne
-    @JoinColumn(name = "CouponID")
-    private Coupon coupon;
+    @ManyToMany
+    @JoinTable(
+        name = "QuantityCoupon",
+        joinColumns = @JoinColumn(name = "OrderDetailID"),
+        inverseJoinColumns = @JoinColumn(name = "CouponID")
+    )
+    private Set<Coupon> coupons;
 
     private BigDecimal total;
 

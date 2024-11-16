@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Set;
 
 @Data
 @Entity
@@ -28,4 +29,7 @@ public class Coupon {
 
     @Column(unique = true)
     private String code;
+
+    @ManyToMany(mappedBy = "coupons")
+    private Set<OrderDetail> orderDetails;
 } 
