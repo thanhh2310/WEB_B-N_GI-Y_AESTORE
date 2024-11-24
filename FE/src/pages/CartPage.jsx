@@ -32,6 +32,37 @@ const CartPage = () => {
       image: 'https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/8a042953-9d71-4a8b-9b15-4c06f1bf4525/air-max-plus-shoes.png'
     }
   ]);
+  const [voucherCode, setVoucherCode] = useState('');
+  const [appliedVouchers, setAppliedVouchers] = useState([]);
+  const [voucherError, setVoucherError] = useState('');
+
+  // Mock voucher data - in real app this would come from API
+  const availableVouchers = [
+    { code: 'NIKE10', discount: 100000, description: 'Giảm 100K cho đơn hàng từ 1,000,000₫' },
+    { code: 'NIKE20', discount: 200000, description: 'Giảm 200K cho đơn hàng từ 2,000,000₫' },
+  ];
+
+  const handleApplyVoucher = () => {
+    setVoucherError('');
+    const voucher = availableVouchers.find(v => v.code === voucherCode.toUpperCase());
+    
+    if (!voucher) {
+      setVoucherError('Invalid voucher code');
+      return;
+    }
+
+    if (appliedVouchers.some(v => v.code === voucher.code)) {
+      setVoucherError('Voucher already applied');
+      return;
+    }
+
+    setAppliedVouchers([...appliedVouchers, voucher]);
+    setVoucherCode('');
+  };
+
+  const removeVoucher = (code) => {
+    setAppliedVouchers(appliedVouchers.filter(v => v.code !== code));
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -88,6 +119,54 @@ const CartPage = () => {
             <div className="flex justify-between mb-4">
               <span>Estimated Delivery & Handling</span>
               <span>Free</span>
+            </div>
+
+            {/* Voucher Section */}
+            <div className="border-t border-gray-200 py-4">
+              <div className="flex gap-2 mb-4">
+                <input
+                  type="text"
+                  placeholder="Enter Promo Code"
+                  value={voucherCode}
+                  onChange={(e) => setVoucherCode(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+                />
+                <button
+                  onClick={handleApplyVoucher}
+                  className="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 disabled:bg-gray-300"
+                  disabled={!voucherCode}
+                >
+                  Apply
+                </button>
+              </div>
+
+              {voucherError && (
+                <p className="text-red-500 text-sm mb-4">{voucherError}</p>
+              )}
+
+              {/* Applied Vouchers */}
+              {appliedVouchers.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="font-medium text-sm">Applied Vouchers:</h3>
+                  {appliedVouchers.map((voucher) => (
+                    <div key={voucher.code} className="flex justify-between items-center bg-gray-50 p-3 rounded-md">
+                      <div>
+                        <p className="font-medium">{voucher.code}</p>
+                        <p className="text-sm text-gray-600">{voucher.description}</p>
+                        <p className="text-sm text-green-600">-{voucher.discount.toLocaleString()}₫</p>
+                      </div>
+                      <button
+                        onClick={() => removeVoucher(voucher.code)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Total */}

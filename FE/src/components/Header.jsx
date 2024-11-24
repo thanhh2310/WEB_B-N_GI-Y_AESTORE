@@ -12,11 +12,11 @@ const Header = () => {
           <img src="/jordan.svg" alt="Jordan Logo" className="h-6" />
         </Link>
         <div className="flex gap-4">
-          <Link to="/store">Find a Store</Link>
+          <Link to="/history">History</Link>
           <span>|</span>
-          <Link to="/help">Help</Link>
+          <Link to="/myvoucher">My Voucher</Link>
           <span>|</span>
-          <Link to="/join">Join Us</Link>
+          <Link to="/register">Join Us</Link>
           <span>|</span>
           <Link to="/signin">Sign In</Link>
         </div>
