@@ -4,10 +4,12 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.util.Date;
 import java.util.Set;
+import lombok.Builder;
 
 @Data
 @Entity
 @Table(name = "User")
+
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

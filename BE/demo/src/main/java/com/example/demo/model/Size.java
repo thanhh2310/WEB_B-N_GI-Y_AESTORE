@@ -13,4 +13,5 @@ public class Size {
 
     @Column(nullable = false)
     private String name;
+    
 } 
