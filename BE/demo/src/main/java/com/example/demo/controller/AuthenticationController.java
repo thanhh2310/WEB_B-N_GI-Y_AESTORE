@@ -12,6 +12,7 @@ import com.example.demo.dto.response.AuthenticationResponse;
 import com.example.demo.service.AuthenticationService;
 import com.example.demo.service.TokenResponse;
 import com.nimbusds.jose.JOSEException;
+import jakarta.servlet.http.HttpSession;
 import java.text.ParseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,17 +31,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthenticationController {
     @Autowired
-    private AuthenticationService authenticatedService;
+    private AuthenticationService authenticationService;
     @PostMapping("/log-in")
-    public  ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest authenticateRequest){
-        var result=authenticatedService.authenticate(authenticateRequest);
-        return  ApiResponse.<AuthenticationResponse>builder()
-                .result(result)                    
+    
+    public ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest authenticateRequest, HttpSession session) {
+        var result = authenticationService.authenticate(authenticateRequest, session);
+        return ApiResponse.<AuthenticationResponse>builder()
+                .result(result)
                 .build();
     }
     @PostMapping("/check")
      public  ApiResponse<TokenResponse> veryfier(@RequestBody TokenRequest request) throws JOSEException, ParseException{
-        var result=authenticatedService.veryfier(request);
+        var result=authenticationService.veryfier(request);
         return  ApiResponse.<TokenResponse>builder()
                 .result(result)                    
                 .build();

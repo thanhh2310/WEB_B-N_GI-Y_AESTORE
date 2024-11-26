@@ -1,6 +1,5 @@
-package com.example.demo.dto.response;
+package com.example.demo.dto.request;
 
-import com.example.demo.dto.request.*;
 import lombok.Builder;
 import lombok.Data;
 import com.example.demo.model.*;
@@ -11,7 +10,7 @@ import com.example.demo.model.*;
  */
 @Builder
 @Data
-public class ProductResponse {
+public class ProductRequest {
     private String name;
     private String description;
     private Category category;

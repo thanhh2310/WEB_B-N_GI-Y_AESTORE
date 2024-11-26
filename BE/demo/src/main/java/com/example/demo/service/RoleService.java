@@ -35,16 +35,12 @@ public class RoleService {
                 .build();
     }
 
-    public List<RoleResponse> getAll() {
+    public List<Role> getAll() {
         // Lấy tất cả các Role từ cơ sở dữ liệu
-        List<Role> roles = roleRepository.findAll();
+        return  roleRepository.findAll();
 
         // Chuyển đổi danh sách Role thành danh sách RoleResponse và trả về
-        return roles.stream()
-                .map(role -> RoleResponse.builder()
-                .name(role.getName()) // Chỉ lấy tên role để trả về
-                .build())
-                .collect(Collectors.toList());
+       
     }
 
     public void deleteByName(String  name) {

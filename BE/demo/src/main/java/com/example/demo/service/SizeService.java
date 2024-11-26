@@ -30,11 +30,9 @@ public class SizeService {
     }
 
     // Lấy tất cả các kích thước
-    public List<SizeResponse> getAllSizes() {
-        List<Size> sizes = sizeRepository.findAll();  // Lấy tất cả các Size từ cơ sở dữ liệu
-        return sizes.stream()
-                .map(sizeMapper::toSizeResponse) // Chuyển đổi mỗi Size sang SizeResponse
-                .collect(Collectors.toList());
+    public List<Size> getAllSizes() {
+         return sizeRepository.findAll();  // Lấy tất cả các Size từ cơ sở dữ liệu
+       
     }
 
     // Lấy Size theo ID

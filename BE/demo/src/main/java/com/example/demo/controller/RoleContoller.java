@@ -7,6 +7,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.request.RoleRequest;
 import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.RoleResponse;
+import com.example.demo.model.Role;
 import com.example.demo.service.RoleService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -35,11 +36,9 @@ public class RoleContoller {
     }
 
     @GetMapping
-    ApiResponse<List<RoleResponse>> getAll() {
-        return ApiResponse.<List<RoleResponse>>builder()
-                .result(roleService.getAll())
-                .build();
-    }
+   List<Role> getAll() {
+        return roleService.getAll();
+      }
 
     @DeleteMapping("/{role}")
     ApiResponse<Void> delete(@PathVariable String name) {

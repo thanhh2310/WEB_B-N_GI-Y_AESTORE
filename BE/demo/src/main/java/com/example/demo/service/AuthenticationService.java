@@ -7,11 +7,12 @@ package com.example.demo.service;
 import com.example.demo.dto.request.AuthenticationRequest;
 import com.example.demo.dto.request.TokenRequest;
 import com.example.demo.dto.response.AuthenticationResponse;
+import com.example.demo.exception.ErrorCode;
+import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.model.Role;
 import com.example.demo.model.User;
 import com.example.demo.respository.UserRepository;
-import com.example.security.Exception.ErrorCode;
-import com.example.security.Exception.WebErrorConfig;
+
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -24,6 +25,7 @@ import com.nimbusds.jose.crypto.impl.AAD;
 import com.nimbusds.jwt.JWTClaimNames;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import jakarta.servlet.http.HttpSession;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -57,44 +59,46 @@ public class AuthenticationService {
                 .expirationTime(new Date(Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()))
                 .claim("scope", buildScope(user))
                 .build();
-        Payload payload=new Payload(jWTClaimsSet.toJSONObject());
-        JWSObject jWSObject=new JWSObject(header, payload);
+        Payload payload = new Payload(jWTClaimsSet.toJSONObject());
+        JWSObject jWSObject = new JWSObject(header, payload);
         try {
             jWSObject.sign(new MACSigner(singerKey.getBytes()));
             return jWSObject.serialize();
-            
+
         } catch (Exception e) {
-            throw  new RuntimeException(e);
+            throw new RuntimeException(e);
         }
-    
+
     }
-    
-    String buildScope(User user){
-        String result="";
-        if(!user.getRoles().isEmpty()){
-            for(Role role:user.getRoles()){
-                result+=role.getName()+" ";
+
+    String buildScope(User user) {
+        String result = "";
+        if (!user.getRoles().isEmpty()) {
+            for (Role role : user.getRoles()) {
+                result += role.getName() + " ";
             }
         }
         return result.trim();
     }
-  public AuthenticationResponse authenticate(AuthenticationRequest requestAuthenticate) {
+
+    public AuthenticationResponse authenticate(AuthenticationRequest requestAuthenticate, HttpSession session) {
         var user = userRepository.findByUsername(requestAuthenticate.getUsername()).orElseThrow(() -> new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         boolean check = passwordEncoder.matches(requestAuthenticate.getPassword(), user.getPassword());
         if (!check) {
             throw new WebErrorConfig(ErrorCode.WRONG_PASSWORD);
         }
-       
+
         var token = generateToken(user);
-        System.out.println(singerKey);
+         session.setAttribute("token", token);
         return AuthenticationResponse.builder()
                 .token(token)
                 .authenticate(true)
                 .build();
 
     }
-      public TokenResponse veryfier(TokenRequest request) throws JOSEException, ParseException {
+
+    public TokenResponse veryfier(TokenRequest request) throws JOSEException, ParseException {
         var token = request.getToken();
         JWSVerifier verifier = new MACVerifier(singerKey);
         SignedJWT singedJwt = SignedJWT.parse(token);
@@ -107,4 +111,3 @@ public class AuthenticationService {
 
     }
 }
-

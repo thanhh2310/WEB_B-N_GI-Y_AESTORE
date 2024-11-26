@@ -30,11 +30,9 @@ public class ColorService {
     }
 
     // Lấy tất cả các màu sắc
-    public List<ColorResponse> getAllColors() {
-        List<Color> colors = colorRepository.findAll();  // Lấy tất cả các Color từ cơ sở dữ liệu
-        return colors.stream()
-                .map(colorMapper::toColorResponse)  // Chuyển đổi mỗi Color sang ColorResponse
-                .collect(Collectors.toList());
+    public List<Color> getAllColors() {
+         return colorRepository.findAll();  // Lấy tất cả các Color từ cơ sở dữ liệu
+       
     }
 
     // Lấy Color theo ID

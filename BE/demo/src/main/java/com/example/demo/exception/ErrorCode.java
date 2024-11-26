@@ -1,11 +1,12 @@
-package com.example.security.Exception;
+package com.example.demo.exception;
 
 public enum ErrorCode {
     
-    USER_NOT_FOUND(1001, "User not found"),
-    USER_EXISTED(1002, "user existed"),
+    USER_NOT_FOUND(1001, "Không thấy người dùng đâu cả"),
+    USER_EXISTED(1002, "Người dùng này đã tồn tại"),
     
-    WRONG_PASSWORD(1003, "Mat khau khong chinh xac ");
+    WRONG_PASSWORD(1003, "Mat khau khong chinh xac "),
+    PRODUCT_NOT_FOUND(1004,"Không thấy sản phẩm đâu cả");
     private final int code;
     private final String message;
 

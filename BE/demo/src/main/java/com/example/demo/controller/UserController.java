@@ -7,6 +7,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.request.UserRequest;
 import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.UserResponse;
+import com.example.demo.model.User;
 import com.example.demo.service.UserService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -38,10 +39,8 @@ public class UserController {
     }
 
     @GetMapping
-    ApiResponse<List<UserResponse>> getUsers() {
-        return ApiResponse.<List<UserResponse>>builder()
-                .result(userService.getUsers())
-                .build();
+    List<User> getUsers() {
+        return userService.getAll();
     }
 
     @GetMapping("/{userId}")

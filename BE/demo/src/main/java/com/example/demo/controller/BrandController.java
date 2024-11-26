@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.request.BrandRequest;
 import com.example.demo.dto.response.BrandResponse;
+import com.example.demo.model.Brand;
 import com.example.demo.service.BrandService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,9 +27,9 @@ public class BrandController {
 
     // Lấy danh sách tất cả các Brand
     @GetMapping
-    public ResponseEntity<List<BrandResponse>> getAllBrands() {
-        List<BrandResponse> brandResponses = brandService.getAllBrands();
-        return new ResponseEntity<>(brandResponses, HttpStatus.OK);
+    public List<Brand> getAllBrands() {
+        List<Brand> brandResponses = brandService.getAllBrands();
+        return brandResponses;
     }
 
     // Lấy Brand theo ID

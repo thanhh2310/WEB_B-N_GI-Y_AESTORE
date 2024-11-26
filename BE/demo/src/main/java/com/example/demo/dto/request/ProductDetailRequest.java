@@ -8,9 +8,6 @@ import com.example.demo.model.Color;
 import com.example.demo.model.Image;
 import com.example.demo.model.Product;
 import com.example.demo.model.Size;
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import java.math.BigDecimal;
 import lombok.Builder;
 import lombok.Data;
@@ -19,21 +16,15 @@ import lombok.Data;
  *
  * @author Admin
  */
-@Builder
 @Data
-public class ProdcutRequest {
+@Builder
+public class ProductDetailRequest {
 
-    private Color color;
-
-    private Size size;
-
-    private Image image;
-
-    private Product product;
-
-    private BigDecimal price;
-
-    private String description;
-
+    private Product product;  // Truyền trực tiếp đối tượng Product
+    private Color color;      // Truyền trực tiếp đối tượng Color
+    private Size size;        // Truyền trực tiếp đối tượng Size
+    private Image image;      // Truyền trực tiếp đối tượng Image
+    private BigDecimal price; // Giá sản phẩm
+    private String description; // Mô tả chi tiết
     private Integer quantity;
 }

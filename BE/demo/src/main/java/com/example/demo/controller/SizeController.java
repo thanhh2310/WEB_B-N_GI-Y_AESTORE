@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.request.SizeRequest;
 import com.example.demo.dto.response.SizeResponse;
+import com.example.demo.model.Size;
 import com.example.demo.service.SizeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class SizeController {
 
     // API để lấy tất cả Size
     @GetMapping
-    public List<SizeResponse> getAll() {
+    public List<Size> getAll() {
         return sizeService.getAllSizes();  // Gọi service để lấy tất cả Size
     }
 

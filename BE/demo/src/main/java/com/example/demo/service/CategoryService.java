@@ -8,7 +8,8 @@ import com.example.demo.dto.request.CategoryRequset;
 import com.example.demo.dto.response.CategoryResponse;
 import com.example.demo.mapper.CategoryMapper;
 import com.example.demo.model.Category;
-import com.example.demo.respository.CategoryRespository;
+import com.example.demo.respository.CategoryRepository;
+
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -26,7 +27,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class CategoryService {
     @Autowired
-    private   CategoryRespository categoryRespository;
+    private   CategoryRepository categoryRespository;
    @Autowired
     private   CategoryMapper categoryMapper;
 

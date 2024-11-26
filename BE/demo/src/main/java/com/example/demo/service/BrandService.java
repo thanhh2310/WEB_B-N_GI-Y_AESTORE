@@ -28,9 +28,9 @@ public class BrandService {
     }
 
     // Đọc tất cả các Brand
-    public List<BrandResponse> getAllBrands() {
-        List<Brand> brands = brandRepository.findAll();
-        return brandMapper.toBrandResponses(brands);  // Chuyển đổi danh sách Brand sang danh sách BrandResponse
+    public List<Brand> getAllBrands() {
+        return brandRepository.findAll();
+        
     }
 
     // Đọc Brand theo ID

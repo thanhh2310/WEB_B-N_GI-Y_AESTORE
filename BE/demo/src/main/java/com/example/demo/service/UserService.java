@@ -49,14 +49,14 @@ public class UserService {
         return userMapper.toUserResponse(user);
 
     }
-    
+
     public void deleteUser(Integer userId) {
         userRepository.deleteById(userId);
     }
 
-    public List<UserResponse> getUsers() {
+    public List<User> getAll() {
 
-        return userRepository.findAll().stream().map(userMapper::toUserResponse).toList();
+        return userRepository.findAll();
     }
 
     public UserResponse getUser(Integer id) {

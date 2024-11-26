@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.request.ColorRequest;
 import com.example.demo.dto.response.ColorResponse;
+import com.example.demo.model.Color;
 import com.example.demo.service.ColorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class ColorController {
 
     // API để lấy tất cả Color
     @GetMapping
-    public List<ColorResponse> getAll() {
+    public List<Color> getAll() {
         return colorService.getAllColors();  // Gọi service để lấy tất cả Color
     }
 
