@@ -1,20 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const AdminOrderDetailPage = () => {
+const AdminProductDetailPage = () => {
   const navigate = useNavigate();
-  const [orderDetails] = useState({
-    products: [
-      {
-        id: 1,
-        name: 'Glay Response Super',
-        image: '/product-1.jpg',
-        quantity: 4,
-        unitPrice: '$xx',
-        total: '$4xx'
-      }
-    ],
-    customerInfo: {
+  const [productDetails] = useState({
+    product: {
+      id: 1,
+      name: 'Glay Response Super',
+      image: '/product-1.jpg',
+      quantity: 4,
+      unitPrice: '$xx',
+      total: '$4xx'
+    },
+    supplierInfo: {
       fullName: 'Pham Nguyen',
       email: 'phamnguyen@gmail.com',
       phone: '0909090xxx',
@@ -32,13 +30,13 @@ const AdminOrderDetailPage = () => {
         <h1 className="text-2xl font-medium">PRODUCT LIST</h1>
         <button 
           className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
-          onClick={() => navigate('/admin/orders')}
+          onClick={() => navigate('/admin/products')}
         >
           Back
         </button>
       </div>
 
-      {/* Products Table */}
+      {/* Product Details */}
       <div className="bg-white rounded-lg shadow mb-6">
         <div className="p-6">
           <table className="w-full">
@@ -51,73 +49,71 @@ const AdminOrderDetailPage = () => {
               </tr>
             </thead>
             <tbody>
-              {orderDetails.products.map((product) => (
-                <tr key={product.id}>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-3">
-                      <img 
-                        src={product.image} 
-                        alt={product.name}
-                        className="w-16 h-16 object-cover"
-                      />
-                      <span>{product.name}</span>
-                    </div>
-                  </td>
-                  <td className="text-center py-4 px-4">{product.quantity}</td>
-                  <td className="text-center py-4 px-4">{product.unitPrice}</td>
-                  <td className="text-center py-4 px-4">{product.total}</td>
-                </tr>
-              ))}
+              <tr>
+                <td className="py-4 px-4">
+                  <div className="flex items-center gap-3">
+                    <img 
+                      src={productDetails.product.image} 
+                      alt={productDetails.product.name}
+                      className="w-16 h-16 object-cover"
+                    />
+                    <span>{productDetails.product.name}</span>
+                  </div>
+                </td>
+                <td className="text-center py-4 px-4">{productDetails.product.quantity}</td>
+                <td className="text-center py-4 px-4">{productDetails.product.unitPrice}</td>
+                <td className="text-center py-4 px-4">{productDetails.product.total}</td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Order Information */}
+      {/* Supplier Information */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-6">
-          <h2 className="text-xl font-medium mb-4">Order Infor</h2>
+          <h2 className="text-xl font-medium mb-4">Supplier Information</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Full name:</label>
-                <p>{orderDetails.customerInfo.fullName}</p>
+                <p>{productDetails.supplierInfo.fullName}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Email:</label>
-                <p>{orderDetails.customerInfo.email}</p>
+                <p>{productDetails.supplierInfo.email}</p>
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Phone:</label>
-              <p>{orderDetails.customerInfo.phone}</p>
+              <p>{productDetails.supplierInfo.phone}</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Company Name:</label>
-              <p>{orderDetails.customerInfo.companyName}</p>
+              <p>{productDetails.supplierInfo.companyName}</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Street Address:</label>
-              <p>{orderDetails.customerInfo.streetAddress}</p>
+              <p>{productDetails.supplierInfo.streetAddress}</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Town/City:</label>
-              <p>{orderDetails.customerInfo.townCity}</p>
+              <p>{productDetails.supplierInfo.townCity}</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Country:</label>
-              <p>{orderDetails.customerInfo.country}</p>
+              <p>{productDetails.supplierInfo.country}</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Status:</label>
               <span className="inline-block px-3 py-1 bg-gray-700 text-white rounded-md text-sm mt-1">
-                {orderDetails.customerInfo.status}
+                {productDetails.supplierInfo.status}
               </span>
             </div>
           </div>
@@ -127,4 +123,4 @@ const AdminOrderDetailPage = () => {
   );
 };
 
-export default AdminOrderDetailPage; 
+export default AdminProductDetailPage; 

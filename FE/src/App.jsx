@@ -13,6 +13,8 @@ import AdminProductPage from './pages/admin/AdminProductPage';
 import AdminCategoryPage from './pages/admin/AdminCategoryPage';
 import AdminBrandPage from './pages/admin/AdminBrandPage';
 import AdminReportPage from './pages/admin/AdminReportPage';
+import AdminOrderDetailPage from './pages/admin/AdminOrderDetailPage';
+import AdminProductDetailPage from './pages/admin/AdminProductDetailPage';
 
 function App() {
   return (
@@ -41,7 +43,9 @@ function App() {
         <Route index element={<AdminUsersPage />} />
         <Route path="users" element={<AdminUsersPage />} />
         <Route path="orders" element={<AdminOrderPage />} />
+        <Route path="orders/:id" element={<AdminOrderDetailPage />} />
         <Route path="products" element={<AdminProductPage />} />
+        <Route path="products/:id" element={<AdminProductDetailPage />} />
         <Route path="categories" element={<AdminCategoryPage />} />
         <Route path="brands" element={<AdminBrandPage />} />
         <Route path="report" element={<AdminReportPage />} />

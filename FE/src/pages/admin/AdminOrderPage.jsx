@@ -6,7 +6,7 @@ const AdminOrderPage = () => {
   const [timeFilter, setTimeFilter] = useState('This week');
   const [orders] = useState([
     {
-      id: '#4',
+      id: '4',
       customer: {
         name: 'Gray Response Super',
         image: '/product-1.jpg'
@@ -16,7 +16,7 @@ const AdminOrderPage = () => {
       status: 'Đang giao hàng',
     },
     {
-      id: '#3',
+      id: '3',
       customer: {
         name: 'Gray Response Super',
         image: '/product-1.jpg'
@@ -26,7 +26,7 @@ const AdminOrderPage = () => {
       status: 'Đang giao hàng',
     },
     {
-      id: '#2',
+      id: '2',
       customer: {
         name: 'Gray Response Super',
         image: '/product-1.jpg'
@@ -36,7 +36,7 @@ const AdminOrderPage = () => {
       status: 'Đang giao hàng',
     },
     {
-      id: '#1',
+      id: '1',
       customer: {
         name: 'Gray Response Super',
         image: '/product-1.jpg'

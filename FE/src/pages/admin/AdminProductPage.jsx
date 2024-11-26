@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AdminProductPage = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [products] = useState([
     {
-      id: '#4',
-      name: 'Glay Response Super',
+      id: '4',
+      name: 'Glay Response Super', 
       brand: 'Adidas',
       image: '/images/products/product-1.jpg',
       price: '$XX',
@@ -13,7 +15,16 @@ const AdminProductPage = () => {
       featured: true
     },
     {
-      id: '#3',
+      id: '3',
+      name: 'Glay Response Super',
+      brand: 'Adidas', 
+      image: '/product-1.jpg',
+      price: '$XX',
+      qty: 20,
+      featured: true
+    },
+    {
+      id: '2',
       name: 'Glay Response Super',
       brand: 'Adidas',
       image: '/product-1.jpg',
@@ -22,16 +33,7 @@ const AdminProductPage = () => {
       featured: true
     },
     {
-      id: '#2',
-      name: 'Glay Response Super',
-      brand: 'Adidas',
-      image: '/product-1.jpg',
-      price: '$XX',
-      qty: 20,
-      featured: true
-    },
-    {
-      id: '#1',
+      id: '1',
       name: 'Glay Response Super',
       brand: 'Adidas',
       image: '/product-1.jpg',
@@ -125,7 +127,10 @@ const AdminProductPage = () => {
                   </td>
                   <td className="py-4">
                     <div className="flex gap-2">
-                      <button className="text-blue-600 hover:underline">
+                      <button 
+                        className="text-blue-600 hover:underline"
+                        onClick={() => navigate(`/admin/products/${product.id}`)}
+                      >
                         Details
                       </button>
                       <button className="p-1 hover:text-blue-600">
@@ -169,4 +174,4 @@ const AdminProductPage = () => {
   );
 };
 
-export default AdminProductPage; 
+export default AdminProductPage;
