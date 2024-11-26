@@ -7,7 +7,7 @@ const AdminProductPage = () => {
       id: '#4',
       name: 'Glay Response Super',
       brand: 'Adidas',
-      image: '/product-1.jpg',
+      image: '/images/products/product-1.jpg',
       price: '$XX',
       qty: 20,
       featured: true

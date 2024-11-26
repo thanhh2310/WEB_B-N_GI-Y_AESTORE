@@ -17,28 +17,27 @@ import AdminReportPage from './pages/admin/AdminReportPage';
 function App() {
   return (
     <Routes>
-      {/* Client Routes */}
-      <Route
-        path="/"
-        element={
-          <div className="font-nike min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-grow">
-              <Routes>
-                <Route index element={<HomePage />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/cart" element={<CartPage />} />
-                <Route path="/signin" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
-        }
-      />
+      {/* Auth Routes - No Header/Footer */}
+      <Route path="/signin" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+
+      {/* Client Routes - With Header/Footer */}
+      <Route path="/*" element={
+        <div className="font-nike min-h-screen flex flex-col">
+          <Header />
+          <main className="flex-grow">
+            <Routes>
+              <Route index element={<HomePage />} />
+              <Route path="product/:id" element={<ProductDetail />} />
+              <Route path="cart" element={<CartPage />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      } />
 
       {/* Admin Routes */}
-      <Route path="/admin" element={<AdminLayout />}>
+      <Route path="/admin/*" element={<AdminLayout />}>
         <Route index element={<AdminUsersPage />} />
         <Route path="users" element={<AdminUsersPage />} />
         <Route path="orders" element={<AdminOrderPage />} />

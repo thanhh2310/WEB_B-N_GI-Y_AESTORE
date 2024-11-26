@@ -21,8 +21,8 @@ const AdminLayout = () => {
           </Link>
           
           <div className="flex items-center gap-4">
-            <Link to="/" className="text-sm">
-              Trang chủ
+            <Link to="/signin" className="text-sm">
+              Logout
             </Link>
           </div>
         </div>

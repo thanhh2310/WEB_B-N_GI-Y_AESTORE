@@ -9,7 +9,7 @@ const HomePage = () => {
       name: 'Nike V2K Run',
       category: 'Shoes',
       price: 3519000,
-      image: 'https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/u_126ab356-44d8-4a06-89b4-fcdcc8df0245,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/5671b1bf-3e7f-4f61-a356-7b434205a89f_nike_v2k_run.jpg',
+      image: '/images/products/v2k-run.jpg',
       isNew: true
     },
     {
