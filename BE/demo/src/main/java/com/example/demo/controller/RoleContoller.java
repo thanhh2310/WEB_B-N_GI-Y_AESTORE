@@ -36,9 +36,14 @@ public class RoleContoller {
     }
 
     @GetMapping
-   List<Role> getAll() {
-        return roleService.getAll();
-      }
+ public ApiResponse<List<Role>> getAll() {
+        List<Role> colors = roleService.getAll();  // Gọi service để lấy tất cả Color
+        return ApiResponse.<List<Role>>builder()
+                .code(200)
+                .message("All colors fetched successfully")
+                .result(colors)
+                .build();  // Trả về ApiResponse với danh sách tất cả các màu sắc
+    }
 
     @DeleteMapping("/{role}")
     ApiResponse<Void> delete(@PathVariable String name) {

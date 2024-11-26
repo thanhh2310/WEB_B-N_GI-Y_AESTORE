@@ -35,11 +35,13 @@ public class ProductController {
 
     // Lấy tất cả sản phẩm
     @GetMapping
-    public List<Product> getAllProducts() {
-        // Lấy danh sách tên sản phẩm từ service (hoặc danh sách bạn cần)
-         return  productService.getAll();
-
-        
+  public ApiResponse<List<Product>> getAll() {
+        List<Product> colors = productService.getAll();  // Gọi service để lấy tất cả Color
+        return ApiResponse.<List<Product>>builder()
+                .code(200)
+                .message("All colors fetched successfully")
+                .result(colors)
+                .build();  // Trả về ApiResponse với danh sách tất cả các màu sắc
     }
 
     // Lấy sản phẩm theo ID

@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.request.BrandRequest;
+import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.BrandResponse;
 import com.example.demo.model.Brand;
 import com.example.demo.service.BrandService;
@@ -20,48 +21,48 @@ public class BrandController {
 
     // Tạo mới Brand
     @PostMapping
-    public ResponseEntity<BrandResponse> createBrand(@RequestBody BrandRequest brandRequest) {
+    public ApiResponse<BrandResponse> createBrand(@RequestBody BrandRequest brandRequest) {
         BrandResponse brandResponse = brandService.create(brandRequest);
-        return new ResponseEntity<>(brandResponse, HttpStatus.CREATED);
+        return ApiResponse.<BrandResponse>builder()
+                .result(brandResponse)
+                .build();
     }
 
     // Lấy danh sách tất cả các Brand
     @GetMapping
-    public List<Brand> getAllBrands() {
-        List<Brand> brandResponses = brandService.getAllBrands();
-        return brandResponses;
+public ApiResponse<List<Brand>> getAll() {
+        List<Brand> colors = brandService.getAllBrands();  // Gọi service để lấy tất cả Color
+        return ApiResponse.<List<Brand>>builder()
+                .code(200)
+                .message("All brands fetched successfully")
+                .result(colors)
+                .build();  // Trả về ApiResponse với danh sách tất cả các màu sắc
     }
 
     // Lấy Brand theo ID
     @GetMapping("/{id}")
-    public ResponseEntity<BrandResponse> getBrandById(@PathVariable Integer id) {
+    public ApiResponse<BrandResponse> getBrandById(@PathVariable Integer id) {
         BrandResponse brandResponse = brandService.getBrandById(id);
-        if (brandResponse != null) {
-            return new ResponseEntity<>(brandResponse, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+       return ApiResponse.<BrandResponse>builder()
+                .result(brandResponse)
+                .build();
     }
 
     // Cập nhật Brand theo ID
     @PutMapping("/{id}")
-    public ResponseEntity<BrandResponse> updateBrand(@PathVariable Integer id, @RequestBody BrandRequest brandRequest) {
-        BrandResponse updatedBrand = brandService.update(id, brandRequest);
-        if (updatedBrand != null) {
-            return new ResponseEntity<>(updatedBrand, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ApiResponse<BrandResponse> updateBrand(@PathVariable Integer id, @RequestBody BrandRequest brandRequest) {
+        BrandResponse brandResponse = brandService.update(id, brandRequest);
+        return ApiResponse.<BrandResponse>builder()
+                .result(brandResponse)
+                .build();
     }
 
     // Xóa Brand theo ID
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBrand(@PathVariable Integer id) {
+    public ApiResponse<Void> deleteBrand(@PathVariable Integer id) {
         boolean isDeleted = brandService.delete(id);
-        if (isDeleted) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);  // Trả về HTTP 204 nếu xóa thành công
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);  // Trả về HTTP 404 nếu không tìm thấy
-        }
+        return ApiResponse.<Void>builder()
+                .message("Da xoa thanh cong")
+                .build();
     }
 }

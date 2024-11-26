@@ -6,6 +6,8 @@ package com.example.demo.service;
 
 import com.example.demo.dto.request.CategoryRequset;
 import com.example.demo.dto.response.CategoryResponse;
+import com.example.demo.exception.ErrorCode;
+import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.mapper.CategoryMapper;
 import com.example.demo.model.Category;
 import com.example.demo.respository.CategoryRepository;
@@ -38,42 +40,36 @@ public class CategoryService {
     }
 
     // Read All
-    public List<CategoryResponse> getAllCategories() {
-        List<Category> categories = categoryRespository.findAll();
-        return categoryMapper.toCategoryResponses(categories);
+    public List<Category> getAllCategories() {
+        return categoryRespository.findAll();
+       
     }
 
     // Read By ID
     public CategoryResponse getCategoryById(Integer id) {
-        Optional<Category> categoryOpt = categoryRespository.findById(id);
-        if (categoryOpt.isPresent()) {
-            return categoryMapper.toCategoryResponse(categoryOpt.get());
-        } else {
-            return null;
-        }
+        Category categoryOpt = categoryRespository.findById(id).orElseThrow(
+                ()->new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
+        
+            return categoryMapper.toCategoryResponse(categoryOpt);
+        
     }
 
     // Update
     public CategoryResponse update(Integer id, CategoryRequset categoryRequset) {
-        Optional<Category> categoryOpt = categoryRespository.findById(id);
-        if (categoryOpt.isPresent()) {
-            Category category = categoryOpt.get();
+       Category category = categoryRespository.findById(id).orElseThrow(
+                ()->new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
+        
+         
             category.setName(categoryRequset.getName());
             categoryRespository.save(category);
             return categoryMapper.toCategoryResponse(category);
-        } else {
-            return null;
-        }
+        
     }
 
     // Delete
-    public boolean delete(Integer id) {
-        Optional<Category> categoryOpt = categoryRespository.findById(id);
-        if (categoryOpt.isPresent()) {
-            categoryRespository.deleteById(id);
-            return true;
-        } else {
-            return false;
-        }
+    public void delete(Integer id) {
+       Category category = categoryRespository.findById(id).orElseThrow(
+                ()->new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
+        categoryRespository.delete(category);
     }
 }

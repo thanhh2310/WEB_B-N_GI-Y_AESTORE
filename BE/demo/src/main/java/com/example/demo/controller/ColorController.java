@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.request.ColorRequest;
+import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.ColorResponse;
 import com.example.demo.model.Color;
 import com.example.demo.service.ColorService;
@@ -18,31 +19,57 @@ public class ColorController {
 
     // API để tạo mới Color
     @PostMapping
-    public ColorResponse create(@RequestBody ColorRequest colorRequest) {
-        return colorService.create(colorRequest);  // Gọi service để tạo mới Color
+    public ApiResponse<ColorResponse> create(@RequestBody ColorRequest colorRequest) {
+        ColorResponse colorResponse = colorService.create(colorRequest);  // Gọi service để tạo mới Color
+        return ApiResponse.<ColorResponse>builder()
+                .code(200)
+                .message("Color created successfully")
+                .result(colorResponse)
+                .build();  // Trả về ApiResponse với thông tin màu sắc đã tạo
     }
 
     // API để lấy tất cả Color
     @GetMapping
-    public List<Color> getAll() {
-        return colorService.getAllColors();  // Gọi service để lấy tất cả Color
+    public ApiResponse<List<Color>> getAll() {
+        List<Color> colors = colorService.getAllColors();  // Gọi service để lấy tất cả Color
+        return ApiResponse.<List<Color>>builder()
+                .code(200)
+                .message("All colors fetched successfully")
+                .result(colors)
+                .build();  // Trả về ApiResponse với danh sách tất cả các màu sắc
     }
 
     // API để lấy Color theo ID
     @GetMapping("/{id}")
-    public ColorResponse getById(@PathVariable Integer id) {
-        return colorService.getColorById(id);  // Gọi service để lấy Color theo ID
+    public ApiResponse<ColorResponse> getById(@PathVariable Integer id) {
+        ColorResponse colorResponse = colorService.getColorById(id);  // Gọi service để lấy Color theo ID
+        return ApiResponse.<ColorResponse>builder()
+                .code(200)
+                .message("Color fetched successfully")
+                .result(colorResponse)
+                .build();  // Trả về ApiResponse với thông tin màu sắc theo ID
     }
 
     // API để cập nhật Color
     @PutMapping("/{id}")
-    public ColorResponse update(@PathVariable Integer id, @RequestBody ColorRequest colorRequest) {
-        return colorService.update(id, colorRequest);  // Gọi service để cập nhật Color
+    public ApiResponse<ColorResponse> update(@PathVariable Integer id, @RequestBody ColorRequest colorRequest) {
+        ColorResponse updatedColor = colorService.update(id, colorRequest);  // Gọi service để cập nhật Color
+        return ApiResponse.<ColorResponse>builder()
+                .code(200)
+                .message("Color updated successfully")
+                .result(updatedColor)
+                .build();  // Trả về ApiResponse với màu sắc đã cập nhật
     }
 
     // API để xóa Color
     @DeleteMapping("/{id}")
-    public boolean delete(@PathVariable Integer id) {
-        return colorService.delete(id);  // Gọi service để xóa Color
+    public ApiResponse<String> delete(@PathVariable Integer id) {
+        boolean isDeleted = colorService.delete(id);  // Gọi service để xóa Color
+        String message = isDeleted ? "Color deleted successfully" : "Failed to delete color";
+        return ApiResponse.<String>builder()
+                .code(200)
+                .message(message)
+                .result(isDeleted ? "Color with ID " + id + " has been deleted." : "Color with ID " + id + " not found.")
+                .build();  // Trả về ApiResponse xác nhận đã xóa thành công hay không
     }
 }
