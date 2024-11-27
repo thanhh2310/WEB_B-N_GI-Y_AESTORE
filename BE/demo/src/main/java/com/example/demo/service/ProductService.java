@@ -10,12 +10,17 @@ import com.example.demo.exception.ErrorCode;
 import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.mapper.ProductMapper;
 import com.example.demo.model.Product;
+import com.example.demo.model.ProductDetail;
+import com.example.demo.respository.ProductDetailRepository;
 import com.example.demo.respository.ProductRepository;
 import jakarta.transaction.Transactional;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,10 +29,12 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final ProductDetailRepository productDetailRepository;
 
     public ProductResponse create(ProductRequest request) {
         Product product = productMapper.toProduct(request);
@@ -41,10 +48,34 @@ public class ProductService {
     }
 
     // READ: Get all products
-    public List<Product> getAll() {
-       return productRepository.findAll();
-        
+    public List<ProductResponse> getAll() {
+        // Lấy tất cả các sản phẩm từ repository
+        List<Product> products = productRepository.findAll();
+
+        // Danh sách để lưu kết quả trả về
+        List<ProductResponse> productResponses = new ArrayList<>();
+
+        // Duyệt qua tất cả các sản phẩm
+        for (Product product : products) {
+            // Tìm chi tiết sản phẩm có giá thấp nhất cho mỗi sản phẩm
+            ProductDetail productDetail = productDetailRepository.findMinPriceDetailByProductId(product.getId());
+
+
+            // Tạo đối tượng ProductResponse và thiết lập dữ liệu
+            ProductResponse productResponse = productMapper.toResponse(product);
+            productResponse.setMinPrice(productDetail.getPrice());
+            productResponse.setImageUrl(productDetail.getImage().getUrl());
+
+
+
+            // Thêm productResponse vào danh sách kết quả
+            productResponses.add(productResponse);
+        }
+
+        // Trả về danh sách kết quả
+        return productResponses;
     }
+
 
     // UPDATE: Update an existing product
     @Transactional

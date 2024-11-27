@@ -2,6 +2,7 @@ package com.example.demo.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import java.util.List;
 
 @Data
 @Entity
@@ -23,4 +24,7 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "BrandID")
     private Brand brand;
+
+    @OneToMany(mappedBy = "product")
+    private List<ProductDetail> productDetails;
 } 

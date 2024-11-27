@@ -7,6 +7,7 @@ import com.example.demo.exception.ErrorCode;
 import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.model.Product;
 import com.example.demo.service.ProductService;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/products")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @RequiredArgsConstructor
 public class ProductController {
 
@@ -35,13 +37,14 @@ public class ProductController {
 
     // Lấy tất cả sản phẩm
     @GetMapping
-  public ApiResponse<List<Product>> getAll() {
-        List<Product> colors = productService.getAll();  // Gọi service để lấy tất cả Color
-        return ApiResponse.<List<Product>>builder()
+
+    public ApiResponse<List<ProductResponse>> getAll() {
+        List<ProductResponse> products = productService.getAll();  // Gọi service để lấy tất cả Color
+        return ApiResponse.<List<ProductResponse>>builder()
                 .code(200)
-                .message("All colors fetched successfully")
-                .result(colors)
-                .build();  // Trả về ApiResponse với danh sách tất cả các màu sắc
+                .message("All product fetched successfully")
+                .result(products)
+                .build();  // Trả về ApiResponse với danh sách tất cả các sản phẩm
     }
 
     // Lấy sản phẩm theo ID

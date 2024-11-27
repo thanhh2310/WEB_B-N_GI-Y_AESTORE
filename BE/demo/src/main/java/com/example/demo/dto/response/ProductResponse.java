@@ -1,19 +1,24 @@
 package com.example.demo.dto.response;
 
-import com.example.demo.dto.request.*;
+import com.example.demo.model.Brand;
+import com.example.demo.model.Category;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import com.example.demo.model.*;
+import lombok.NoArgsConstructor;
 
-/**
- *
- * @author Admin
- */
-@Builder
+import java.math.BigDecimal;
+
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductResponse {
+    private Integer id;
     private String name;
-    private String description;
     private Category category;
     private Brand brand;
+    private String description;
+    private BigDecimal minPrice;
+    private String imageUrl;
 }
