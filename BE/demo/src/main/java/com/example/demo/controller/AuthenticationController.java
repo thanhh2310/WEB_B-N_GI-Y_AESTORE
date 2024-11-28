@@ -9,8 +9,9 @@ import com.example.demo.dto.request.AuthenticationRequest;
 import com.example.demo.dto.request.TokenRequest;
 import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.AuthenticationResponse;
+import com.example.demo.dto.response.TokenResponse;
 import com.example.demo.service.AuthenticationService;
-import com.example.demo.service.TokenResponse;
+
 import com.nimbusds.jose.JOSEException;
 import jakarta.servlet.http.HttpSession;
 import java.text.ParseException;
@@ -40,11 +41,13 @@ public class AuthenticationController {
                 .result(result)
                 .build();
     }
-    @PostMapping("/check")
-     public  ApiResponse<TokenResponse> veryfier(@RequestBody TokenRequest request) throws JOSEException, ParseException{
-        var result=authenticationService.veryfier(request);
-        return  ApiResponse.<TokenResponse>builder()
-                .result(result)                    
+       @PostMapping("/check")
+    public ApiResponse<TokenResponse> verify(@RequestBody TokenRequest request) throws JOSEException, ParseException {
+        // Xác minh token từ yêu cầu
+        var result = authenticationService.veryfier(request);
+        return ApiResponse.<TokenResponse>builder()
+                .result(result)
                 .build();
     }
 }
+

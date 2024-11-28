@@ -37,6 +37,7 @@ public class ProductMapper {
     // Chuyển đổi từ Product (Entity) sang ProductResponse
     public ProductResponse toResponse(Product product) {
         return  ProductResponse.builder()
+                .id(product.getId())
                 .name(product.getName())
                 .description(product.getDescription())
                 .brand(product.getBrand())

@@ -9,6 +9,7 @@ import com.example.demo.model.Image;
 import com.example.demo.model.Product;
 import com.example.demo.model.Size;
 import java.math.BigDecimal;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 

@@ -11,6 +11,7 @@ import lombok.Builder;
 @Table(name = "User")
 
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "UserID")
@@ -42,9 +43,9 @@ public class User {
 
     @ManyToMany
     @JoinTable(
-        name = "UserRole",
-        joinColumns = @JoinColumn(name = "UserID"),
-        inverseJoinColumns = @JoinColumn(name = "RoleID")
+            name = "UserRole",
+            joinColumns = @JoinColumn(name = "UserID"),
+            inverseJoinColumns = @JoinColumn(name = "RoleID")
     )
     private Set<Role> roles;
 
@@ -59,4 +60,5 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private Set<Review> reviews;
-} 
+    private boolean active = true;
+}

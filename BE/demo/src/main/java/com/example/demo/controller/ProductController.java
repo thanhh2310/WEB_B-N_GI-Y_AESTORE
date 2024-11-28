@@ -56,7 +56,7 @@ public class ProductController {
     }
 
     // Cập nhật sản phẩm
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ApiResponse<ProductResponse> updateProduct(@PathVariable Integer id, @RequestBody ProductRequest productRequest) {
         // Gọi service để cập nhật sản phẩm
         ProductResponse updatedProduct = productService.update(id, productRequest);

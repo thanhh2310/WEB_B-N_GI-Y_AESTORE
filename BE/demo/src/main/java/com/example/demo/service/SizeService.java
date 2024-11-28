@@ -2,6 +2,8 @@ package com.example.demo.service;
 
 import com.example.demo.dto.request.SizeRequest;
 import com.example.demo.dto.response.SizeResponse;
+import com.example.demo.exception.ErrorCode;
+import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.mapper.SizeMapper;
 import com.example.demo.model.Size;
 
@@ -31,8 +33,8 @@ public class SizeService {
 
     // Lấy tất cả các kích thước
     public List<Size> getAllSizes() {
-         return sizeRepository.findAll();  // Lấy tất cả các Size từ cơ sở dữ liệu
-       
+        return sizeRepository.findAll();  // Lấy tất cả các Size từ cơ sở dữ liệu
+
     }
 
     // Lấy Size theo ID
@@ -43,25 +45,18 @@ public class SizeService {
 
     // Cập nhật Size
     public SizeResponse update(Integer id, SizeRequest sizeRequest) {
-        Optional<Size> sizeOpt = sizeRepository.findById(id);  // Tìm kích thước theo ID
-        if (sizeOpt.isPresent()) {
-            Size size = sizeOpt.get();
-            size.setName(sizeRequest.getName());  // Cập nhật tên kích thước
-            size = sizeRepository.save(size);  // Lưu vào cơ sở dữ liệu
-            return sizeMapper.toSizeResponse(size);  // Chuyển đổi sang SizeResponse
-        } else {
-            return null;  // Nếu không tìm thấy Size
-        }
+        Size size = sizeRepository.findById(id).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));  // Tìm kích thước theo ID
+
+        size.setName(sizeRequest.getName());  // Cập nhật tên kích thước
+        size = sizeRepository.save(size);  // Lưu vào cơ sở dữ liệu
+        return sizeMapper.toSizeResponse(size);  // Chuyển đổi sang SizeResponse
+
     }
 
     // Xóa Size
-    public boolean delete(Integer id) {
-        Optional<Size> sizeOpt = sizeRepository.findById(id);  // Tìm kích thước theo ID
-        if (sizeOpt.isPresent()) {
-            sizeRepository.deleteById(id);  // Xóa Size
-            return true;
-        } else {
-            return false;
-        }
+    public void delete(Integer id) {
+        Size size = sizeRepository.findById(id).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));  // Tìm kích thước theo ID
+        size.setActive(false);
+        sizeRepository.save(size);
     }
 }

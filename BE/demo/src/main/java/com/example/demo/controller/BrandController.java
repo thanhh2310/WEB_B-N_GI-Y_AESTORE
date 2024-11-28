@@ -49,7 +49,7 @@ public ApiResponse<List<Brand>> getAll() {
     }
 
     // Cập nhật Brand theo ID
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ApiResponse<BrandResponse> updateBrand(@PathVariable Integer id, @RequestBody BrandRequest brandRequest) {
         BrandResponse brandResponse = brandService.update(id, brandRequest);
         return ApiResponse.<BrandResponse>builder()
@@ -60,7 +60,7 @@ public ApiResponse<List<Brand>> getAll() {
     // Xóa Brand theo ID
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteBrand(@PathVariable Integer id) {
-        boolean isDeleted = brandService.delete(id);
+        brandService.delete(id);
         return ApiResponse.<Void>builder()
                 .message("Da xoa thanh cong")
                 .build();

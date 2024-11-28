@@ -2,9 +2,12 @@ package com.example.demo.service;
 
 import com.example.demo.dto.request.BrandRequest;
 import com.example.demo.dto.response.BrandResponse;  // Thay CategoryResponse bằng BrandResponse
+import com.example.demo.exception.ErrorCode;
+import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.mapper.BrandMapper;
 import com.example.demo.model.Brand;
 import com.example.demo.respository.BrandRepository;
+import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,40 +32,34 @@ public class BrandService {
 
     // Đọc tất cả các Brand
     public List<Brand> getAllBrands() {
-        return brandRepository.findAll();
-        
+      return brandRepository.findByActiveTrue();
     }
 
     // Đọc Brand theo ID
     public BrandResponse getBrandById(Integer id) {
-        Optional<Brand> brandOpt = brandRepository.findById(id);
-        if (brandOpt.isPresent()) {
-            return brandMapper.toBrandResponse(brandOpt.get());
-        } else {
-            return null;
-        }
+        Brand brand = brandRepository.findById(id).
+                orElseThrow(() -> new WebErrorConfig(ErrorCode.BRAND_NOT_FOUND));
+        return brandMapper.toBrandResponse(brand);
     }
 
     // Cập nhật Brand theo ID
     public BrandResponse update(Integer id, BrandRequest brandRequest) {
-        Optional<Brand> brandOpt = brandRepository.findById(id);
-        
-            Brand brand = brandOpt.get();
-            brand.setName(brandRequest.getName());  // Cập nhật tên của Brand
-            brand.setDescription(brandRequest.getDescription());
-            brandRepository.save(brand);  // Lưu thay đổi vào cơ sở dữ liệu
-            return brandMapper.toBrandResponse(brand);
-       
+        Brand brand = brandRepository.findById(id).
+                orElseThrow(() -> new WebErrorConfig(ErrorCode.BRAND_NOT_FOUND));
+
+        brand.setName(brandRequest.getName());  // Cập nhật tên của Brand
+        brand.setDescription(brandRequest.getDescription());
+        brandRepository.save(brand);  // Lưu thay đổi vào cơ sở dữ liệu
+        return brandMapper.toBrandResponse(brand);
+
     }
 
     // Xóa Brand theo ID
-    public boolean delete(Integer id) {
-        Optional<Brand> brandOpt = brandRepository.findById(id);
-        if (brandOpt.isPresent()) {
-            brandRepository.deleteById(id);
-            return true;
-        } else {
-            return false;
-        }
+    public void delete(Integer id) {
+        Brand brand = brandRepository.findById(id).
+                orElseThrow(() -> new WebErrorConfig(ErrorCode.BRAND_NOT_FOUND));
+        brand.setActive(false);
+        brandRepository.save(brand);
+
     }
 }

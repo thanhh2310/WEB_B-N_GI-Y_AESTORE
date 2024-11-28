@@ -3,11 +3,13 @@ package com.example.demo.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @Entity
 @Table(name = "ProductDetail")
 public class ProductDetail {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -35,4 +37,5 @@ public class ProductDetail {
 
     @Column(nullable = false)
     private Integer quantity;
-} 
+    private boolean active = true;
+}

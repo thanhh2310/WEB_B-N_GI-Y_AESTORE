@@ -57,6 +57,7 @@ public class ProductDetailService {
     public void deleteProductDetail(Integer id){
         ProductDetail productDetail =productDetailRepository.findById(id)
                 .orElseThrow(()->new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
-        productDetailRepository.delete(productDetail);
+        productDetail.setActive(false);
+        productDetailRepository.save(productDetail);
     }
 }

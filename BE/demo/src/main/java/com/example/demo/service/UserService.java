@@ -6,6 +6,8 @@ package com.example.demo.service;
 
 import com.example.demo.dto.request.UserRequest;
 import com.example.demo.dto.response.UserResponse;
+import com.example.demo.exception.ErrorCode;
+import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.model.Role;
 import com.example.demo.model.User;
@@ -51,20 +53,22 @@ public class UserService {
     }
 
     public void deleteUser(Integer userId) {
-        userRepository.deleteById(userId);
+        User user =userRepository.findById(userId).orElseThrow(()->new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
+        user.setActive(false);
+        userRepository.save(user);
     }
 
     public List<User> getAll() {
 
-        return userRepository.findAll();
+        return userRepository.findByActiveTrue();
     }
 
     public UserResponse getUser(Integer id) {
-        // Sử dụng Optional và ném ra exception nếu không tìm thấy user
-        return userMapper.toUserResponse(
-                userRepository.findById(id)
-                        .orElseThrow(() -> new RuntimeException("User with ID " + id + " not found"))
-        );
+        User user =userRepository.findById(id).orElseThrow(()->new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
+        return userMapper.toUserResponse(user);
     }
+//    public UserResponse update(Integer id,UserRequest request){
+//        
+//    }
 
 }

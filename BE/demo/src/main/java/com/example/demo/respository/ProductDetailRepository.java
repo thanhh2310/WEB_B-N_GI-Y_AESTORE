@@ -25,4 +25,8 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
 
     @Query(value = "SELECT * FROM product_detail pd WHERE pd.productid = :productId AND pd.price = (SELECT MIN(pd2.price) FROM product_detail pd2 WHERE pd2.productid = :productId)", nativeQuery = true)
     ProductDetail findMinPriceDetailByProductId(@Param("productId") Integer productId);
+    List<ProductDetail>findByActiveTrue();
+    
+    List<ProductDetail> findByProductIn(List<Product> products);
+
 }

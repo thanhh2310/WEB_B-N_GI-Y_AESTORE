@@ -1,12 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.example.demo.respository;
 
 import com.example.demo.model.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 
 /**
  *
@@ -15,5 +12,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
-    
+
+    // Tạo phương thức để lọc các Category có trạng thái active = true
+    List<Category> findByActiveTrue();  // Tự động sinh truy vấn SELECT * FROM Category WHERE active = true
 }

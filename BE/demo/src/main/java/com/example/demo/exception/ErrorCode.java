@@ -6,7 +6,10 @@ public enum ErrorCode {
     USER_EXISTED(1002, "Người dùng này đã tồn tại"),
     
     WRONG_PASSWORD(1003, "Mat khau khong chinh xac "),
-    PRODUCT_NOT_FOUND(1004,"Không thấy sản phẩm đâu cả");
+    PRODUCT_NOT_FOUND(1004,"Không thấy sản phẩm đâu cả"),
+    BRAND_NOT_FOUND(1005,"Không thấy sản brand đâu cả"),
+    COLOR_NOT_FOUND(1006,"Không thấy sản brand đâu cả"),
+    SIZE_NOT_FOUND(1007,"Không thấy sản Size đâu cả");
     private final int code;
     private final String message;
 

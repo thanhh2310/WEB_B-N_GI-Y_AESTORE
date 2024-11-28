@@ -41,7 +41,7 @@ public class CategoryService {
 
     // Read All
     public List<Category> getAllCategories() {
-        return categoryRespository.findAll();
+        return categoryRespository.findByActiveTrue();
        
     }
 
@@ -70,6 +70,7 @@ public class CategoryService {
     public void delete(Integer id) {
        Category category = categoryRespository.findById(id).orElseThrow(
                 ()->new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
-        categoryRespository.delete(category);
+        category.setActive(false);
+        categoryRespository.save(category);
     }
 }

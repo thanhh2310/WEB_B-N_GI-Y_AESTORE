@@ -51,7 +51,7 @@ public class ColorController {
     }
 
     // API để cập nhật Color
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ApiResponse<ColorResponse> update(@PathVariable Integer id, @RequestBody ColorRequest colorRequest) {
         ColorResponse updatedColor = colorService.update(id, colorRequest);  // Gọi service để cập nhật Color
         return ApiResponse.<ColorResponse>builder()
@@ -63,13 +63,13 @@ public class ColorController {
 
     // API để xóa Color
     @DeleteMapping("/{id}")
-    public ApiResponse<String> delete(@PathVariable Integer id) {
-        boolean isDeleted = colorService.delete(id);  // Gọi service để xóa Color
-        String message = isDeleted ? "Color deleted successfully" : "Failed to delete color";
-        return ApiResponse.<String>builder()
+    public ApiResponse<Void> delete(@PathVariable Integer id) {
+         colorService.delete(id);  // Gọi service để xóa Color
+      
+        return ApiResponse.<Void>builder()
                 .code(200)
-                .message(message)
-                .result(isDeleted ? "Color with ID " + id + " has been deleted." : "Color with ID " + id + " not found.")
+                .message("Xóa thành  công ")
+                
                 .build();  // Trả về ApiResponse xác nhận đã xóa thành công hay không
     }
 }

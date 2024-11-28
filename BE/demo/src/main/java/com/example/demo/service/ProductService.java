@@ -14,6 +14,7 @@ import com.example.demo.model.ProductDetail;
 import com.example.demo.respository.ProductDetailRepository;
 import com.example.demo.respository.ProductRepository;
 import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,33 +50,37 @@ public class ProductService {
 
     // READ: Get all products
     public List<ProductResponse> getAll() {
-        // Lấy tất cả các sản phẩm từ repository
-        List<Product> products = productRepository.findAll();
+        log.info("Fetching all active products with their minimum price and image.");
+
+        // Lấy tất cả các sản phẩm còn hoạt động từ repository
+        List<Product> activeProducts = productRepository.findByActiveTrue();
 
         // Danh sách để lưu kết quả trả về
         List<ProductResponse> productResponses = new ArrayList<>();
 
         // Duyệt qua tất cả các sản phẩm
-        for (Product product : products) {
+        for (Product product : activeProducts) {
             // Tìm chi tiết sản phẩm có giá thấp nhất cho mỗi sản phẩm
             ProductDetail productDetail = productDetailRepository.findMinPriceDetailByProductId(product.getId());
 
-
             // Tạo đối tượng ProductResponse và thiết lập dữ liệu
             ProductResponse productResponse = productMapper.toResponse(product);
-            productResponse.setMinPrice(productDetail.getPrice());
-            productResponse.setImageUrl(productDetail.getImage().getUrl());
 
+            // Nếu có chi tiết sản phẩm thì set giá và hình ảnh
+            if (productDetail != null) {
+                // Thiết lập giá cho sản phẩm
+                productResponse.setMinPrice(productDetail.getPrice());
+                // Thiết lập URL ảnh cho sản phẩm
+                productResponse.setImageUrl(productDetail.getImage().getUrl());
+            }
 
-
-            // Thêm productResponse vào danh sách kết quả
+            // Thêm sản phẩm vào danh sách kết quả
             productResponses.add(productResponse);
         }
 
-        // Trả về danh sách kết quả
+        // Trả về danh sách các sản phẩm
         return productResponses;
     }
-
 
     // UPDATE: Update an existing product
     @Transactional
@@ -92,7 +97,8 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
 
-        productRepository.delete(product);
+        product.setActive(false);
+        productRepository.save(product);
     }
 
 }

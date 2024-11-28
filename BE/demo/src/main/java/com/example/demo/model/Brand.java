@@ -15,4 +15,5 @@ public class Brand {
     private String name;
 
     private String description;
+    private boolean  active=true;
 } 

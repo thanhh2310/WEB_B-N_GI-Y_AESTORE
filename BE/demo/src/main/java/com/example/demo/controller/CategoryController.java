@@ -49,7 +49,7 @@ public class CategoryController {
                 .build();
        
     }
-     @PutMapping("/{id}")
+     @PatchMapping("/{id}")
     public ApiResponse<CategoryResponse> updateCategory(@PathVariable Integer id, @RequestBody CategoryRequset categoryRequset) {
         CategoryResponse updatedCategory = categoryService.update(id, categoryRequset);
         return ApiResponse.<CategoryResponse>builder()
@@ -61,12 +61,12 @@ public class CategoryController {
 
     // Delete Category
     @DeleteMapping("/{id}")
-    public ApiResponse<String> deleteCategory(@PathVariable Integer id) {
+    public ApiResponse<Void> deleteCategory(@PathVariable Integer id) {
         categoryService.delete(id);
-        return ApiResponse.<String>builder()
+        return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Category deleted successfully")
-                .result("Category with ID " + id + " has been deleted.")
+                
                 .build();
     }
 }

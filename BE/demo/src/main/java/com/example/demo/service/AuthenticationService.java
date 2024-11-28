@@ -7,6 +7,7 @@ package com.example.demo.service;
 import com.example.demo.dto.request.AuthenticationRequest;
 import com.example.demo.dto.request.TokenRequest;
 import com.example.demo.dto.response.AuthenticationResponse;
+import com.example.demo.dto.response.TokenResponse;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.model.Role;

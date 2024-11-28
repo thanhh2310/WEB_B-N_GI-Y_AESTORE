@@ -7,7 +7,14 @@ import com.example.demo.dto.response.ProductDetailResponse;
 import com.example.demo.dto.response.ProductResponse;
 import com.example.demo.model.ProductDetail;
 import com.example.demo.service.ProductDetailService;
+import jakarta.websocket.server.PathParam;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.repository.query.Param;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,5 +38,26 @@ public class ProductDetailController {
                 .result(createdProduct)
                 .build();
     }
-
+    @GetMapping
+    public ApiResponse<List<ProductDetail>> getAll(){
+        return ApiResponse.<List<ProductDetail>>builder()
+                .message("Toàn bộ sản phẩm ")
+                .result(productDetailService.getAll())
+                .build();
+    }
+    @DeleteMapping
+    public ApiResponse<Void>delete(@PathVariable Integer id){
+        productDetailService.deleteProductDetail(id);
+        return ApiResponse.<Void>builder()
+                .message("đã xóa")
+                .build();
+    }
+    @PatchMapping
+    public ApiResponse<ProductDetailResponse> update(@PathVariable Integer id,@RequestBody ProductDetailRequest request){
+        ProductDetailResponse productDetailResponse=productDetailService.updateProductDetail(id, request);
+        return ApiResponse.<ProductDetailResponse>builder()
+                .message("Cập nhật thành công")
+                .result(productDetailResponse)
+                .build();
+    }
 }

@@ -27,4 +27,5 @@ public class Product {
 
     @OneToMany(mappedBy = "product")
     private List<ProductDetail> productDetails;
+    private boolean active =true;
 } 

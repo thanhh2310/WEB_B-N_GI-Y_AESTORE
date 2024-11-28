@@ -5,6 +5,7 @@
 package com.example.demo.respository;
 
 import com.example.demo.model.Size;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -12,5 +13,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Admin
  */
 public interface SizeRepository extends JpaRepository<Size, Integer> {
-    
+    List<Size>findByActiveTrue();
 }

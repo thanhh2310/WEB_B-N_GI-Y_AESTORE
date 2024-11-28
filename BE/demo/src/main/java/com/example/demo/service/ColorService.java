@@ -2,6 +2,8 @@ package com.example.demo.service;
 
 import com.example.demo.dto.request.ColorRequest;
 import com.example.demo.dto.response.ColorResponse;
+import com.example.demo.exception.ErrorCode;
+import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.mapper.ColorMapper;
 import com.example.demo.model.Color;
 import com.example.demo.respository.ColorRepository;
@@ -12,8 +14,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class ColorService {
 
     @Autowired
@@ -24,6 +28,7 @@ public class ColorService {
 
     // Tạo mới Color
     public ColorResponse create(ColorRequest colorRequest) {
+        log.info("12345");
         Color color = colorMapper.toColor(colorRequest);  // Chuyển ColorRequest sang Color (Entity)
         color = colorRepository.save(color);  // Lưu vào cơ sở dữ liệu
         return colorMapper.toColorResponse(color);  // Chuyển đổi Color (Entity) sang ColorResponse
@@ -31,37 +36,32 @@ public class ColorService {
 
     // Lấy tất cả các màu sắc
     public List<Color> getAllColors() {
-         return colorRepository.findAll();  // Lấy tất cả các Color từ cơ sở dữ liệu
+        log.info("Fetched colors: {}", colorRepository.findByActiveTrue());
+         return colorRepository.findByActiveTrue();
        
     }
 
     // Lấy Color theo ID
     public ColorResponse getColorById(Integer id) {
-        Optional<Color> colorOpt = colorRepository.findById(id);  // Tìm màu sắc theo ID
-        return colorOpt.map(colorMapper::toColorResponse).orElse(null);  // Trả về ColorResponse nếu tìm thấy
+        Color color =colorRepository.findById(id).orElseThrow(()-> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
+        return colorMapper.toColorResponse(color);
     }
 
     // Cập nhật Color
     public ColorResponse update(Integer id, ColorRequest colorRequest) {
-        Optional<Color> colorOpt = colorRepository.findById(id);  // Tìm màu sắc theo ID
-        if (colorOpt.isPresent()) {
-            Color color = colorOpt.get();
+        Color color =colorRepository.findById(id).orElseThrow(()-> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
+       
             color.setName(colorRequest.getName());  // Cập nhật tên màu sắc
             color = colorRepository.save(color);  // Lưu vào cơ sở dữ liệu
             return colorMapper.toColorResponse(color);  // Chuyển đổi sang ColorResponse
-        } else {
-            return null;  // Nếu không tìm thấy Color
-        }
+      
+        
     }
 
     // Xóa Color
-    public boolean delete(Integer id) {
-        Optional<Color> colorOpt = colorRepository.findById(id);  // Tìm màu sắc theo ID
-        if (colorOpt.isPresent()) {
-            colorRepository.deleteById(id);  // Xóa Color
-            return true;
-        } else {
-            return false;
-        }
+    public void delete(Integer id) {
+         Color color =colorRepository.findById(id).orElseThrow(()-> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
+         color.setActive(false);
+         colorRepository.save(color);
     }
 }

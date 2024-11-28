@@ -63,13 +63,12 @@ public class SizeController {
 
     // API để xóa Size
     @DeleteMapping("/{id}")
-    public ApiResponse<String> delete(@PathVariable Integer id) {
-        boolean isDeleted = sizeService.delete(id);  // Gọi service để xóa Size
-        String message = isDeleted ? "Size deleted successfully" : "Failed to delete size";
-        return ApiResponse.<String>builder()
+    public ApiResponse<Void> delete(@PathVariable Integer id) {
+ 
+        return ApiResponse.<Void>builder()
                 .code(200)
-                .message(message)
-                .result(isDeleted ? "Size with ID " + id + " has been deleted." : "Size with ID " + id + " not found.")
+                .message("Đã xóa thành công")
+         
                 .build();  // Trả về ApiResponse xác nhận đã xóa thành công hay không
     }
 }

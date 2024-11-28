@@ -13,4 +13,7 @@ public class Color {
 
     @Column(nullable = false)
     private String name;
+    private boolean active=true;
+    
+    
 }

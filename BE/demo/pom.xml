@@ -28,7 +28,7 @@
     </scm>
     <properties>
         <java.version>23</java.version>
-        <maven.compiler.release>23</maven.compiler.release>
+        <maven.compiler.release>21</maven.compiler.release>
   
         <java.version>23</java.version>
 <!--        <projectlombok-lombok.version>1.18.30</projectlombok-lombok.version>-->
