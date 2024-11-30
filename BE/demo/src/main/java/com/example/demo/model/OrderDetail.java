@@ -9,6 +9,7 @@ import java.util.Set;
 @Entity
 @Table(name = "OrderDetail")
 public class OrderDetail {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -18,21 +19,13 @@ public class OrderDetail {
     private Order order;
 
     @ManyToOne
-    @JoinColumn(name = "ProductID")
-    private Product product;
+    @JoinColumn(name = "ProductDetailID")
+    private ProductDetail productDetail;
 
-    @ManyToMany
-    @JoinTable(
-        name = "QuantityCoupon",
-        joinColumns = @JoinColumn(name = "OrderDetailID"),
-        inverseJoinColumns = @JoinColumn(name = "CouponID")
-    )
-    private Set<Coupon> coupons;
-
-    private BigDecimal total;
+    private BigDecimal price;
 
     @Column(nullable = false)
     private Integer quantity;
 
     private String attention;
-} 
+}

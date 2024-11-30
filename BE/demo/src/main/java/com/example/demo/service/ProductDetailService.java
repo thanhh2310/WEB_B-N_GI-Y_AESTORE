@@ -35,7 +35,7 @@ public class ProductDetailService {
         return productDetailMapper.toProductDetailResponse(productDetail);
     }
 
-   
+     
     public ProductDetailResponse updateProductDetail(Integer id, ProductDetailRequest request) {
         ProductDetail existingProductDetail = productDetailRepository.findById(id)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
@@ -59,5 +59,13 @@ public class ProductDetailService {
                 .orElseThrow(()->new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
         productDetail.setActive(false);
         productDetailRepository.save(productDetail);
+    }
+     public ProductDetail getProductDetailById(Integer id) {
+        // Tìm kiếm ProductDetail theo id
+        ProductDetail productDetail = productDetailRepository.findById(id)
+                .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
+
+        // Chuyển đổi ProductDetail sang ProductDetailResponse và trả về
+        return productDetail;
     }
 }

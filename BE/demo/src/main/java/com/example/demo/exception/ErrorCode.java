@@ -9,7 +9,9 @@ public enum ErrorCode {
     PRODUCT_NOT_FOUND(1004,"Không thấy sản phẩm đâu cả"),
     BRAND_NOT_FOUND(1005,"Không thấy sản brand đâu cả"),
     COLOR_NOT_FOUND(1006,"Không thấy sản brand đâu cả"),
-    SIZE_NOT_FOUND(1007,"Không thấy sản Size đâu cả");
+    SIZE_NOT_FOUND(1007,"Không thấy sản Size đâu cả"),
+    CARTITEM_NOT_FOUND(1008,"Không thấy sản Size đâu cả"),
+    NOT_ENOUGH_QUANTITY(1009,"Không đủ sản phẩm trong kho");
     private final int code;
     private final String message;
 
