@@ -5,6 +5,8 @@
 package com.example.demo.service;
 
 import com.example.demo.ENUMS.OrderStatus;
+import com.example.demo.exception.ErrorCode;
+import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.model.Cart;
 import com.example.demo.model.CartDetail;
 import com.example.demo.model.Order;
@@ -16,7 +18,9 @@ import com.example.demo.respository.ProductRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -40,8 +44,18 @@ public class OrderService {
         return order;
 
     }
+     public Order placeOrder(Integer userId) {
+        Cart cart   = cartService.getCartByUserId(userId);
+        Order order = create(cart);
+        List<OrderDetail> orderItemList = createOrderDetails(order, cart);
+        order.setOrderDetail(new HashSet<>(orderItemList));
+        order.setTotal(getTotalPrice(orderItemList));
+        Order savedOrder = orderRepository.save(order);
+        cartService.clearCart(cart.getId());
+        return savedOrder;
+    }
 
-    private List<OrderDetail> createDetails(Order order, Cart cart) {
+    private List<OrderDetail> createOrderDetails(Order order, Cart cart) {
         List<OrderDetail> orderDetails = new ArrayList<>(); // Tạo danh sách OrderItem
 
         // Duyệt qua từng cartItem trong giỏ hàng
@@ -84,7 +98,8 @@ public class OrderService {
     
     }
     public Order getOrder(Integer Id) {
-        return orderRepository.findById(Id);
+        return orderRepository.findById(Id).orElseThrow(()->new WebErrorConfig(ErrorCode.USER_EXISTED));
+        
     }
 
 }
