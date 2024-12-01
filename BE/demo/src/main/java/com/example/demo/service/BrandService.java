@@ -44,14 +44,19 @@ public class BrandService {
 
     // Cập nhật Brand theo ID
     public BrandResponse update(Integer id, BrandRequest brandRequest) {
-        Brand brand = brandRepository.findById(id).
-                orElseThrow(() -> new WebErrorConfig(ErrorCode.BRAND_NOT_FOUND));
+        Brand brand = brandRepository.findById(id)
+                .orElseThrow(() -> new WebErrorConfig(ErrorCode.BRAND_NOT_FOUND));
 
-        brand.setName(brandRequest.getName());  // Cập nhật tên của Brand
+        brand.setName(brandRequest.getName());  
         brand.setDescription(brandRequest.getDescription());
-        brandRepository.save(brand);  // Lưu thay đổi vào cơ sở dữ liệu
+        
+        // Cập nhật trạng thái active nếu được cung cấp
+        if (brandRequest.getActive() != null) {
+            brand.setActive(brandRequest.getActive());
+        }
+        
+        brandRepository.save(brand);  
         return brandMapper.toBrandResponse(brand);
-
     }
 
     // Xóa Brand theo ID

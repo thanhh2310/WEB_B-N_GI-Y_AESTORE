@@ -14,18 +14,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class BrandMapper {
     
-     public Brand toBrand(BrandRequest brandRequset){
+     public Brand toBrand(BrandRequest brandRequest){
         Brand brand=new Brand();
-        brand.setName(brandRequset.getName());
-        brand.setDescription(brandRequset.getDescription());
+        brand.setName(brandRequest.getName());
+        brand.setDescription(brandRequest.getDescription());
+        brand.setActive(brandRequest.getActive() != null ? brandRequest.getActive() : true);
         return brand;
         
     }
     
     public BrandResponse toBrandResponse(Brand brand){
         return BrandResponse.builder()
+                .id(brand.getId())
                 .name(brand.getName())
                 .description(brand.getDescription())
+                .active(brand.isActive())
                 .build();
     }
    public List<BrandResponse> toBrandResponses(List<Brand> brands) {
