@@ -28,7 +28,7 @@ public class ProductDetailMapper {
     // Chuyển đổi từ ProductDetail (Entity) sang ProductDetailResponse
     public ProductDetailResponse toProductDetailResponse(ProductDetail productDetail) {
         return ProductDetailResponse.builder()
-                .product(productDetail.getProduct())
+                .productId(productDetail.getId())
                 .color(productDetail.getColor())
                 .size(productDetail.getSize())
                 .image(productDetail.getImage())

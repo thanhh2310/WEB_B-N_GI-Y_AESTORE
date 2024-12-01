@@ -17,6 +17,8 @@ const ProductDetail = () => {
     images: []
   });
   const [reviews, setReviews] = useState([]);
+  const [sizes, setSizes] = useState([]);
+  const [colors, setColors] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,6 +66,28 @@ const ProductDetail = () => {
       fetchReviews();
     }
   }, [id, product]);
+
+  useEffect(() => {
+    const fetchSizesAndColors = async () => {
+      try {
+        // Fetch sizes
+        const sizesResponse = await axios.get('http://localhost:8081/saleShoes/sizes');
+        if (sizesResponse.data?.result) {
+          setSizes(sizesResponse.data.result);
+        }
+
+        // Fetch colors
+        const colorsResponse = await axios.get('http://localhost:8081/saleShoes/colors');
+        if (colorsResponse.data?.result) {
+          setColors(colorsResponse.data.result);
+        }
+      } catch (error) {
+        console.error('Error fetching sizes and colors:', error);
+      }
+    };
+
+    fetchSizesAndColors();
+  }, []);
 
   const addToCart = async () => {
     if (!selectedSize) {
@@ -452,18 +476,18 @@ const ProductDetail = () => {
           </div>
 
           {/* Colors */}
-          {product.colors?.length > 0 && (
+          {colors.length > 0 && (
             <div>
               <h2 className="font-semibold mb-2">Màu sắc</h2>
               <div className="flex gap-4">
-                {product.colors.map((color, index) => (
+                {colors.map((color) => (
                   <button
-                    key={index}
+                    key={color.id}
                     className={`px-4 py-2 border rounded-lg hover:border-black
-                      ${selectedColor === color ? 'border-black bg-black text-white' : ''}`}
-                    onClick={() => setSelectedColor(color)}
+                      ${selectedColor === color.name ? 'border-black bg-black text-white' : ''}`}
+                    onClick={() => setSelectedColor(color.name)}
                   >
-                    {color}
+                    {color.name}
                   </button>
                 ))}
               </div>
@@ -471,18 +495,18 @@ const ProductDetail = () => {
           )}
 
           {/* Sizes */}
-          {product.sizes?.length > 0 && (
+          {sizes.length > 0 && (
             <div>
               <h2 className="font-semibold mb-2">Size</h2>
               <div className="grid grid-cols-4 gap-2">
-                {product.sizes.map((size) => (
+                {sizes.map((size) => (
                   <button
-                    key={size}
+                    key={size.id}
                     className={`px-4 py-2 border rounded-lg hover:border-black
-                      ${selectedSize === size ? 'border-black bg-black text-white' : ''}`}
-                    onClick={() => setSelectedSize(size)}
+                      ${selectedSize === size.name ? 'border-black bg-black text-white' : ''}`}
+                    onClick={() => setSelectedSize(size.name)}
                   >
-                    {size}
+                    {size.name}
                   </button>
                 ))}
               </div>
