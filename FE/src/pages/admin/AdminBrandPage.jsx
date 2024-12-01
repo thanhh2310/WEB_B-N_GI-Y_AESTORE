@@ -75,6 +75,7 @@ const AdminBrandPage = () => {
 
       const updatedBrand = {
         name: brand.name,
+        description: brand.description,
         active: !brand.active
       };
 
@@ -209,7 +210,7 @@ const AdminBrandPage = () => {
             <tbody>
               {brands
                 .filter(brand => 
-                  brand.name.toLowerCase().includes(searchQuery.toLowerCase())
+                  brand.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
                 )
                 .map((brand) => (
                 <tr key={brand.id} className="border-b">
