@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { products } from '../data/products';
+import axios from 'axios';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -19,13 +20,30 @@ const ProductDetail = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchProduct = () => {
-      const foundProduct = products[id];
-      if (foundProduct) {
-        setProduct(foundProduct);
-        setSelectedColor(foundProduct.colors[0]);
-      } else {
+    const fetchProduct = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8081/saleShoes/products/${id}`);
+        const productData = response.data?.result;
+        if (productData) {
+          setProduct({
+            id: productData.id,
+            name: productData.name,
+            description: productData.description,
+            price: productData.minPrice || 0,
+            images: productData.imageUrl ? [productData.imageUrl] : ['/path/to/default/image.jpg'],
+            category: productData.category?.name,
+            brand: productData.brand?.name,
+            sizes: ['38', '39', '40', '41', '42'],
+            colors: ['Black', 'White', 'Red']
+          });
+        } else {
+          toast.error('Không tìm thấy sản phẩm');
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
         toast.error('Không tìm thấy sản phẩm');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -33,17 +51,21 @@ const ProductDetail = () => {
   }, [id]);
 
   useEffect(() => {
-    // Load reviews từ localStorage khi component mount
-    const loadReviews = () => {
-      const savedReviews = localStorage.getItem(`reviews_${id}`);
-      if (savedReviews) {
-        setReviews(JSON.parse(savedReviews));
+    const fetchReviews = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8081/saleShoes/products/${id}/reviews`);
+        setReviews(response.data?.result || []);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
       }
     };
-    loadReviews();
-  }, [id]);
 
-  const addToCart = () => {
+    if (product) {
+      fetchReviews();
+    }
+  }, [id, product]);
+
+  const addToCart = async () => {
     if (!selectedSize) {
       toast.error('Vui lòng chọn size');
       return;
@@ -54,31 +76,18 @@ const ProductDetail = () => {
       return;
     }
 
-    const cartItem = {
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      color: selectedColor,
-      size: selectedSize,
-      quantity: quantity,
-      image: product.images[0]
-    };
-
-    const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const existingItemIndex = currentCart.findIndex(
-      item => item.productId === cartItem.productId && 
-             item.color === cartItem.color && 
-             item.size === cartItem.size
-    );
-
-    if (existingItemIndex !== -1) {
-      currentCart[existingItemIndex].quantity += quantity;
-    } else {
-      currentCart.push(cartItem);
+    try {
+      await axios.post('http://localhost:8081/saleShoes/cart/add', {
+        productId: product.id,
+        quantity: quantity,
+        color: selectedColor,
+        size: selectedSize
+      });
+      toast.success('Đã thêm vào giỏ hàng!');
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Có lỗi xảy ra khi thêm vào giỏ hàng');
     }
-
-    localStorage.setItem('cart', JSON.stringify(currentCart));
-    toast.success('Đã thêm vào giỏ hàng!');
   };
 
   const buyNow = () => {
@@ -194,10 +203,20 @@ const ProductDetail = () => {
     ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
     : 0;
 
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        </div>
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Đang tải...</div>
+        <div className="text-center">Không tìm thấy sản phẩm</div>
       </div>
     );
   }
@@ -398,23 +417,15 @@ const ProductDetail = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Product Images */}
         <div className="space-y-4">
-          <div className="aspect-square overflow-hidden rounded-lg">
+          <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
             <img
               src={product.images[0]}
               alt={product.name}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.src = '/path/to/default/image.jpg'; // Fallback image
+              }}
             />
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            {product.images.slice(1).map((image, index) => (
-              <div key={index} className="aspect-square overflow-hidden rounded-lg">
-                <img
-                  src={image}
-                  alt={`${product.name} ${index + 2}`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
           </div>
         </div>
 
@@ -422,53 +433,63 @@ const ProductDetail = () => {
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">{product.name}</h1>
-            <p className="text-xl mt-2">{product.price.toLocaleString('vi-VN')}đ</p>
+            <p className="text-xl mt-2">
+              {product.price > 0 ? `${product.price.toLocaleString('vi-VN')}đ` : 'Liên hệ'}
+            </p>
           </div>
 
-          <div>
-            <h2 className="font-semibold mb-2">Mô tả</h2>
-            <p className="text-gray-600">{product.description}</p>
+          {product.description && (
+            <div>
+              <h2 className="font-semibold mb-2">Mô tả</h2>
+              <p className="text-gray-600">{product.description}</p>
+            </div>
+          )}
+
+          {/* Category and Brand */}
+          <div className="space-y-2 text-sm text-gray-600">
+            {product.category && <p>Danh mục: {product.category}</p>}
+            {product.brand && <p>Thương hiệu: {product.brand}</p>}
           </div>
 
-          <div>
-            <h2 className="font-semibold mb-2">Màu sắc</h2>
-            <div className="flex gap-4">
-              {product.colors.map((color, index) => (
-                <div
-                  key={index}
-                  className={`flex flex-col items-center gap-2 cursor-pointer`}
-                  onClick={() => setSelectedColor(color)}
-                >
-                  <div
-                    className={`w-8 h-8 rounded-full ${getColorStyle(color)} 
-                      ${selectedColor === color 
-                        ? 'ring-2 ring-offset-2 ring-black' 
-                        : 'hover:ring-2 hover:ring-offset-2 hover:ring-gray-300'}`}
-                  />
-                  <span className={`text-sm ${selectedColor === color ? 'font-medium' : ''}`}>
+          {/* Colors */}
+          {product.colors?.length > 0 && (
+            <div>
+              <h2 className="font-semibold mb-2">Màu sắc</h2>
+              <div className="flex gap-4">
+                {product.colors.map((color, index) => (
+                  <button
+                    key={index}
+                    className={`px-4 py-2 border rounded-lg hover:border-black
+                      ${selectedColor === color ? 'border-black bg-black text-white' : ''}`}
+                    onClick={() => setSelectedColor(color)}
+                  >
                     {color}
-                  </span>
-                </div>
-              ))}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          <div>
-            <h2 className="font-semibold mb-2">Size</h2>
-            <div className="grid grid-cols-4 gap-2">
-              {product.sizes.map((size) => (
-                <button
-                  key={size}
-                  className={`px-4 py-2 border rounded-lg hover:border-black
-                    ${selectedSize === size ? 'border-black bg-black text-white' : ''}`}
-                  onClick={() => setSelectedSize(size)}
-                >
-                  {size}
-                </button>
-              ))}
+          {/* Sizes */}
+          {product.sizes?.length > 0 && (
+            <div>
+              <h2 className="font-semibold mb-2">Size</h2>
+              <div className="grid grid-cols-4 gap-2">
+                {product.sizes.map((size) => (
+                  <button
+                    key={size}
+                    className={`px-4 py-2 border rounded-lg hover:border-black
+                      ${selectedSize === size ? 'border-black bg-black text-white' : ''}`}
+                    onClick={() => setSelectedSize(size)}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
+          {/* Quantity */}
           <div>
             <h2 className="font-semibold mb-2">Số lượng</h2>
             <div className="flex items-center gap-4">
@@ -488,6 +509,7 @@ const ProductDetail = () => {
             </div>
           </div>
 
+          {/* Action Buttons */}
           <div className="flex gap-4">
             <button
               onClick={addToCart}
@@ -502,59 +524,10 @@ const ProductDetail = () => {
               Mua ngay
             </button>
           </div>
-
-          <div className="space-y-2 text-sm text-gray-600">
-            <p>Danh mục: {product.category}</p>
-            <p>Thương hiệu: {product.brand}</p>
-          </div>
-
-          {/* Detailed Description */}
-          <div className="border-t pt-6">
-            <h2 className="text-xl font-semibold mb-4">Mô tả chi tiết</h2>
-            <ul className="space-y-2">
-              {product.detailDescription?.map((desc, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-green-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>{desc}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Reviews */}
-          <div className="border-t pt-6">
-            <h2 className="text-xl font-semibold mb-4">Đánh giá từ khách hàng</h2>
-            <div className="space-y-4">
-              {product.reviews?.map((review) => (
-                <div key={review.id} className="border-b pb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-medium">{review.user}</span>
-                    <div className="flex">
-                      {renderStars(review.rating)}
-                    </div>
-                    <span className="text-gray-500 text-sm">
-                      {new Date(review.date).toLocaleDateString('vi-VN')}
-                    </span>
-                  </div>
-                  <p className="text-gray-600">{review.comment}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="text-sm text-gray-600">
-            {selectedColor && selectedSize && (
-              <p>
-                Đã chọn: {selectedColor} - Size {selectedSize}
-              </p>
-            )}
-          </div>
         </div>
       </div>
 
-      {/* Thêm review section vào cuối */}
+      {/* Review section remains the same */}
       {reviewSection}
     </div>
   );

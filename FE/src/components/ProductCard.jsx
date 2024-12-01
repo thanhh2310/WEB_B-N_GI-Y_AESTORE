@@ -1,24 +1,21 @@
 import { Link } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
+  const defaultImage = '/path/to/default/image.jpg';
+
   return (
     <Link to={`/product/${product.id}`} className="group">
-      <div className="relative overflow-hidden">
-        <img 
-          src={product.image} 
+      <div className="aspect-square mb-2 overflow-hidden rounded-lg bg-gray-100">
+        <img
+          src={product.images?.[0] || defaultImage}
           alt={product.name}
-          className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="h-full w-full object-cover object-center group-hover:opacity-75"
         />
-        {product.isNew && (
-          <span className="absolute top-2 left-2 bg-white px-2 py-1 text-sm">
-            Just In
-          </span>
-        )}
       </div>
-      <div className="mt-4">
-        <h3 className="font-medium">{product.name}</h3>
-        <p className="text-nike-gray">{product.category}</p>
-        <p className="mt-1">{product.price.toLocaleString()}₫</p>
+      <h3 className="text-sm font-semibold text-gray-700">{product.name}</h3>
+      <div className="mt-1 text-sm text-gray-500">
+        <p>{product.category} - {product.brand}</p>
+        <p className="font-medium">{product.price?.toLocaleString('vi-VN')}đ</p>
       </div>
     </Link>
   );
