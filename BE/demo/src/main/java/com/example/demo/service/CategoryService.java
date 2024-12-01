@@ -55,15 +55,20 @@ public class CategoryService {
     }
 
     // Update
-    public CategoryResponse update(Integer id, CategoryRequset categoryRequset) {
-       Category category = categoryRespository.findById(id).orElseThrow(
-                ()->new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
+    public CategoryResponse update(Integer id, CategoryRequset categoryRequest) {
+        Category category = categoryRespository.findById(id)
+                .orElseThrow(() -> new WebErrorConfig(ErrorCode.CATEGORY_NOT_FOUND));
+
+        category.setName(categoryRequest.getName());
+        category.setDescription(categoryRequest.getDescription());
         
-         
-            category.setName(categoryRequset.getName());
-            categoryRespository.save(category);
-            return categoryMapper.toCategoryResponse(category);
+        // Cập nhật trạng thái active nếu được cung cấp
+        if (categoryRequest.getActive() != null) {
+            category.setActive(categoryRequest.getActive());
+        }
         
+        categoryRespository.save(category);
+        return categoryMapper.toCategoryResponse(category);
     }
 
     // Delete

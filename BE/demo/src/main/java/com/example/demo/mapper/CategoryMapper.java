@@ -12,18 +12,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class CategoryMapper {
     
-     public Category toCategory(CategoryRequset categoryRequset){
+     public Category toCategory(CategoryRequset categoryRequest){
         Category category=new Category();
-        category.setName(categoryRequset.getName());
-        category.setDescription(categoryRequset.getDescription());
+        category.setName(categoryRequest.getName());
+        category.setDescription(categoryRequest.getDescription());
+        category.setActive(categoryRequest.getActive() != null ? categoryRequest.getActive() : true);
         return category;
         
     }
     
     public CategoryResponse toCategoryResponse(Category category){
         return CategoryResponse.builder()
+                .id(category.getId())
                 .name(category.getName())
                 .description(category.getDescription())
+                .active(category.isActive())
                 .build();
     }
    public List<CategoryResponse> toCategoryResponses(List<Category> categories) {
