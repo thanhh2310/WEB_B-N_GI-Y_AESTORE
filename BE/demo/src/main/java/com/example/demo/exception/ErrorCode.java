@@ -11,13 +11,12 @@ public enum ErrorCode {
     COLOR_NOT_FOUND(1006,"Không thấy sản brand đâu cả"),
     SIZE_NOT_FOUND(1007,"Không thấy sản Size đâu cả"),
     CARTITEM_NOT_FOUND(1008,"Không thấy sản Size đâu cả"),
-<<<<<<< Updated upstream
+
     CATEGORY_NOT_FOUND(1010,"Khong tim thay category"),
-    NOT_ENOUGH_QUANTITY(1009,"Không đủ sản phẩm trong kho");
-=======
-    NOT_ENOUGH_QUANTITY(1009,"Không đủ sản phẩm trong kho"), 
+    NOT_ENOUGH_QUANTITY(1009,"Không đủ sản phẩm trong kho"),
+
     PRODUCTDETAIL_NOT_FOUND(1010,"Không có sản phẩm này");
->>>>>>> Stashed changes
+
     private final int code;
     private final String message;
 

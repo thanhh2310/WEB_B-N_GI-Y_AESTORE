@@ -39,15 +39,15 @@ public class ProductDetailMapper {
     // Chuyển đổi từ ProductDetail (Entity) sang ProductDetailResponse
     public ProductDetailResponse toProductDetailResponse(ProductDetail productDetail) {
         return ProductDetailResponse.builder()
-<<<<<<< Updated upstream
+
                 .productId(productDetail.getId())
-                .color(productDetail.getColor())
-                .size(productDetail.getSize())
+                .color(productDetail.getColor().getName())
+                .size(productDetail.getSize().getName())
                 .image(productDetail.getImage())
                 .price(productDetail.getPrice())
                 .description(productDetail.getDescription())
                 .quantity(productDetail.getQuantity())
-=======
+
                 .Id(productDetail.getId())
                 .productId(productDetail.getProduct().getId())  // Chỉ lấy productId
                 .color(productDetail.getColor().getName())  // Truyền trực tiếp đối tượng Color
@@ -56,7 +56,7 @@ public class ProductDetailMapper {
                 .price(productDetail.getPrice())  // Truyền giá sản phẩm
                 .description(productDetail.getDescription())  // Truyền mô tả chi tiết
                 .quantity(productDetail.getQuantity())  // Truyền số lượng sản phẩm
->>>>>>> Stashed changes
+
                 .build();
     }
 }
