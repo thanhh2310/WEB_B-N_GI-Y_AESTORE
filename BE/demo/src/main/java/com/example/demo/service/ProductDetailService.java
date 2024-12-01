@@ -56,8 +56,9 @@ public class ProductDetailService {
         ProductDetail existingProductDetail = productDetailRepository.findById(id)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
         Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
-        Size size = sizeRepository.findSizeByName(request.getColor()).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
-        Color color = colorRepository.findColorByName(request.getColor()).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
+        Color color = colorRepository.findColorByName(request.getColor()).orElseThrow(() -> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
+        Size size = sizeRepository.findSizeByName(request.getSize()).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
+
         existingProductDetail.setProduct(product);
         existingProductDetail.setColor(color);
         existingProductDetail.setSize(size);
@@ -105,8 +106,8 @@ public class ProductDetailService {
         // Tìm sản phẩm, màu sắc, và kích thước từ các ID
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
-        Size size = sizeRepository.findSizeByName(request.getColor()).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
-        Color color = colorRepository.findColorByName(request.getColor()).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
+        Size size = sizeRepository.findSizeByName(request.getSize()).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
+        Color color = colorRepository.findColorByName(request.getColor()).orElseThrow(() -> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
 
         // Tạo mới ProductDetail và thiết lập các thuộc tính
         ProductDetail productDetail = new ProductDetail();
@@ -117,6 +118,7 @@ public class ProductDetailService {
         productDetail.setPrice(request.getPrice());
         productDetail.setDescription(request.getDescription());
         productDetail.setQuantity(request.getQuantity());
+        productDetail.setActive(true);
 
         // Lưu vào database
         productDetail = productDetailRepository.save(productDetail);

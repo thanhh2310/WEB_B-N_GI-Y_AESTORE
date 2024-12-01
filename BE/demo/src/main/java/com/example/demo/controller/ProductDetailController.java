@@ -49,7 +49,7 @@ public class ProductDetailController {
                 .build();
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Integer id) {
         productDetailService.deleteProductDetail(id);
         return ApiResponse.<Void>builder()
@@ -57,7 +57,7 @@ public class ProductDetailController {
                 .build();
     }
 
-    @PatchMapping
+    @PatchMapping("/{id}")
     public ApiResponse<ProductDetailResponse> update(@PathVariable Integer id, @RequestBody ProductDetailRequest request) {
         ProductDetailResponse productDetailResponse = productDetailService.updateProductDetail(id, request);
         return ApiResponse.<ProductDetailResponse>builder()
