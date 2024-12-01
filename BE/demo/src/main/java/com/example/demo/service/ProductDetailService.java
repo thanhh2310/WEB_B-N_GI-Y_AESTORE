@@ -73,7 +73,7 @@ public class ProductDetailService {
 
     public List<ProductDetailResponse> getAll() {
         List<ProductDetailResponse> productDetailResponses = new ArrayList<>();
-        for (ProductDetail p : productDetailRepository.findAll()) {
+        for (ProductDetail p : productDetailRepository.findByActiveTrue()) {
             productDetailResponses.add(productDetailMapper.toProductDetailResponse(p));
         }
         return productDetailResponses;

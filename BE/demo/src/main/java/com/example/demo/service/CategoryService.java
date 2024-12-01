@@ -49,7 +49,7 @@ public class CategoryService {
     public CategoryResponse getCategoryById(Integer id) {
         Category categoryOpt = categoryRespository.findById(id).orElseThrow(
                 ()->new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
-        
+        if(!categoryOpt.isActive()) throw new WebErrorConfig(ErrorCode.CATEGORY_NOT_FOUND);
             return categoryMapper.toCategoryResponse(categoryOpt);
         
     }
@@ -58,7 +58,7 @@ public class CategoryService {
     public CategoryResponse update(Integer id, CategoryRequset categoryRequest) {
         Category category = categoryRespository.findById(id)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.CATEGORY_NOT_FOUND));
-
+        if(!category.isActive()) throw new WebErrorConfig(ErrorCode.CATEGORY_NOT_FOUND);
         category.setName(categoryRequest.getName());
         category.setDescription(categoryRequest.getDescription());
         
@@ -74,8 +74,14 @@ public class CategoryService {
     // Delete
     public void delete(Integer id) {
        Category category = categoryRespository.findById(id).orElseThrow(
-                ()->new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
+                ()->new WebErrorConfig(ErrorCode.CATEGORY_NOT_FOUND));
         category.setActive(false);
+        categoryRespository.save(category);
+    }
+    public void moveOn(Integer id) {
+       Category category = categoryRespository.findById(id).orElseThrow(
+                ()->new WebErrorConfig(ErrorCode.CATEGORY_NOT_FOUND));
+        category.setActive(true);
         categoryRespository.save(category);
     }
 }

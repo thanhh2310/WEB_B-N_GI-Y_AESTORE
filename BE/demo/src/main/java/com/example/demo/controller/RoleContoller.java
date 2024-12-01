@@ -45,9 +45,9 @@ public class RoleContoller {
                 .build();  // Trả về ApiResponse với danh sách tất cả các màu sắc
     }
 
-    @DeleteMapping("/{role}")
-    ApiResponse<Void> delete(@PathVariable String name) {
-        roleService.deleteByName(name);
-        return ApiResponse.<Void>builder().build();
-    }
+//    @DeleteMapping("/{role}")
+//    ApiResponse<Void> delete(@PathVariable  Integer id) {
+//        roleService.(id);
+//        return ApiResponse.<Void>builder().build();
+//    }
 }

@@ -32,13 +32,16 @@ public class BrandService {
 
     // Đọc tất cả các Brand
     public List<Brand> getAllBrands() {
-      return brandRepository.findByActiveTrue();
+        return brandRepository.findByActiveTrue();
     }
 
     // Đọc Brand theo ID
     public BrandResponse getBrandById(Integer id) {
         Brand brand = brandRepository.findById(id).
                 orElseThrow(() -> new WebErrorConfig(ErrorCode.BRAND_NOT_FOUND));
+        if (!brand.isActive()) {
+            throw new WebErrorConfig(ErrorCode.BRAND_NOT_FOUND);
+        }
         return brandMapper.toBrandResponse(brand);
     }
 
@@ -46,16 +49,18 @@ public class BrandService {
     public BrandResponse update(Integer id, BrandRequest brandRequest) {
         Brand brand = brandRepository.findById(id)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.BRAND_NOT_FOUND));
-
-        brand.setName(brandRequest.getName());  
+        if (!brand.isActive()) {
+            throw new WebErrorConfig(ErrorCode.BRAND_NOT_FOUND);
+        }
+        brand.setName(brandRequest.getName());
         brand.setDescription(brandRequest.getDescription());
-        
+
         // Cập nhật trạng thái active nếu được cung cấp
         if (brandRequest.getActive() != null) {
             brand.setActive(brandRequest.getActive());
         }
-        
-        brandRepository.save(brand);  
+
+        brandRepository.save(brand);
         return brandMapper.toBrandResponse(brand);
     }
 
@@ -66,5 +71,11 @@ public class BrandService {
         brand.setActive(false);
         brandRepository.save(brand);
 
+    }
+    public void moveOn(Integer id){
+        Brand brand = brandRepository.findById(id).
+                orElseThrow(() -> new WebErrorConfig(ErrorCode.BRAND_NOT_FOUND));
+        brand.setActive(true);
+        brandRepository.save(brand);
     }
 }

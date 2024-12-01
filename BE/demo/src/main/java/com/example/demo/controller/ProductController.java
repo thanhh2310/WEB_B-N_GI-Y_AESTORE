@@ -50,7 +50,7 @@ public class ProductController {
     // Lấy sản phẩm theo ID
     @GetMapping("/{id}")
     public ApiResponse<ProductResponse> getProductById(@PathVariable Integer id) {
-        ProductResponse product=productService.getById(id);
+        ProductResponse product = productService.getById(id);
         return ApiResponse.<ProductResponse>builder()
                 .result(product)
                 .message("Long an cut")
@@ -67,17 +67,23 @@ public class ProductController {
                 .result(updatedProduct)
                 .message("xoa duoc roi")
                 .build();
-     
 
-       
     }
 
     // Xóa sản phẩm
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteProduct(@PathVariable Integer id) {
-       productService.delete(id);
-       return ApiResponse.<Void>builder()
-               .message("Xoa roi day")
-               .build();
+        productService.delete(id);
+        return ApiResponse.<Void>builder()
+                .message("Xoa roi day")
+                .build();
+    }
+
+    @PostMapping("/move/{id}")
+    public ApiResponse<Void> moveOn(@PathVariable Integer id) {
+        productService.moveOn(id);
+        return ApiResponse.<Void>builder()
+                .message("move on succes")
+                .build();
     }
 }

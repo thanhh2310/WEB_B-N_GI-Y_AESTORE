@@ -28,7 +28,7 @@ public class ColorService {
 
     // Tạo mới Color
     public ColorResponse create(ColorRequest colorRequest) {
-        log.info("12345");
+
         Color color = colorMapper.toColor(colorRequest);  // Chuyển ColorRequest sang Color (Entity)
         color = colorRepository.save(color);  // Lưu vào cơ sở dữ liệu
         return colorMapper.toColorResponse(color);  // Chuyển đổi Color (Entity) sang ColorResponse
@@ -36,32 +36,47 @@ public class ColorService {
 
     // Lấy tất cả các màu sắc
     public List<Color> getAllColors() {
-        log.info("Fetched colors: {}", colorRepository.findByActiveTrue());
-         return colorRepository.findByActiveTrue();
-       
+
+        return colorRepository.findByActiveTrue();
+
     }
 
     // Lấy Color theo ID
     public ColorResponse getColorById(Integer id) {
-        Color color =colorRepository.findById(id).orElseThrow(()-> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
+        Color color = colorRepository.findById(id).orElseThrow(() -> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
+        if (!color.isActive()) {
+            throw new WebErrorConfig(ErrorCode.CATEGORY_NOT_FOUND);
+        }
         return colorMapper.toColorResponse(color);
     }
 
     // Cập nhật Color
     public ColorResponse update(Integer id, ColorRequest colorRequest) {
-        Color color =colorRepository.findById(id).orElseThrow(()-> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
-       
-            color.setName(colorRequest.getName());  // Cập nhật tên màu sắc
-            color = colorRepository.save(color);  // Lưu vào cơ sở dữ liệu
-            return colorMapper.toColorResponse(color);  // Chuyển đổi sang ColorResponse
-      
-        
+        Color color = colorRepository.findById(id).orElseThrow(() -> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
+        if (!color.isActive()) {
+            throw new WebErrorConfig(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+        color.setName(colorRequest.getName());  // Cập nhật tên màu sắc
+        color = colorRepository.save(color);  // Lưu vào cơ sở dữ liệu
+        return colorMapper.toColorResponse(color);  // Chuyển đổi sang ColorResponse
+
     }
 
     // Xóa Color
     public void delete(Integer id) {
-         Color color =colorRepository.findById(id).orElseThrow(()-> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
-         color.setActive(false);
-         colorRepository.save(color);
+        Color color = colorRepository.findById(id).orElseThrow(() -> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
+        if (!color.isActive()) {
+            throw new WebErrorConfig(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+        color.setActive(false);
+        colorRepository.save(color);
     }
+
+    public void moveOn(Integer id) {
+        Color color = colorRepository.findById(id).orElseThrow(() -> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
+
+        color.setActive(true);
+        colorRepository.save(color);
+    }
+
 }

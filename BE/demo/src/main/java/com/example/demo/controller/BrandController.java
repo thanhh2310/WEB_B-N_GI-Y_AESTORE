@@ -65,4 +65,11 @@ public ApiResponse<List<Brand>> getAll() {
                 .message("Da xoa thanh cong")
                 .build();
     }
+    @PostMapping("moveon/{id}")
+    public ApiResponse<Void> MmoveOn(@PathVariable Integer id) {
+        brandService.delete(id);
+        return ApiResponse.<Void>builder()
+                .message("moveon")
+                .build();
+    }
 }

@@ -69,6 +69,15 @@ public class CategoryController {
                 
                 .build();
     }
+     @PostMapping("/moveon/{id}")
+    public ApiResponse<Void> moveOn(@PathVariable Integer id){
+       categoryService.moveOn(id);
+       return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Category deleted successfully")
+                
+                .build();
+    }
 }
     
     
