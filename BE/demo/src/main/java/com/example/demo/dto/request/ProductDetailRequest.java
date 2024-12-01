@@ -22,8 +22,8 @@ import lombok.Data;
 public class ProductDetailRequest {
 
     private Integer productId;  // Truyền trực tiếp đối tượng Product
-    private Color color;      // Truyền trực tiếp đối tượng Color
-    private Size size;        // Truyền trực tiếp đối tượng Size
+    private String color;      // Truyền trực tiếp đối tượng Color
+    private String size;        // Truyền trực tiếp đối tượng Size
     private Image image;      // Truyền trực tiếp đối tượng Image
     private BigDecimal price; // Giá sản phẩm
     private String description; // Mô tả chi tiết

@@ -12,6 +12,7 @@ import com.example.demo.model.ProductDetail;
 
 import com.example.demo.respository.CartDetailRepository;
 import com.example.demo.respository.CartRepository;
+import com.example.demo.respository.ProductDetailRepository;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,19 +26,17 @@ public class CartDetailService {
     private final CartDetailRepository cartItemRepository;
     private final CartRepository cartRepository;
     private final ProductDetailService productDetailService;
+     private final ProductDetailRepository productDetailRepository;
     private final CartService cartService;
 
-    public void addItemToCart(Integer cartId, Integer productId, int quantity) {
-        //1. Get the cart
-        //2. Get the product
-        //3. Check if the product already in the cart
-        //4. If Yes, then increase the quantity with the requested quantity
-        //5. If No, then initiate a new CartItem entry.
+    public void addItemToCart(Integer cartId, Integer productDetailId, int quantity) {
+
         Cart cart = cartService.getCart(cartId);
-        ProductDetail productDetail = productDetailService.getProductDetailById(productId);
+        ProductDetailResponse productDetailResponse = productDetailService.getProductDetailById(productDetailId);
+        ProductDetail productDetail=productDetailRepository.findById(productDetailResponse.getId()).orElseThrow(()->new WebErrorConfig(ErrorCode.PRODUCTDETAIL_NOT_FOUND));
         CartDetail cartDetail = cart.getItems()
                 .stream()
-                .filter(item -> item.getProductDetail().getId().equals(productId))
+                .filter(item -> item.getProductDetail().getId().equals(productDetail))
                 .findFirst()
                 .orElse(new CartDetail());
 

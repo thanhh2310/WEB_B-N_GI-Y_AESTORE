@@ -8,8 +8,6 @@ package com.example.demo.service;
  *
  * @author Admin
  */
-
-
 import com.example.demo.dto.request.ProductDetailRequest;
 import com.example.demo.dto.response.ProductDetailResponse;
 import com.example.demo.exception.ErrorCode;
@@ -27,6 +25,8 @@ import java.util.List;
 
 import com.example.demo.respository.ProductRepository;
 import com.example.demo.respository.SizeRepository;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -40,26 +40,27 @@ public class ProductDetailService {
     private final SizeRepository sizeRepository;
     private final ProductRepository productRepository;
 
-    
-    public ProductDetailResponse createProductDetail(Integer productId,Integer idColor,Integer idSize ) {
-        Color color =colorRepository.findById(idColor).orElseThrow(()-> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
-        Size size=sizeRepository.findById(idColor).orElseThrow(()->new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
-        Product product= productRepository.findById(productId).orElseThrow(()->new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
-        ProductDetail productDetail = new ProductDetail();
-        productDetail.setProduct(product);
-        productDetail.setColor(color);
-        productDetail.setSize(size);
+    public ProductDetailResponse getProductDetailByColorAndSize(Integer productId, Integer idColor, Integer idSize) {
+        Color color = colorRepository.findById(idColor).orElseThrow(() -> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
+        Size size = sizeRepository.findById(idSize) // phải là idSize
+                .orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
+        Product product = productRepository.findById(productId).orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
+        ProductDetail productDetail = productDetailRepository.findByProductAndColorAndSize(product, color, size);
+        if (productDetail == null) {
+            throw new WebErrorConfig(ErrorCode.PRODUCTDETAIL_NOT_FOUND);
+        }
         return productDetailMapper.toProductDetailResponse(productDetail);
     }
 
-     
     public ProductDetailResponse updateProductDetail(Integer id, ProductDetailRequest request) {
         ProductDetail existingProductDetail = productDetailRepository.findById(id)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
-        Product product= productRepository.findById(request.getProductId()).orElseThrow(()->new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
+        Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
+        Size size = sizeRepository.findSizeByName(request.getColor()).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
+        Color color = colorRepository.findColorByName(request.getColor()).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
         existingProductDetail.setProduct(product);
-        existingProductDetail.setColor(request.getColor());
-        existingProductDetail.setSize(request.getSize());
+        existingProductDetail.setColor(color);
+        existingProductDetail.setSize(size);
         existingProductDetail.setImage(request.getImage());
         existingProductDetail.setPrice(request.getPrice());
         existingProductDetail.setDescription(request.getDescription());
@@ -68,21 +69,59 @@ public class ProductDetailService {
         existingProductDetail = productDetailRepository.save(existingProductDetail);
         return productDetailMapper.toProductDetailResponse(existingProductDetail);
     }
-    public List<ProductDetail> getAll(){
-        return productDetailRepository.findAll();
+
+    public List<ProductDetailResponse> getAll() {
+        List<ProductDetailResponse> productDetailResponses = new ArrayList<>();
+        for (ProductDetail p : productDetailRepository.findAll()) {
+            productDetailResponses.add(productDetailMapper.toProductDetailResponse(p));
+        }
+        return productDetailResponses;
     }
-    public void deleteProductDetail(Integer id){
-        ProductDetail productDetail =productDetailRepository.findById(id)
-                .orElseThrow(()->new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
+
+    public void deleteProductDetail(Integer id) {
+        ProductDetail productDetail = productDetailRepository.findById(id)
+                .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
         productDetail.setActive(false);
         productDetailRepository.save(productDetail);
     }
-     public ProductDetail getProductDetailById(Integer id) {
+
+    public ProductDetailResponse getProductDetailById(Integer id) {
         // Tìm kiếm ProductDetail theo id
         ProductDetail productDetail = productDetailRepository.findById(id)
-                .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCTDETAIL_NOT_FOUND));
 
         // Chuyển đổi ProductDetail sang ProductDetailResponse và trả về
-        return productDetail;
+        return productDetailMapper.toProductDetailResponse(productDetail);
     }
-}
+
+    public List<ProductDetailResponse> getAllProductDetailByProduct(Integer productId) {
+        Product product = productRepository.findById(productId).orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
+        return product.getProductDetails().stream()
+                .map(productDetailMapper::toProductDetailResponse) // Ánh xạ ProductDetail -> ProductDetailResponse
+                .collect(Collectors.toList());  // Thu thập thành danh sách
+    }
+
+    public ProductDetailResponse create(ProductDetailRequest request) {
+        // Tìm sản phẩm, màu sắc, và kích thước từ các ID
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
+        Size size = sizeRepository.findSizeByName(request.getColor()).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
+        Color color = colorRepository.findColorByName(request.getColor()).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
+
+        // Tạo mới ProductDetail và thiết lập các thuộc tính
+        ProductDetail productDetail = new ProductDetail();
+        productDetail.setProduct(product);
+        productDetail.setColor(color);
+        productDetail.setSize(size);
+        productDetail.setImage(request.getImage());
+        productDetail.setPrice(request.getPrice());
+        productDetail.setDescription(request.getDescription());
+        productDetail.setQuantity(request.getQuantity());
+
+        // Lưu vào database
+        productDetail = productDetailRepository.save(productDetail);
+
+        // Trả về ProductDetailResponse đã được chuyển đổi
+        return productDetailMapper.toProductDetailResponse(productDetail);
+    }
+    }

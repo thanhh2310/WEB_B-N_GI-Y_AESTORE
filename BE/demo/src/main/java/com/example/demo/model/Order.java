@@ -31,7 +31,7 @@ public class Order {
             inverseJoinColumns = @JoinColumn(name = "CouponID")
     )
     private Set<Coupon> coupons;
-        @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderDetail> orderDetail;
 
 }

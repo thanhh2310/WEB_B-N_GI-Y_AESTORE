@@ -36,6 +36,12 @@ public class ApplicationInitConfig {
                 role.setName("ADMIN");
                 return roleRepository.save(role);
             });
+            
+             Role staffRole = roleRepository.findByName("STAFF").orElseGet(() -> {
+                Role role = new Role();
+                role.setName("STAFF");
+                return roleRepository.save(role);
+            });
 
             Role userRole = roleRepository.findByName("USER").orElseGet(() -> {
                 Role role = new Role();

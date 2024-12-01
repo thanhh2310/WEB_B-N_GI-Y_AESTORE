@@ -25,50 +25,61 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/productdetails")
 @RequiredArgsConstructor
 public class ProductDetailController {
+
     private final ProductDetailService productDetailService;
 
-    @PostMapping
-    public ApiResponse<ProductDetailResponse> createProduct(@PathVariable Integer idProduct, @PathVariable Integer idColor, @PathVariable Integer idSize) {
+    @PostMapping("/{idProduct}/{idColor}/{idSize}")
+    public ApiResponse<ProductDetailResponse> getProductDetail(@PathVariable Integer idProduct, @PathVariable Integer idColor, @PathVariable Integer idSize) {
         // Gọi service để tạo sản phẩm
-        ProductDetailResponse createdProduct = productDetailService.createProductDetail(idProduct,idColor,idSize);
+        ProductDetailResponse createdProduct = productDetailService.getProductDetailByColorAndSize(idProduct, idColor, idSize);
 
         // Tạo phản hồi ApiResponse
         return ApiResponse.<ProductDetailResponse>builder()
                 .code(1000)
-                .message("Product created successfully")
+                .message("tìm được sản phẩm "+createdProduct.getId())
                 .result(createdProduct)
                 .build();
     }
+
     @GetMapping
-    public ApiResponse<List<ProductDetail>> getAll(){
-        return ApiResponse.<List<ProductDetail>>builder()
+    public ApiResponse<List<ProductDetailResponse>> getAll() {
+        return ApiResponse.<List<ProductDetailResponse>>builder()
                 .message("Toàn bộ sản phẩm ")
                 .result(productDetailService.getAll())
                 .build();
     }
+
     @DeleteMapping
-    public ApiResponse<Void>delete(@PathVariable Integer id){
+    public ApiResponse<Void> delete(@PathVariable Integer id) {
         productDetailService.deleteProductDetail(id);
         return ApiResponse.<Void>builder()
                 .message("đã xóa")
                 .build();
     }
+
     @PatchMapping
-    public ApiResponse<ProductDetailResponse> update(@PathVariable Integer id,@RequestBody ProductDetailRequest request){
-        ProductDetailResponse productDetailResponse=productDetailService.updateProductDetail(id, request);
+    public ApiResponse<ProductDetailResponse> update(@PathVariable Integer id, @RequestBody ProductDetailRequest request) {
+        ProductDetailResponse productDetailResponse = productDetailService.updateProductDetail(id, request);
         return ApiResponse.<ProductDetailResponse>builder()
                 .message("Cập nhật thành công")
                 .result(productDetailResponse)
                 .build();
     }
+
     @GetMapping("/{id}")
-    public ApiResponse<ProductDetail> getProductById(@PathVariable Integer id) {
-        ProductDetail product=productDetailService.getProductDetailById(id);
-        return ApiResponse.<ProductDetail>builder()
+    public ApiResponse<ProductDetailResponse> getProductById(@PathVariable Integer id) {
+        ProductDetailResponse product = productDetailService.getProductDetailById(id);
+        return ApiResponse.<ProductDetailResponse>builder()
                 .result(product)
                 .message("Long an cut")
                 .build();
 
+    }
+    @PostMapping
+    public ApiResponse<ProductDetailResponse> create(@RequestBody ProductDetailRequest request){
+        return ApiResponse.<ProductDetailResponse>builder()
+                .result(productDetailService.create(request))
+                .build();
     }
 
 }

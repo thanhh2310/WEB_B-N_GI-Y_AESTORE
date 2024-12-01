@@ -6,6 +6,7 @@ package com.example.demo.respository;
 
 import com.example.demo.model.Color;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -14,4 +15,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface ColorRepository extends JpaRepository<Color, Integer> {
     List<Color>findByActiveTrue();
+    Optional<Color> findColorByName(String name);
 }

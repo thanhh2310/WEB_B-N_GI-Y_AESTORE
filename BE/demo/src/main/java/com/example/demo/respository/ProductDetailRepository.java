@@ -4,14 +4,17 @@
  */
 package com.example.demo.respository;
 
+import com.example.demo.model.Color;
 import com.example.demo.model.Product;
 import com.example.demo.model.ProductDetail;
+import com.example.demo.model.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -26,7 +29,7 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
     @Query(value = "SELECT * FROM product_detail pd WHERE pd.productid = :productId AND pd.price = (SELECT MIN(pd2.price) FROM product_detail pd2 WHERE pd2.productid = :productId)", nativeQuery = true)
     ProductDetail findMinPriceDetailByProductId(@Param("productId") Integer productId);
     List<ProductDetail>findByActiveTrue();
-    
     List<ProductDetail> findByProductIn(List<Product> products);
-
+    ProductDetail findByProductAndColorAndSize(Product product, Color color, Size size);
+    
 }

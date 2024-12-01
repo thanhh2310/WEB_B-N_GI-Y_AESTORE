@@ -17,7 +17,7 @@ import lombok.Data;
 public class CartDetailResponse {
 
     private Integer id;                  // ID của CartDetail
-    private ProductDetail productDetail; // Toàn bộ đối tượng ProductDetail
+    private Integer productDetailId; // Toàn bộ đối tượng ProductDetail
     private Integer quantity;
 
 }
