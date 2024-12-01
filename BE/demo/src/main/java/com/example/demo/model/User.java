@@ -52,8 +52,8 @@ public class User {
     @OneToMany(mappedBy = "user")
     private Set<Address> addresses;
 
-    @OneToMany(mappedBy = "user")
-    private Set<Cart> carts;
+    @OneToOne(mappedBy = "user")
+    private Cart carts;
 
     @OneToMany(mappedBy = "user")
     private Set<Order> orders;

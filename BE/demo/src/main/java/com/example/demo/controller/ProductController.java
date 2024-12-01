@@ -49,8 +49,11 @@ public class ProductController {
 
     // Lấy sản phẩm theo ID
     @GetMapping("/{id}")
-    public ApiResponse<Product> getProductById(@PathVariable Integer id) {
-        return ApiResponse.<Product>builder()
+    public ApiResponse<ProductResponse> getProductById(@PathVariable Integer id) {
+        ProductResponse product=productService.getById(id);
+        return ApiResponse.<ProductResponse>builder()
+                .result(product)
+                .message("Long an cut")
                 .build();
 
     }

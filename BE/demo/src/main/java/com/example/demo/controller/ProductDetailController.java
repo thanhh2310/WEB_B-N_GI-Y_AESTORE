@@ -5,6 +5,7 @@ import com.example.demo.dto.request.ProductRequest;
 import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.ProductDetailResponse;
 import com.example.demo.dto.response.ProductResponse;
+import com.example.demo.model.Product;
 import com.example.demo.model.ProductDetail;
 import com.example.demo.service.ProductDetailService;
 import jakarta.websocket.server.PathParam;
@@ -27,9 +28,9 @@ public class ProductDetailController {
     private final ProductDetailService productDetailService;
 
     @PostMapping
-    public ApiResponse<ProductDetailResponse> createProduct(@RequestBody ProductDetailRequest productRequest) {
+    public ApiResponse<ProductDetailResponse> createProduct(@PathVariable Integer idProduct, @PathVariable Integer idColor, @PathVariable Integer idSize) {
         // Gọi service để tạo sản phẩm
-        ProductDetailResponse createdProduct = productDetailService.createProductDetail(productRequest);
+        ProductDetailResponse createdProduct = productDetailService.createProductDetail(idProduct,idColor,idSize);
 
         // Tạo phản hồi ApiResponse
         return ApiResponse.<ProductDetailResponse>builder()
@@ -60,4 +61,14 @@ public class ProductDetailController {
                 .result(productDetailResponse)
                 .build();
     }
+    @GetMapping("/{id}")
+    public ApiResponse<ProductDetail> getProductById(@PathVariable Integer id) {
+        ProductDetail product=productDetailService.getProductDetailById(id);
+        return ApiResponse.<ProductDetail>builder()
+                .result(product)
+                .message("Long an cut")
+                .build();
+
+    }
+
 }

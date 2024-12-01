@@ -59,6 +59,6 @@ public class CartService {
 
 
     public Cart getCartByUserId(Integer userId) {
-        return cartRepository.findByUserId(userId);
+        return cartRepository.findByUser_UserId(userId);
     }
 }

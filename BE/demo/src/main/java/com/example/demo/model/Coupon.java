@@ -30,6 +30,6 @@ public class Coupon {
     @Column(unique = true)
     private String code;
 
-    @ManyToMany(mappedBy = "coupons")
-    private Set<OrderDetail> orderDetails;
+
+
 } 

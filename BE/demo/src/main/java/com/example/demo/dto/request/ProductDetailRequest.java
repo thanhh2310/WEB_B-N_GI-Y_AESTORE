@@ -21,7 +21,7 @@ import lombok.Data;
 @Builder
 public class ProductDetailRequest {
 
-    private Product product;  // Truyền trực tiếp đối tượng Product
+    private Integer productId;  // Truyền trực tiếp đối tượng Product
     private Color color;      // Truyền trực tiếp đối tượng Color
     private Size size;        // Truyền trực tiếp đối tượng Size
     private Image image;      // Truyền trực tiếp đối tượng Image
