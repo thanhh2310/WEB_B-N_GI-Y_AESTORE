@@ -6,6 +6,8 @@ package com.example.demo.service;
 
 import com.example.demo.dto.request.RoleRequest;
 import com.example.demo.dto.response.RoleResponse;
+import com.example.demo.exception.ErrorCode;
+import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.model.Role;
 import com.example.demo.respository.RoleRepository;
 import java.util.List;
@@ -37,13 +39,14 @@ public class RoleService {
 
     public List<Role> getAll() {
         // Lấy tất cả các Role từ cơ sở dữ liệu
-        return  roleRepository.findAll();
+        return roleRepository.findByActiveTrue();
 
         // Chuyển đổi danh sách Role thành danh sách RoleResponse và trả về
-       
     }
+//    public void update(Integer Id){
+//         Role role =roleRepository.findById(Id).orElseThrow(()->new WebErrorConfig(ErrorCode.ROLE_NOT_FOUND));
+//         if(!role.isActive()) throw new WebErrorConfig(ErrorCode.ROLE_NOT_FOUND);
+//         
+//    }
 
-    public void deleteByName(String  name) {
-        roleRepository.deleteByName(name);
-    }
 }

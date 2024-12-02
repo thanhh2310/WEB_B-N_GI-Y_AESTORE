@@ -17,6 +17,6 @@ public class Role {
     
     @Column(name = "Name", nullable = false, unique = true)
     private String name;
-
+    private boolean active=true;
   
 }

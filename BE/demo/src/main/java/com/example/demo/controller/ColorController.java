@@ -72,4 +72,13 @@ public class ColorController {
                 
                 .build();  // Trả về ApiResponse xác nhận đã xóa thành công hay không
     }
+     @PatchMapping("/moveon/{id}")
+    public ApiResponse<Void> moveOn(@PathVariable Integer id) {
+        colorService.moveOn(id);
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Color move on successfully")
+                
+                .build();  // Trả
+    }
 }

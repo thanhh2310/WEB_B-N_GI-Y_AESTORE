@@ -5,6 +5,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.request.UserRequest;
+import com.example.demo.dto.request.UserUpdateRequest;
 import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.UserResponse;
 import com.example.demo.model.User;
@@ -68,10 +69,19 @@ public class UserController {
         return ApiResponse.<String>builder().result("User has been deleted").build();
     }
 
-  //  @PutMapping("/{userId}")
-//    ApiResponse<UserResponse> updateUser(@PathVariable String userId, @RequestBody UserUpdateRequest request) {
-//        return ApiResponse.<UserResponse>builder()
-//                .result(userService.updateUser(userId, request))
-//                .build();
-//    }
+    @PutMapping("/{userId}")
+    ApiResponse<UserResponse> updateUser(@PathVariable Integer userId, @RequestBody UserUpdateRequest request) {
+        return ApiResponse.<UserResponse>builder()
+                .message("Succes update")
+                .result(userService.update(userId, request))
+                .build();
+    }
+      @PostMapping("/moveon/{userId}")
+    ApiResponse<Void> moveOn(@PathVariable Integer userId) {
+        userService.moveOn(userId);
+        return ApiResponse.<Void>builder()
+                .message("Succes update")
+                
+                .build();
+    }
 }

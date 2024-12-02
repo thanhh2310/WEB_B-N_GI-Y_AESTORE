@@ -4,37 +4,23 @@
  */
 package com.example.demo.dto.request;
 
-import jakarta.persistence.Column;
 import java.util.Date;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  *
  * @author Admin
  */
-@Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserRequest {
-
-    private String username;
-
-    private String password;
-
-    private String email;
+@Data
+public class UserUpdateRequest {
 
     private String phone;
-
-    
 
     private Date dob;
 
     private Character gender;
 
     private String fullName;
-
 }

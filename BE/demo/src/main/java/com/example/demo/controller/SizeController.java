@@ -51,7 +51,7 @@ public class SizeController {
     }
 
     // API để cập nhật Size
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ApiResponse<SizeResponse> update(@PathVariable Integer id, @RequestBody SizeRequest sizeRequest) {
         SizeResponse updatedSize = sizeService.update(id, sizeRequest);  // Gọi service để cập nhật Size
         return ApiResponse.<SizeResponse>builder()
