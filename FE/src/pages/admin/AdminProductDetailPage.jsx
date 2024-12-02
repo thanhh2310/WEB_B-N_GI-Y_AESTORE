@@ -6,27 +6,21 @@ import { toast } from 'react-hot-toast';
 const AdminProductDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [productDetails, setProductDetails] = useState([]);
+  const [variantsByColor, setVariantsByColor] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // Fetch product details
-  const fetchProductDetails = async () => {
+  // Fetch product variants grouped by color
+  const fetchProductVariants = async () => {
     try {
       setLoading(true);
-      // Sửa lại endpoint theo ProductDetailController
-      const response = await axios.get(`http://localhost:8081/saleShoes/productdetails/${id}`);
+      const response = await axios.get(`http://localhost:8081/saleShoes/productdetails/product/${id}/variants`);
       
       if (response.data?.result) {
-        // Đảm bảo dữ liệu trả về là mảng
-        const details = Array.isArray(response.data.result) ? response.data.result : [];
-        setProductDetails(details);
-      } else {
-        setProductDetails([]);
+        setVariantsByColor(response.data.result);
       }
     } catch (error) {
-      console.error('Error fetching product details:', error);
+      console.error('Error fetching product variants:', error);
       toast.error('Không thể tải chi tiết sản phẩm');
-      setProductDetails([]);
     } finally {
       setLoading(false);
     }
@@ -34,31 +28,41 @@ const AdminProductDetailPage = () => {
 
   useEffect(() => {
     if (id) {
-      fetchProductDetails();
+      fetchProductVariants();
     }
   }, [id]);
 
   // Toggle variant status
   const toggleVariantStatus = async (variantId) => {
     try {
-      const variant = productDetails.find(v => v.id === variantId);
+      const variant = Object.values(variantsByColor)
+        .flat()
+        .find(v => v.id === variantId);
+      
       if (!variant) return;
 
       const updatedVariant = {
-        productId: variant.product?.id,
-        colorId: variant.color?.id,
-        sizeId: variant.size?.id,
+        productId: variant.productId,
+        color: variant.color,
+        size: variant.size,
         quantity: variant.quantity,
+        price: variant.price,
+        description: variant.description,
         active: !variant.active
       };
 
       await axios.patch(`http://localhost:8081/saleShoes/productdetails/${variantId}`, updatedVariant);
       
-      setProductDetails(productDetails.map(v => 
-        v.id === variantId 
-          ? { ...v, active: !v.active }
-          : v
-      ));
+      // Cập nhật state local
+      setVariantsByColor(prev => {
+        const newState = { ...prev };
+        Object.keys(newState).forEach(color => {
+          newState[color] = newState[color].map(v => 
+            v.id === variantId ? { ...v, active: !v.active } : v
+          );
+        });
+        return newState;
+      });
 
       toast.success('Cập nhật trạng thái thành công');
     } catch (error) {
@@ -67,6 +71,7 @@ const AdminProductDetailPage = () => {
     }
   };
 
+  // Thêm loading state handler
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -87,32 +92,29 @@ const AdminProductDetailPage = () => {
         </button>
       </div>
 
-      {/* Product Variants Table */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6">
-          {productDetails.length === 0 ? (
-            <div className="text-center py-4 text-gray-500">
-              Không có biến thể sản phẩm nào
-            </div>
-          ) : (
+      {/* Product Variants By Color */}
+      {Object.entries(variantsByColor).map(([color, variants]) => (
+        <div key={color} className="bg-white rounded-lg shadow mb-6">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Màu: {color}</h2>
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50">
-                  <th className="text-left py-3 px-4">ID</th>
-                  <th className="text-left py-3 px-4">Color</th>
                   <th className="text-left py-3 px-4">Size</th>
                   <th className="text-center py-3 px-4">Quantity</th>
+                  <th className="text-center py-3 px-4">Price</th>
                   <th className="text-center py-3 px-4">Status</th>
                   <th className="text-center py-3 px-4">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {productDetails.map((variant) => (
+                {variants.map((variant) => (
                   <tr key={variant.id} className="border-b">
-                    <td className="py-4 px-4">{variant.id}</td>
-                    <td className="py-4 px-4">{variant.color?.name}</td>
-                    <td className="py-4 px-4">{variant.size?.name}</td>
+                    <td className="py-4 px-4">{variant.size}</td>
                     <td className="text-center py-4 px-4">{variant.quantity}</td>
+                    <td className="text-center py-4 px-4">
+                      {variant.price?.toLocaleString('vi-VN')}đ
+                    </td>
                     <td className="py-4 px-4">
                       <div className="flex justify-center">
                         <button
@@ -147,9 +149,9 @@ const AdminProductDetailPage = () => {
                 ))}
               </tbody>
             </table>
-          )}
+          </div>
         </div>
-      </div>
+      ))}
     </div>
   );
 };

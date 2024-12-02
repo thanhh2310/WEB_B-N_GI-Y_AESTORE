@@ -71,8 +71,10 @@ import com.example.demo.dto.response.ProductDetailResponse;
                 if (productDetail != null) {
                     // Thiết lập giá cho sản phẩm
                     productResponse.setMinPrice(productDetail.getPrice());
-                    // Thiết lập URL ảnh cho sản phẩm
-                    productResponse.setImageUrl(productDetail.getImage().getUrl());
+                    // Thiết lập URL ảnh cho sản phẩm nếu có
+                    if (productDetail.getImage() != null) {
+                        productResponse.setImageUrl(productDetail.getImage().getUrl());
+                    }
                 }
 
                 // Thêm sản phẩm vào danh sách kết quả

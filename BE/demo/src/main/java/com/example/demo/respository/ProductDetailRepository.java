@@ -31,5 +31,7 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
     List<ProductDetail>findByActiveTrue();
     List<ProductDetail> findByProductIn(List<Product> products);
     ProductDetail findByProductAndColorAndSize(Product product, Color color, Size size);
+    List<ProductDetail> findByProductIdOrderByColorId(Integer productId);
+    List<ProductDetail> findByProductIdAndColorIdOrderBySizeId(Integer productId, Integer colorId);
     
 }

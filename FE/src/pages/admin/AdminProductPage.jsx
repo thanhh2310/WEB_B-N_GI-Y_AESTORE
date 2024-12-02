@@ -16,13 +16,23 @@ const AdminProductPage = () => {
     minPrice: 0,
     active: true
   });
+  const [brands, setBrands] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [colors, setColors] = useState([]);
+  const [sizes, setSizes] = useState([]);
+  const [variants, setVariants] = useState([]);
 
   // Fetch products
   const fetchProducts = async () => {
     try {
       const response = await axios.get('http://localhost:8081/saleShoes/products');
       if (response.data?.result) {
-        setProducts(response.data.result);
+        // Đảm bảo active có giá trị mặc định
+        const productsWithActive = response.data.result.map(product => ({
+          ...product,
+          active: product.active ?? true // Nếu active là null/undefined thì mặc định là true
+        }));
+        setProducts(productsWithActive);
       }
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -43,12 +53,14 @@ const AdminProductPage = () => {
       const updatedProduct = {
         name: product.name,
         description: product.description,
-        minPrice: product.minPrice,
+        category: product.category,
+        brand: product.brand,
         active: !product.active
       };
 
       await axios.patch(`http://localhost:8081/saleShoes/products/${productId}`, updatedProduct);
       
+      // Cập nhật UI ngay lập tức
       setProducts(products.map(p => 
         p.id === productId 
           ? { ...p, active: !p.active }
@@ -59,56 +71,242 @@ const AdminProductPage = () => {
     } catch (error) {
       console.error('Error toggling product status:', error);
       toast.error('Không thể cập nhật trạng thái');
+      
+      // Fetch lại data nếu có lỗi
+      fetchProducts();
     }
   };
 
+  // Fetch brands, categories, colors, sizes
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [brandsRes, categoriesRes, colorsRes, sizesRes] = await Promise.all([
+          axios.get('http://localhost:8081/saleShoes/brands'),
+          axios.get('http://localhost:8081/saleShoes/category'),
+          axios.get('http://localhost:8081/saleShoes/colors'),
+          axios.get('http://localhost:8081/saleShoes/sizes')
+        ]);
+
+        setBrands(brandsRes.data?.result || []);
+        setCategories(categoriesRes.data?.result || []);
+        setColors(colorsRes.data?.result || []);
+        setSizes(sizesRes.data?.result || []);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast.error('Không thể tải dữ liệu');
+      }
+    };
+
+    fetchData();
+  }, []);
+
   // Create product modal
-  const CreateModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg w-96">
-        <h2 className="text-xl font-bold mb-4">Tạo sản phẩm mới</h2>
-        <form onSubmit={handleCreate}>
-          <input
-            type="text"
-            placeholder="Tên sản phẩm"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-2 border rounded-md mb-4"
-            required
-          />
-          <textarea
-            placeholder="Mô tả"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-4 py-2 border rounded-md mb-4"
-          />
-          <input
-            type="number"
-            placeholder="Giá"
-            value={formData.minPrice}
-            onChange={(e) => setFormData({ ...formData, minPrice: Number(e.target.value) })}
-            className="w-full px-4 py-2 border rounded-md mb-4"
-            required
-          />
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setShowCreateModal(false)}
-              className="px-4 py-2 border rounded-md"
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-black text-white rounded-md"
-            >
-              Tạo
-            </button>
-          </div>
-        </form>
+  const CreateModal = () => {
+    const [productForm, setProductForm] = useState({
+      name: '',
+      description: '',
+      minPrice: 0,
+      brandId: '',
+      categoryId: '',
+      active: true
+    });
+
+    const [selectedVariants, setSelectedVariants] = useState([
+      { colorId: '', sizeId: '', quantity: 1, price: 0 }
+    ]);
+
+    const handleAddVariant = () => {
+      setSelectedVariants([
+        ...selectedVariants,
+        { colorId: '', sizeId: '', quantity: 1, price: 0 }
+      ]);
+    };
+
+    const handleRemoveVariant = (index) => {
+      setSelectedVariants(selectedVariants.filter((_, i) => i !== index));
+    };
+
+    const handleVariantChange = (index, field, value) => {
+      const newVariants = [...selectedVariants];
+      newVariants[index][field] = value;
+      setSelectedVariants(newVariants);
+    };
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      try {
+        // Create product first
+        const productResponse = await axios.post('http://localhost:8081/saleShoes/products', productForm);
+        const productId = productResponse.data?.result?.id;
+
+        if (productId) {
+          // Create product details
+          await Promise.all(
+            selectedVariants.map(variant => 
+              axios.post('http://localhost:8081/saleShoes/productdetails', {
+                productId,
+                colorId: variant.colorId,
+                sizeId: variant.sizeId,
+                quantity: variant.quantity,
+                price: variant.price,
+                active: true
+              })
+            )
+          );
+
+          toast.success('Tạo sản phẩm thành công');
+          setShowCreateModal(false);
+          fetchProducts();
+        }
+      } catch (error) {
+        console.error('Error creating product:', error);
+        toast.error('Không thể tạo sản phẩm');
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="bg-white p-6 rounded-lg w-[800px] max-h-[90vh] overflow-y-auto">
+          <h2 className="text-xl font-bold mb-4">Tạo sản phẩm mới</h2>
+          <form onSubmit={handleSubmit}>
+            {/* Product Info */}
+            <div className="space-y-4 mb-6">
+              <input
+                type="text"
+                placeholder="Tên sản phẩm"
+                value={productForm.name}
+                onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                className="w-full px-4 py-2 border rounded-md"
+                required
+              />
+              <textarea
+                placeholder="Mô tả"
+                value={productForm.description}
+                onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+                className="w-full px-4 py-2 border rounded-md"
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <select
+                  value={productForm.brandId}
+                  onChange={(e) => setProductForm({ ...productForm, brandId: e.target.value })}
+                  className="px-4 py-2 border rounded-md"
+                  required
+                >
+                  <option value="">Chọn thương hiệu</option>
+                  {brands.map(brand => (
+                    <option key={brand.id} value={brand.id}>{brand.name}</option>
+                  ))}
+                </select>
+                <select
+                  value={productForm.categoryId}
+                  onChange={(e) => setProductForm({ ...productForm, categoryId: e.target.value })}
+                  className="px-4 py-2 border rounded-md"
+                  required
+                >
+                  <option value="">Chọn danh mục</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>{category.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Variants */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="font-semibold">Biến thể sản phẩm</h3>
+                <button
+                  type="button"
+                  onClick={handleAddVariant}
+                  className="px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200"
+                >
+                  Thêm biến thể
+                </button>
+              </div>
+
+              {selectedVariants.map((variant, index) => (
+                <div key={index} className="p-4 border rounded-md space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Biến thể {index + 1}</span>
+                    {selectedVariants.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveVariant(index)}
+                        className="text-red-500 hover:text-red-600"
+                      >
+                        Xóa
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <select
+                      value={variant.colorId}
+                      onChange={(e) => handleVariantChange(index, 'colorId', e.target.value)}
+                      className="px-4 py-2 border rounded-md"
+                      required
+                    >
+                      <option value="">Chọn màu sắc</option>
+                      {colors.map(color => (
+                        <option key={color.id} value={color.id}>{color.name}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={variant.sizeId}
+                      onChange={(e) => handleVariantChange(index, 'sizeId', e.target.value)}
+                      className="px-4 py-2 border rounded-md"
+                      required
+                    >
+                      <option value="">Chọn kích thước</option>
+                      {sizes.map(size => (
+                        <option key={size.id} value={size.id}>{size.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <input
+                      type="number"
+                      placeholder="Số lượng"
+                      value={variant.quantity}
+                      onChange={(e) => handleVariantChange(index, 'quantity', parseInt(e.target.value))}
+                      className="px-4 py-2 border rounded-md"
+                      min="1"
+                      required
+                    />
+                    <input
+                      type="number"
+                      placeholder="Giá"
+                      value={variant.price}
+                      onChange={(e) => handleVariantChange(index, 'price', parseFloat(e.target.value))}
+                      className="px-4 py-2 border rounded-md"
+                      min="0"
+                      required
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2 border rounded-md"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-black text-white rounded-md"
+              >
+                Tạo
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div>

@@ -28,4 +28,5 @@ public class ProductDetailRequest {
     private BigDecimal price; // Giá sản phẩm
     private String description; // Mô tả chi tiết
     private Integer quantity;
+
 }

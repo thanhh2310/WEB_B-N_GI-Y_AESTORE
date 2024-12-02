@@ -37,5 +37,6 @@ public class ProductDetail {
 
     @Column(nullable = false)
     private Integer quantity;
+
     private boolean active = true;
 }

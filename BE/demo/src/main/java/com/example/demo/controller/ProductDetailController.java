@@ -10,6 +10,7 @@ import com.example.demo.model.ProductDetail;
 import com.example.demo.service.ProductDetailService;
 import jakarta.websocket.server.PathParam;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -79,6 +80,29 @@ public class ProductDetailController {
     public ApiResponse<ProductDetailResponse> create(@RequestBody ProductDetailRequest request){
         return ApiResponse.<ProductDetailResponse>builder()
                 .result(productDetailService.create(request))
+                .build();
+    }
+
+    @GetMapping("/product/{productId}/color/{colorId}")
+    public ApiResponse<List<ProductDetailResponse>> getProductDetailsByColor(
+        @PathVariable Integer productId,
+        @PathVariable Integer colorId
+    ) {
+        List<ProductDetailResponse> details = productDetailService.getProductDetailsByColor(productId, colorId);
+        return ApiResponse.<List<ProductDetailResponse>>builder()
+                .result(details)
+                .message("Lấy danh sách biến thể theo màu thành công")
+                .build();
+    }
+
+    @GetMapping("/product/{productId}/variants")
+    public ApiResponse<Map<String, List<ProductDetailResponse>>> getProductVariantsByColor(
+        @PathVariable Integer productId
+    ) {
+        Map<String, List<ProductDetailResponse>> variants = productDetailService.getProductVariantsByColor(productId);
+        return ApiResponse.<Map<String, List<ProductDetailResponse>>>builder()
+                .result(variants)
+                .message("Lấy danh sách biến thể theo nhóm màu thành công")
                 .build();
     }
 

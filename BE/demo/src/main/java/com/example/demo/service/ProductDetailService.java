@@ -26,6 +26,7 @@ import java.util.List;
 import com.example.demo.respository.ProductRepository;
 import com.example.demo.respository.SizeRepository;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -126,4 +127,21 @@ public class ProductDetailService {
         // Trả về ProductDetailResponse đã được chuyển đổi
         return productDetailMapper.toProductDetailResponse(productDetail);
     }
+
+    public List<ProductDetailResponse> getProductDetailsByColor(Integer productId, Integer colorId) {
+        List<ProductDetail> details = productDetailRepository.findByProductIdAndColorIdOrderBySizeId(productId, colorId);
+        return details.stream()
+                .map(productDetailMapper::toProductDetailResponse)
+                .collect(Collectors.toList());
     }
+
+    public Map<String, List<ProductDetailResponse>> getProductVariantsByColor(Integer productId) {
+        List<ProductDetail> details = productDetailRepository.findByProductIdOrderByColorId(productId);
+        return details.stream()
+                .map(productDetailMapper::toProductDetailResponse)
+                .collect(Collectors.groupingBy(
+                    detail -> detail.getColor(),
+                    Collectors.toList()
+                ));
+    }
+}
