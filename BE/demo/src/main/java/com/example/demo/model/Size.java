@@ -6,12 +6,13 @@ import lombok.Data;
 @Data
 @Entity
 @Table(name = "Size")
-public class    Size {
+public class Size {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(nullable = false)
     private String name;
-    private boolean  active=true;
-} 
+    private boolean active = true;
+}

@@ -56,6 +56,7 @@ public class ProductDetailService {
         ProductDetail existingProductDetail = productDetailRepository.findById(id)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
         Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
+
         Color color = colorRepository.findColorByName(request.getColor()).orElseThrow(() -> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
         Size size = sizeRepository.findSizeByName(request.getSize()).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
 
@@ -106,6 +107,7 @@ public class ProductDetailService {
         // Tìm sản phẩm, màu sắc, và kích thước từ các ID
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
+
         Size size = sizeRepository.findSizeByName(request.getSize()).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
         Color color = colorRepository.findColorByName(request.getColor()).orElseThrow(() -> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
 
@@ -126,4 +128,4 @@ public class ProductDetailService {
         // Trả về ProductDetailResponse đã được chuyển đổi
         return productDetailMapper.toProductDetailResponse(productDetail);
     }
-    }
+}
