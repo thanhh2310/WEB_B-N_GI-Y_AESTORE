@@ -13,10 +13,9 @@ import com.example.demo.model.Category;
 import com.example.demo.respository.CategoryRepository;
 
 import java.util.List;
-import java.util.Optional;
+
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +42,10 @@ public class CategoryService {
     public List<Category> getAllCategories() {
         return categoryRespository.findByActiveTrue();
        
+    }
+
+    public List<Category> getAllIncludeInactive() {
+        return categoryRespository.findAllByActiveTrueOrActiveFalse();
     }
 
     // Read By ID

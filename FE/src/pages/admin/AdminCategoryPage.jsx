@@ -16,7 +16,7 @@ const AdminCategoryPage = () => {
   // Fetch categories
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:8081/saleShoes/category');
+      const response = await axios.get('http://localhost:8081/saleShoes/category/all');
       if (response.data?.result) {
         setCategories(response.data.result);
       }

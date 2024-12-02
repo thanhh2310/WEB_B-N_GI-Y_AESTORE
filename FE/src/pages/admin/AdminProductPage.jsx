@@ -88,10 +88,19 @@ const AdminProductPage = () => {
           axios.get('http://localhost:8081/saleShoes/sizes')
         ]);
 
-        setBrands(brandsRes.data?.result || []);
-        setCategories(categoriesRes.data?.result || []);
-        setColors(colorsRes.data?.result || []);
-        setSizes(sizesRes.data?.result || []);
+        // Log để debug
+        console.log('Brands:', brandsRes.data);
+        console.log('Categories:', categoriesRes.data);
+        console.log('Colors:', colorsRes.data);
+        console.log('Sizes:', sizesRes.data);
+
+        // Lọc chỉ lấy các item active
+        const activeFilter = items => items.filter(item => item.active);
+
+        setBrands(activeFilter(brandsRes.data?.result || []));
+        setCategories(activeFilter(categoriesRes.data?.result || []));
+        setColors(activeFilter(colorsRes.data?.result || []));
+        setSizes(activeFilter(sizesRes.data?.result || []));
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Không thể tải dữ liệu');
@@ -106,20 +115,19 @@ const AdminProductPage = () => {
     const [productForm, setProductForm] = useState({
       name: '',
       description: '',
-      minPrice: 0,
-      brandId: '',
-      categoryId: '',
+      brand: '',
+      category: '',
       active: true
     });
 
     const [selectedVariants, setSelectedVariants] = useState([
-      { colorId: '', sizeId: '', quantity: 1, price: 0 }
+      { color: '', size: '', quantity: 1, price: 0 }
     ]);
 
     const handleAddVariant = () => {
       setSelectedVariants([
         ...selectedVariants,
-        { colorId: '', sizeId: '', quantity: 1, price: 0 }
+        { color: '', size: '', quantity: 1, price: 0 }
       ]);
     };
 
@@ -137,7 +145,14 @@ const AdminProductPage = () => {
       e.preventDefault();
       try {
         // Create product first
-        const productResponse = await axios.post('http://localhost:8081/saleShoes/products', productForm);
+        const productResponse = await axios.post('http://localhost:8081/saleShoes/products', {
+          name: productForm.name,
+          description: productForm.description,
+          brand: brands.find(b => b.id === parseInt(productForm.brand)),
+          category: categories.find(c => c.id === parseInt(productForm.category)),
+          active: true
+        });
+
         const productId = productResponse.data?.result?.id;
 
         if (productId) {
@@ -145,9 +160,9 @@ const AdminProductPage = () => {
           await Promise.all(
             selectedVariants.map(variant => 
               axios.post('http://localhost:8081/saleShoes/productdetails', {
-                productId,
-                colorId: variant.colorId,
-                sizeId: variant.sizeId,
+                productId: productId,
+                color: colors.find(c => c.id === parseInt(variant.color))?.name,
+                size: sizes.find(s => s.id === parseInt(variant.size))?.name,
                 quantity: variant.quantity,
                 price: variant.price,
                 active: true
@@ -187,28 +202,42 @@ const AdminProductPage = () => {
                 className="w-full px-4 py-2 border rounded-md"
               />
               <div className="grid grid-cols-2 gap-4">
-                <select
-                  value={productForm.brandId}
-                  onChange={(e) => setProductForm({ ...productForm, brandId: e.target.value })}
-                  className="px-4 py-2 border rounded-md"
-                  required
-                >
-                  <option value="">Chọn thương hiệu</option>
-                  {brands.map(brand => (
-                    <option key={brand.id} value={brand.id}>{brand.name}</option>
-                  ))}
-                </select>
-                <select
-                  value={productForm.categoryId}
-                  onChange={(e) => setProductForm({ ...productForm, categoryId: e.target.value })}
-                  className="px-4 py-2 border rounded-md"
-                  required
-                >
-                  <option value="">Chọn danh mục</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>{category.name}</option>
-                  ))}
-                </select>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Thương hiệu
+                  </label>
+                  <select
+                    value={productForm.brand}
+                    onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-md"
+                    required
+                  >
+                    <option value="">Chọn thương hiệu</option>
+                    {brands.map(brand => (
+                      <option key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Danh mục
+                  </label>
+                  <select
+                    value={productForm.category}
+                    onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-md"
+                    required
+                  >
+                    <option value="">Chọn danh mục</option>
+                    {categories.map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -241,8 +270,8 @@ const AdminProductPage = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <select
-                      value={variant.colorId}
-                      onChange={(e) => handleVariantChange(index, 'colorId', e.target.value)}
+                      value={variant.color || ''}
+                      onChange={(e) => handleVariantChange(index, 'color', e.target.value)}
                       className="px-4 py-2 border rounded-md"
                       required
                     >
@@ -252,8 +281,8 @@ const AdminProductPage = () => {
                       ))}
                     </select>
                     <select
-                      value={variant.sizeId}
-                      onChange={(e) => handleVariantChange(index, 'sizeId', e.target.value)}
+                      value={variant.size || ''}
+                      onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
                       className="px-4 py-2 border rounded-md"
                       required
                     >
@@ -264,29 +293,38 @@ const AdminProductPage = () => {
                     </select>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <input
-                      type="number"
-                      placeholder="Số lượng"
-                      value={variant.quantity}
-                      onChange={(e) => handleVariantChange(index, 'quantity', parseInt(e.target.value))}
-                      className="px-4 py-2 border rounded-md"
-                      min="1"
-                      required
-                    />
-                    <input
-                      type="number"
-                      placeholder="Giá"
-                      value={variant.price}
-                      onChange={(e) => handleVariantChange(index, 'price', parseFloat(e.target.value))}
-                      className="px-4 py-2 border rounded-md"
-                      min="0"
-                      required
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Số lượng
+                      </label>
+                      <input
+                        type="number"
+                        value={variant.quantity}
+                        onChange={(e) => handleVariantChange(index, 'quantity', parseInt(e.target.value))}
+                        className="px-4 py-2 border rounded-md w-full"
+                        min="1"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Giá (VNĐ)
+                      </label>
+                      <input
+                        type="number"
+                        value={variant.price}
+                        onChange={(e) => handleVariantChange(index, 'price', parseFloat(e.target.value))}
+                        className="px-4 py-2 border rounded-md w-full"
+                        min="0"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
 
+            {/* Buttons */}
             <div className="flex justify-end gap-2 mt-6">
               <button
                 type="button"

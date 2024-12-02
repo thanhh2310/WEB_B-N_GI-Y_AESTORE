@@ -39,6 +39,16 @@ public class CategoryController {
                 .build();  // Trả về ApiResponse với danh sách tất cả các màu sắc
     }
 
+    @GetMapping("/all")
+    public ApiResponse<List<Category>> getAllIncludeInactive() {
+        List<Category> colors = categoryService.getAllIncludeInactive();  // Gọi service để lấy tất cả Color
+        return ApiResponse.<List<Category>>builder()
+                .code(200)
+                .message("All cate fetched successfully")
+                .result(colors)
+                .build();
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<CategoryResponse> getCategoryById(@PathVariable Integer id) {
        CategoryResponse categoryResponse=categoryService.getCategoryById(id);

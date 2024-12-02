@@ -8,6 +8,8 @@ const AdminProductDetailPage = () => {
   const { id } = useParams();
   const [variantsByColor, setVariantsByColor] = useState({});
   const [loading, setLoading] = useState(true);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingVariant, setEditingVariant] = useState(null);
 
   // Fetch product variants grouped by color
   const fetchProductVariants = async () => {
@@ -69,6 +71,128 @@ const AdminProductDetailPage = () => {
       console.error('Error toggling variant status:', error);
       toast.error('Không thể cập nhật trạng thái');
     }
+  };
+
+  // Edit Modal Component
+  const EditModal = () => {
+    const [editForm, setEditForm] = useState({
+      price: editingVariant?.price || 0,
+      quantity: editingVariant?.quantity || 0
+    });
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      try {
+        const updatedVariant = {
+          productId: editingVariant.productId,
+          color: editingVariant.color,
+          size: editingVariant.size,
+          quantity: editForm.quantity,
+          price: editForm.price,
+          description: editingVariant.description,
+          active: editingVariant.active
+        };
+
+        await axios.patch(
+          `http://localhost:8081/saleShoes/productdetails/${editingVariant.id}`, 
+          updatedVariant
+        );
+
+        // Cập nhật state local
+        setVariantsByColor(prev => {
+          const newState = { ...prev };
+          Object.keys(newState).forEach(color => {
+            newState[color] = newState[color].map(v => 
+              v.id === editingVariant.id 
+                ? { ...v, price: editForm.price, quantity: editForm.quantity }
+                : v
+            );
+          });
+          return newState;
+        });
+
+        toast.success('Cập nhật thành công');
+        setShowEditModal(false);
+      } catch (error) {
+        console.error('Error updating variant:', error);
+        toast.error('Không thể cập nhật biến thể');
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="bg-white p-6 rounded-lg w-96">
+          <h2 className="text-xl font-bold mb-4">Cập nhật biến thể</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Màu sắc
+                </label>
+                <input
+                  type="text"
+                  value={editingVariant?.color}
+                  disabled
+                  className="mt-1 px-4 py-2 w-full border rounded-md bg-gray-50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Kích thước
+                </label>
+                <input
+                  type="text"
+                  value={editingVariant?.size}
+                  disabled
+                  className="mt-1 px-4 py-2 w-full border rounded-md bg-gray-50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Số lượng
+                </label>
+                <input
+                  type="number"
+                  value={editForm.quantity}
+                  onChange={(e) => setEditForm({ ...editForm, quantity: parseInt(e.target.value) })}
+                  min="0"
+                  className="mt-1 px-4 py-2 w-full border rounded-md"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Giá
+                </label>
+                <input
+                  type="number"
+                  value={editForm.price}
+                  onChange={(e) => setEditForm({ ...editForm, price: parseFloat(e.target.value) })}
+                  min="0"
+                  className="mt-1 px-4 py-2 w-full border rounded-md"
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 border rounded-md"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-black text-white rounded-md"
+              >
+                Cập nhật
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
   };
 
   // Thêm loading state handler
@@ -136,7 +260,8 @@ const AdminProductDetailPage = () => {
                         <button 
                           className="p-1 hover:text-blue-600"
                           onClick={() => {
-                            // Handle edit variant
+                            setEditingVariant(variant);
+                            setShowEditModal(true);
                           }}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -152,6 +277,9 @@ const AdminProductDetailPage = () => {
           </div>
         </div>
       ))}
+
+      {/* Modal */}
+      {showEditModal && <EditModal />}
     </div>
   );
 };
