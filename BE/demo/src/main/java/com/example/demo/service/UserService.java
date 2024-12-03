@@ -10,8 +10,10 @@ import com.example.demo.dto.response.UserResponse;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.mapper.UserMapper;
+import com.example.demo.model.Cart;
 import com.example.demo.model.Role;
 import com.example.demo.model.User;
+import com.example.demo.respository.CartRepository;
 import com.example.demo.respository.RoleRepository;
 import com.example.demo.respository.UserRepository;
 import java.util.HashSet;
@@ -32,25 +34,38 @@ import org.springframework.stereotype.Service;
 @Slf4j
 
 public class UserService {
-    
+
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
+    private final CartRepository cartRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
 
     // Tạo người dùng mới
     public UserResponse createUser(UserRequest request) {
+        // Tạo đối tượng User từ request
         User user = userMapper.toUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword())); // Mã hóa mật khẩu
 
+        // Tìm role USER
         Optional<Role> userRole = roleRepository.findByName("USER");
-        
         HashSet<Role> roles = new HashSet<>();
         roles.add(userRole.get()); // Thêm role vào set
         user.setRoles(roles);  // Gán roles cho user
 
+        // Lưu User vào cơ sở dữ liệu trước
         user = userRepository.save(user);
-        
+
+        // Tạo đối tượng Cart và liên kết với User đã lưu
+        Cart cart = new Cart();
+        cart.setUser(user);  // Gán user vào cart
+        cartRepository.save(cart);  // Lưu Cart vào cơ sở dữ liệu
+
+        // Cập nhật lại User với Cart nếu cần thiết
+        user.setCart(cart);  // Liên kết Cart với User
+        user = userRepository.save(user);  // Cập nhật lại User với Cart
+
+        // Trả về thông tin User
         return userMapper.toUserResponse(user);
     }
 
@@ -58,11 +73,11 @@ public class UserService {
     public void deleteUser(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
-        
+
         if (!user.isActive()) {
             throw new WebErrorConfig(ErrorCode.USER_NOT_FOUND);  // Nếu người dùng đã bị xóa mềm
         }
-        
+
         user.setActive(false);  // Đánh dấu người dùng là không hoạt động
         userRepository.save(user);  // Lưu thay đổi
     }
@@ -71,7 +86,7 @@ public class UserService {
     public void moveOn(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
-        
+
         user.setActive(true);  // Kích hoạt người dùng
         userRepository.save(user);  // Lưu thay đổi
     }
@@ -85,7 +100,9 @@ public class UserService {
     public UserResponse getUser(Integer id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
-        if(!user.isActive()) throw new WebErrorConfig(ErrorCode.USER_NOT_FOUND);
+        if (!user.isActive()) {
+            throw new WebErrorConfig(ErrorCode.USER_NOT_FOUND);
+        }
         return userMapper.toUserResponse(user);
     }
 

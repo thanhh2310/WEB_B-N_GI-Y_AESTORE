@@ -18,9 +18,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CartDetailService {
 
     private final CartDetailRepository cartItemRepository;
@@ -32,11 +34,13 @@ public class CartDetailService {
     public void addItemToCart(Integer cartId, Integer productDetailId, int quantity) {
 
         Cart cart = cartService.getCart(cartId);
-        ProductDetailResponse productDetailResponse = productDetailService.getProductDetailById(productDetailId);
-        ProductDetail productDetail=productDetailRepository.findById(productDetailResponse.getId()).orElseThrow(()->new WebErrorConfig(ErrorCode.PRODUCTDETAIL_NOT_FOUND));
+       
+        ProductDetail productDetail=productDetailRepository.findById(productDetailId).orElseThrow(()->new WebErrorConfig(ErrorCode.PRODUCTDETAIL_NOT_FOUND));
+        log.info(productDetail.getProduct().getName());
+       
         CartDetail cartDetail = cart.getItems()
                 .stream()
-                .filter(item -> item.getProductDetail().getId().equals(productDetail))
+                .filter(item -> item.getProductDetail().getId().equals(productDetailId))
                 .findFirst()
                 .orElse(new CartDetail());
 

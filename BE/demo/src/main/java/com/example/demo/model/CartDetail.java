@@ -28,6 +28,7 @@ public class CartDetail {
     @JoinColumn(name = "productDetail_id")
     private ProductDetail productDetail;
 
+   
     @JsonIgnore
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "cart_id")

@@ -1,5 +1,7 @@
 package com.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.util.Date;
@@ -53,7 +55,8 @@ public class User {
     private Set<Address> addresses;
 
     @OneToOne(mappedBy = "user")
-    private Cart carts;
+   @JsonBackReference
+    private Cart cart;
 
     @OneToMany(mappedBy = "user")
     private Set<Order> orders;

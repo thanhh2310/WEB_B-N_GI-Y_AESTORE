@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+
 @RestController
 @RequestMapping("/cartdetails")
 @RequiredArgsConstructor
@@ -26,34 +27,33 @@ public class CartDetailController {
     private final CartService cartService;
 
     // Thêm item vào giỏ hàng
-    @PostMapping("/item/add")
-    public ApiResponse addItemToCart(@RequestParam(required = false) Integer cartId,
-            @RequestParam Integer productId,
-            @RequestParam Integer quantity) {
-        try {
-            // Nếu cartId không được cung cấp, khởi tạo cart mới
-            if (cartId == null) {
-                cartId = cartService.initializeNewCart();
-            }
-            // Thêm item vào giỏ hàng
-            cartDetailService.addItemToCart(cartId, productId, quantity);
-
-            // Trả về phản hồi thành công
-            return ApiResponse.<Void>builder()
-                    .message("Add Item Success")
-                    .build();
-
-        } catch (WebErrorConfig e) {
-            // Nếu gặp lỗi không tìm thấy tài nguyên, trả về thông báo lỗi
-            return ApiResponse.<Void>builder()
-                    .message(e.getMessage())
-                    .build();
+    @PostMapping("/abvc")
+     public String test(){
+        return "ok";
+}
+    @PostMapping("/item/add/{productDetailId}/{quantity}")
+    public ApiResponse addItemToCart(
+            @PathVariable Integer productDetailId,
+            @PathVariable Integer quantity,
+            @RequestParam(required = false) Integer cartId) {
+        
+        // Nếu cartId không được cung cấp, khởi tạo cart mới
+        if (cartId == null) {
+            cartId = cartService.initializeNewCart();
         }
+        // Thêm item vào giỏ hàng
+        cartDetailService.addItemToCart(cartId, productDetailId, quantity);
+
+        // Trả về phản hồi thành công
+        return ApiResponse.<Void>builder()
+                .message("Add Item Success")
+                .build();
     }
+
 
     // Xóa item khỏi giỏ hàng
     @DeleteMapping("/cart/{cartId}/item/{itemId}/remove")
-    public ApiResponse removeItemFromCart(@PathVariable Integer cartId, @PathVariable Integer itemId) {
+    public ApiResponse<Void> removeItemFromCart(@PathVariable Integer cartId, @PathVariable Integer itemId) {
         try {
             // Xóa item khỏi giỏ hàng
             cartDetailService.removeItemFromCart(cartId, itemId);
