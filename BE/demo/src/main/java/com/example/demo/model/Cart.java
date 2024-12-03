@@ -9,10 +9,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
 
 @Data
 @Entity
 @Table(name = "Cart")
+@EqualsAndHashCode(exclude = {"user"}) 
 public class Cart {
 
     @Id

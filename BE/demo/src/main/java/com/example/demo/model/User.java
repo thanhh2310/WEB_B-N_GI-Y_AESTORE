@@ -7,11 +7,12 @@ import lombok.Data;
 import java.util.Date;
 import java.util.Set;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 
 @Data
 @Entity
 @Table(name = "User")
-
+@EqualsAndHashCode(exclude = {"cart", "roles"})
 public class User {
 
     @Id
@@ -54,7 +55,7 @@ public class User {
     @OneToMany(mappedBy = "user")
     private Set<Address> addresses;
 
-    @OneToOne(mappedBy = "user")
+     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
    @JsonBackReference
     private Cart cart;
 

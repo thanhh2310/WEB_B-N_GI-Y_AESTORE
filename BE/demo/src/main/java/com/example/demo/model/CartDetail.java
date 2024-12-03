@@ -1,5 +1,6 @@
 package com.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
@@ -7,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 
 @Data
 @Entity
@@ -14,6 +16,7 @@ import lombok.AllArgsConstructor;
 @Builder
 @NoArgsConstructor  // Thêm constructor mặc định
 @AllArgsConstructor // Constructor có tham số
+@EqualsAndHashCode(exclude = {"cart"}) 
 public class CartDetail {
 
     @Id
@@ -29,8 +32,8 @@ public class CartDetail {
     private ProductDetail productDetail;
 
    
-    @JsonIgnore
-    @ManyToOne(cascade = CascadeType.ALL)
+      @JsonBackReference
+     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "cart_id")
     private Cart cart;
 
