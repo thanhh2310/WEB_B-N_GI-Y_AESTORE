@@ -78,5 +78,10 @@ public class ColorService {
         color.setActive(true);
         colorRepository.save(color);
     }
+     public List<Color> getAllColorsForAdmin() {
+
+        return colorRepository.findAll();
+
+    }
 
 }

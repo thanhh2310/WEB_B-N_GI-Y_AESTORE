@@ -65,11 +65,20 @@ public ApiResponse<List<Brand>> getAll() {
                 .message("Da xoa thanh cong")
                 .build();
     }
-    @PostMapping("moveon/{id}")
-    public ApiResponse<Void> MmoveOn(@PathVariable Integer id) {
-        brandService.delete(id);
+    @PostMapping("/moveon/{id}")
+    public ApiResponse<Void> moveOn(@PathVariable Integer id) {
+        brandService.moveOn(id);
         return ApiResponse.<Void>builder()
                 .message("moveon")
                 .build();
+    }
+    @GetMapping("/admin")
+    public ApiResponse<List<Brand>> getAllForAdmin() {
+        List<Brand> brands = brandService.getAllBrandsForAdmin();  // Gọi service để lấy tất cả Color
+        return ApiResponse.<List<Brand>>builder()
+                .code(200)
+                .message("All brands fetched successfully")
+                .result(brands)
+                .build();  // Trả về ApiResponse với danh sách tất cả các màu sắc
     }
 }

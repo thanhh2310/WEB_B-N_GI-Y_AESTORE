@@ -78,4 +78,7 @@ public class BrandService {
         brand.setActive(true);
         brandRepository.save(brand);
     }
+      public List<Brand> getAllBrandsForAdmin() {
+        return brandRepository.findAll();
+    }
 }

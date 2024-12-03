@@ -8,10 +8,18 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+import org.springframework.data.repository.query.Param;
 
 @Repository
+
 public interface ProductRepository extends JpaRepository<Product, Integer> {
-    List<Product>findByActiveTrue();
-    
+
+    List<Product> findByActiveTrue();
+
+    Optional<Product> findByName(String name);
+
+    @Query(value = "SELECT * FROM product WHERE LOWER(name) LIKE LOWER(CONCAT('%', :name, '%')) AND active = 1", nativeQuery = true)
+    List<Product> findActiveProductsByName(@Param("name") String name);
 
 }

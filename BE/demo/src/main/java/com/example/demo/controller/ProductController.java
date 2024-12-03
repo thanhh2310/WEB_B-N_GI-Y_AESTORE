@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.request.ProductRequest;
 import com.example.demo.dto.response.ApiResponse;
+import com.example.demo.dto.response.ProductDetailResponse;
 import com.example.demo.dto.response.ProductResponse;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.exception.WebErrorConfig;
@@ -46,6 +47,15 @@ public class ProductController {
                 .result(products)
                 .build();  // Trả về ApiResponse với danh sách tất cả các sản phẩm
     }
+    @GetMapping("/admin")
+    public ApiResponse<List<ProductResponse>> getAllForAdmin() {
+        List<ProductResponse> products = productService.getAllForAdmin();  // Gọi service để lấy tất cả Color
+        return ApiResponse.<List<ProductResponse>>builder()
+                .code(200)
+                .message("All product fetched successfully")
+                .result(products)
+                .build();  // Trả về ApiResponse với danh sách tất cả các sản phẩm
+    }
 
     // Lấy sản phẩm theo ID
     @GetMapping("/{id}")
@@ -79,11 +89,43 @@ public class ProductController {
                 .build();
     }
 
-    @PostMapping("/move/{id}")
+    @PostMapping("/moveon/{id}")
     public ApiResponse<Void> moveOn(@PathVariable Integer id) {
         productService.moveOn(id);
         return ApiResponse.<Void>builder()
                 .message("move on succes")
                 .build();
     }
+
+    @GetMapping("/productdetails/{id}")
+    public ApiResponse<List<ProductDetailResponse>> getAllProductDetail(@PathVariable Integer id) {
+        List<ProductDetailResponse> products = productService.getAllProductDetailResponses(id);  // Gọi service để lấy tất cả Color
+        return ApiResponse.<List<ProductDetailResponse>>builder()
+                .code(200)
+                .message("All product fetched successfully")
+                .result(products)
+                .build();  // Trả về ApiResponse với danh sách tất cả các sản phẩm
+    }
+    @GetMapping("/name/{name}")
+    public ApiResponse<List<ProductResponse>> getAllProductByName(@PathVariable String name) { 
+        List<ProductResponse> products = productService.getProductByName(name);  // Gọi service để lấy tất cả Color
+        
+        return ApiResponse.<List<ProductResponse>>builder()
+                .code(200)
+                .message("All product fetched successfully")
+                .result(products)
+                .build();  // Trả về ApiResponse với danh sách tất cả các sản phẩm
+    }
+    @GetMapping("/test")
+    public ApiResponse<List<Product>> getAllProductByName1(@RequestBody String name) {
+        List<Product> products = productService.getProductByName1(name);  // Gọi service để lấy tất cả Color
+        return ApiResponse.<List<Product>>builder()
+                .code(200)
+                .message("All product fetched successfully")
+                .result(products)
+                .build();  // Trả về ApiResponse với danh sách tất cả các sản phẩm
+    }
+    
+    
+
 }

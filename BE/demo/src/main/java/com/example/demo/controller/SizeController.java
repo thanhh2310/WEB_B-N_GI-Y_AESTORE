@@ -64,11 +64,30 @@ public class SizeController {
     // API để xóa Size
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Integer id) {
- 
+        sizeService.delete(id);
         return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Đã xóa thành công")
          
                 .build();  // Trả về ApiResponse xác nhận đã xóa thành công hay không
     }
+    @PostMapping("/moveon/{id}")
+     public ApiResponse<Void> moveon(@PathVariable Integer id) {
+        sizeService.moveOn(id);
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Đã cập nhật thành công")
+         
+                .build();  // Trả về ApiResponse xác nhận đã xóa thành công hay không
+    }
+    @GetMapping("/admin")
+     public ApiResponse<List<Size>> getAllForAdmin() {
+        List<Size> sizes = sizeService.getAllSizesForAdmin();  // Gọi service để lấy tất cả Size
+        return ApiResponse.<List<Size>>builder()
+                .code(200)
+                .message("All sizes fetched successfully")
+                .result(sizes)
+                .build();  // Trả về ApiResponse với danh sách tất cả các kích thước
+    }
+    
 }

@@ -32,8 +32,13 @@ public class SizeService {
     }
 
     // Lấy tất cả các kích thước
-    public List<Size> getAllSizes() {
+    public List<Size> getAllSizesForAdmin() {
         return sizeRepository.findAll();  // Lấy tất cả các Size từ cơ sở dữ liệu
+
+    }
+    
+    public List<Size> getAllSizes (){
+        return sizeRepository.findByActiveTrue();  // Lấy tất cả các Size từ cơ sở dữ liệu
 
     }
 
@@ -57,6 +62,11 @@ public class SizeService {
     public void delete(Integer id) {
         Size size = sizeRepository.findById(id).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));  // Tìm kích thước theo ID
         size.setActive(false);
+        sizeRepository.save(size);
+    }
+    public void moveOn(Integer id) {
+        Size size = sizeRepository.findById(id).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));  // Tìm kích thước theo ID
+        size.setActive(true);
         sizeRepository.save(size);
     }
 }

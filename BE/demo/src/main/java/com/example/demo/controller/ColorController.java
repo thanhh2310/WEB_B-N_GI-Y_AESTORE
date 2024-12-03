@@ -72,7 +72,7 @@ public class ColorController {
                 
                 .build();  // Trả về ApiResponse xác nhận đã xóa thành công hay không
     }
-     @PatchMapping("/moveon/{id}")
+     @PostMapping("/moveon/{id}")
     public ApiResponse<Void> moveOn(@PathVariable Integer id) {
         colorService.moveOn(id);
         return ApiResponse.<Void>builder()
@@ -80,5 +80,14 @@ public class ColorController {
                 .message("Color move on successfully")
                 
                 .build();  // Trả
+    }
+    @GetMapping("/admin")
+     public ApiResponse<List<Color>> getAllForAdmin() {
+        List<Color> colors = colorService.getAllColorsForAdmin();  // Gọi service để lấy tất cả Color
+        return ApiResponse.<List<Color>>builder()
+                .code(200)
+                .message("All colors fetched successfully")
+                .result(colors)
+                .build();  // Trả về ApiResponse với danh sách tất cả các màu sắc
     }
 }

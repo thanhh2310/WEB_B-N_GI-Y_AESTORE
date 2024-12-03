@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/category")
+@RequestMapping("/categories")
 public class CategoryController {
 
     @Autowired
@@ -39,8 +39,8 @@ public class CategoryController {
                 .build();  // Trả về ApiResponse với danh sách tất cả các màu sắc
     }
 
-    @GetMapping("/all")
-    public ApiResponse<List<Category>> getAllIncludeInactive() {
+    @GetMapping("/admin")
+    public ApiResponse<List<Category>> getAllForAdmin() {
         List<Category> colors = categoryService.getAllIncludeInactive();  // Gọi service để lấy tất cả Color
         return ApiResponse.<List<Category>>builder()
                 .code(200)
@@ -88,6 +88,7 @@ public class CategoryController {
                 
                 .build();
     }
+    
 }
     
     
