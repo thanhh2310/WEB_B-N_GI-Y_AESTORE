@@ -29,7 +29,7 @@ public class CartService {
    
     public Cart getCart(Integer id) {
         Cart cart = cartRepository.findById(id)
-                .orElseThrow(() -> new WebErrorConfig(ErrorCode.CARTITEM_NOT_FOUND));
+                .orElseThrow(() -> new WebErrorConfig(ErrorCode.CART_NOT_FOUND));
         BigDecimal totalAmount = cart.getTotalAmount();
         cart.setTotalAmount(totalAmount);
         return cartRepository.save(cart);

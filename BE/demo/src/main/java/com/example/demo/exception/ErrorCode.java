@@ -15,8 +15,8 @@ public enum ErrorCode {
     CATEGORY_NOT_FOUND(1012,"Khong tim thay category"),
     NOT_ENOUGH_QUANTITY(1009,"Không đủ sản phẩm trong kho"),
     ROLE_NOT_FOUND(1011,"không tồn tại role này"),
-    PRODUCTDETAIL_NOT_FOUND(1010,"Không có sản phẩm này");
-  
+    PRODUCTDETAIL_NOT_FOUND(1010,"Không có sản phẩm này"),
+    CART_NOT_FOUND(1015,"Không tồn tại giỏ hàng này");  
 
     private final int code;
     private final String message;

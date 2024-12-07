@@ -33,35 +33,58 @@ public class CartDetailService {
 
     public void addItemToCart(Integer cartId, Integer productDetailId, int quantity) {
 
-        Cart cart = cartService.getCart(cartId);
-       
-        ProductDetail productDetail=productDetailRepository.findById(productDetailId).orElseThrow(()->new WebErrorConfig(ErrorCode.PRODUCTDETAIL_NOT_FOUND));
-        log.info(productDetail.getProduct().getName());
-       
-        CartDetail cartDetail = cart.getItems()
-                .stream()
-                .filter(item -> item.getProductDetail().getId().equals(productDetailId))
-                .findFirst()
-                .orElse(new CartDetail());
-
-        if (cartDetail.getId() == null) {
-            cartDetail.setCart(cart);
-            cartDetail.setProductDetail(productDetail);
-            cartDetail.setQuantity(quantity);
-            cartDetail.setUnitPrice(productDetail.getPrice());
-        } else {
-            cartDetail.setQuantity(cartDetail.getQuantity() + quantity);
-        }
-        cartDetail.setTotalPrice();
-        cart.addItem(cartDetail);
-        cartItemRepository.save(cartDetail);
-        cartRepository.save(cart);
+//        Cart cart = cartService.getCart(cartId);
+//       
+//        ProductDetail productDetail=productDetailRepository.findById(productDetailId).orElseThrow(()->new WebErrorConfig(ErrorCode.PRODUCTDETAIL_NOT_FOUND));
+//        log.info(productDetail.getProduct().getName());
+//       
+//        CartDetail cartDetail = cart.getItems()
+//                .stream()
+//                .filter(item -> item.getProductDetail().getId().equals(productDetailId))
+//                .findFirst()
+//                .orElse(new CartDetail());
+//
+//        if (cartDetail.getId() == null) {
+//            cartDetail.setCart(cart);
+//            cartDetail.setProductDetail(productDetail);
+//            cartDetail.setQuantity(quantity);
+//            cartDetail.setUnitPrice(productDetail.getPrice());
+//        } else {
+//            cartDetail.setQuantity(cartDetail.getQuantity() + quantity);
+//        }
+//        cartDetail.setTotalPrice();
+//        cart.addItem(cartDetail);
+//        cartItemRepository.save(cartDetail);
+//        cartRepository.save(cart);
+//    
+    Cart cart =cartService.getCart(cartId);
+    ProductDetail productDetail=productDetailRepository.findById(productDetailId).orElseThrow(()->new WebErrorConfig(ErrorCode.PRODUCTDETAIL_NOT_FOUND));
+    CartDetail cartDetail=cart.getItems().stream()
+            .filter(item->item.getId().equals(productDetailId))
+            .findFirst()
+            .orElse(new CartDetail());
+    if(cartDetail.getId()==null){
+        cartDetail.setCart(cart);
+        cartDetail.setProductDetail(productDetail);
+        cartDetail.setQuantity(quantity);
+        cartDetail.setUnitPrice(productDetail.getPrice());
+    }else{
+        cartDetail.setQuantity(cartDetail.getQuantity()+quantity);
+    }
+    cartDetail.setTotalPrice();
+    cart.addItem(cartDetail);
+    cartItemRepository.save(cartDetail);
+    cartRepository.save(cart);
+    
+            
+    
     }
 
     public void removeItemFromCart(Integer cartId, Integer productId) {
         Cart cart = cartService.getCart(cartId);
         CartDetail itemToRemove = getCartItem(cartId, productId);
         cart.removeItem(itemToRemove);
+        cartItemRepository.delete(itemToRemove);
         cartRepository.save(cart);
     }
 
