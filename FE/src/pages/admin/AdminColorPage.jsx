@@ -2,100 +2,100 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
-const AdminBrandPage = () => {
+const AdminColorPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [brands, setBrands] = useState([]);
+  const [colors, setColors] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingBrand, setEditingBrand] = useState(null);
+  const [editingColor, setEditingColor] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     active: true
   });
 
-  // Fetch brands
-  const fetchBrands = async () => {
+  // Fetch colors
+  const fetchColors = async () => {
     try {
-      const response = await axios.get('http://localhost:8081/saleShoes/brands');
+      const response = await axios.get('http://localhost:8081/saleShoes/colors/admin');
       if (response.data?.result) {
-        setBrands(response.data.result);
+        setColors(response.data.result);
       }
     } catch (error) {
-      console.error('Error fetching brands:', error);
-      toast.error('Không thể tải danh sách thương hiệu');
+      console.error('Error fetching colors:', error);
+      toast.error('Không thể tải danh sách màu sắc');
     }
   };
 
   useEffect(() => {
-    fetchBrands();
+    fetchColors();
   }, []);
 
-  // Create brand
+  // Create color
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8081/saleShoes/brands', {
+      await axios.post('http://localhost:8081/saleShoes/colors', {
         ...formData,
         active: true
       });
-      toast.success('Tạo thương hiệu thành công');
+      toast.success('Tạo màu sắc thành công');
       setShowCreateModal(false);
       setFormData({ name: '', active: true });
-      fetchBrands();
+      fetchColors();
     } catch (error) {
-      console.error('Error creating brand:', error);
-      toast.error('Không thể tạo thương hiệu');
+      console.error('Error creating color:', error);
+      toast.error('Không thể tạo màu sắc');
     }
   };
 
-  // Update brand
+  // Update color
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await axios.patch(`http://localhost:8081/saleShoes/brands/${editingBrand.id}`, {
+      await axios.patch(`http://localhost:8081/saleShoes/colors/${editingColor.id}`, {
         ...formData,
-        active: editingBrand.active
+        active: editingColor.active
       });
-      toast.success('Cập nhật thương hiệu thành công');
+      toast.success('Cập nhật màu sắc thành công');
       setShowEditModal(false);
-      setEditingBrand(null);
+      setEditingColor(null);
       setFormData({ name: '', active: true });
-      fetchBrands();
+      fetchColors();
     } catch (error) {
-      console.error('Error updating brand:', error);
-      toast.error('Không thể cập nhật thương hiệu');
+      console.error('Error updating color:', error);
+      toast.error('Không thể cập nhật màu sắc');
     }
   };
 
-  // Toggle brand status
-  const toggleBrandStatus = async (brandId) => {
+  // Toggle color status
+  const toggleColorStatus = async (colorId) => {
     try {
-      const brand = brands.find(b => b.id === brandId);
-      if (!brand) return;
+      const color = colors.find(c => c.id === colorId);
+      if (!color) return;
 
-      const updatedBrand = {
-        name: brand.name,
-        description: brand.description,
-        active: !brand.active
-      };
+      if (color.active) {
+        // Nếu đang active thì gọi API delete để deactivate
+        await axios.delete(`http://localhost:8081/saleShoes/colors/${colorId}`);
+      } else {
+        // Nếu đang inactive thì gọi API moveOn để activate
+        await axios.post(`http://localhost:8081/saleShoes/colors/moveon/${colorId}`);
+      }
 
-      // Log để debug
-      console.log('Updating brand:', brandId, updatedBrand);
-
-      await axios.patch(`http://localhost:8081/saleShoes/brands/${brandId}`, updatedBrand);
-      
       // Cập nhật state local
-      setBrands(brands.map(b => 
-        b.id === brandId 
-          ? { ...b, active: !b.active }
-          : b
+      setColors(colors.map(c => 
+        c.id === colorId 
+          ? { ...c, active: !c.active }
+          : c
       ));
 
       toast.success('Cập nhật trạng thái thành công');
     } catch (error) {
-      console.error('Error toggling brand status:', error);
-      console.log('Error details:', error.response?.data); // Log chi tiết lỗi
-      toast.error('Không thể cập nhật trạng thái');
+      console.error('Error toggling color status:', error);
+      console.log('Error details:', error.response?.data);
+      toast.error(error.response?.data?.message || 'Không thể cập nhật trạng thái');
+      
+      // Fetch lại data nếu có lỗi
+      fetchColors();
     }
   };
 
@@ -103,11 +103,11 @@ const AdminBrandPage = () => {
   const CreateModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-6 rounded-lg w-96">
-        <h2 className="text-xl font-bold mb-4">Tạo thương hiệu mới</h2>
+        <h2 className="text-xl font-bold mb-4">Tạo màu sắc mới</h2>
         <form onSubmit={handleCreate}>
           <input
             type="text"
-            placeholder="Tên thương hiệu"
+            placeholder="Tên màu sắc"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="w-full px-4 py-2 border rounded-md mb-4"
@@ -136,11 +136,11 @@ const AdminBrandPage = () => {
   const EditModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-6 rounded-lg w-96">
-        <h2 className="text-xl font-bold mb-4">Chỉnh sửa thương hiệu</h2>
+        <h2 className="text-xl font-bold mb-4">Chỉnh sửa màu sắc</h2>
         <form onSubmit={handleUpdate}>
           <input
             type="text"
-            placeholder="Tên thương hiệu"
+            placeholder="Tên màu sắc"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="w-full px-4 py-2 border rounded-md mb-4"
@@ -151,7 +151,7 @@ const AdminBrandPage = () => {
               type="button"
               onClick={() => {
                 setShowEditModal(false);
-                setEditingBrand(null);
+                setEditingColor(null);
               }}
               className="px-4 py-2 border rounded-md"
             >
@@ -198,7 +198,7 @@ const AdminBrandPage = () => {
         </div>
       </div>
 
-      {/* Brands Table */}
+      {/* Colors Table */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-4">
           <table className="w-full">
@@ -211,25 +211,25 @@ const AdminBrandPage = () => {
               </tr>
             </thead>
             <tbody>
-              {brands
-                .filter(brand => 
-                  brand.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+              {colors
+                .filter(color => 
+                  color.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
                 )
-                .map((brand) => (
-                <tr key={brand.id} className="border-b">
-                  <td className="py-4">{brand.id}</td>
-                  <td className="py-4">{brand.name}</td>
+                .map((color) => (
+                <tr key={color.id} className="border-b">
+                  <td className="py-4">{color.id}</td>
+                  <td className="py-4">{color.name}</td>
                   <td className="py-4">
                     <div className="flex justify-center">
                       <button
-                        onClick={() => toggleBrandStatus(brand.id)}
+                        onClick={() => toggleColorStatus(color.id)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                          brand.active ? 'bg-green-500' : 'bg-gray-300'
+                          color.active ? 'bg-green-500' : 'bg-gray-300'
                         }`}
                       >
                         <span
                           className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            brand.active ? 'translate-x-6' : 'translate-x-1'
+                            color.active ? 'translate-x-6' : 'translate-x-1'
                           }`}
                         />
                       </button>
@@ -240,8 +240,8 @@ const AdminBrandPage = () => {
                       <button 
                         className="p-1 hover:text-blue-600"
                         onClick={() => {
-                          setEditingBrand(brand);
-                          setFormData({ name: brand.name });
+                          setEditingColor(color);
+                          setFormData({ name: color.name });
                           setShowEditModal(true);
                         }}
                       >
@@ -265,4 +265,4 @@ const AdminBrandPage = () => {
   );
 };
 
-export default AdminBrandPage; 
+export default AdminColorPage; 

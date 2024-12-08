@@ -16,7 +16,7 @@ const AdminCategoryPage = () => {
   // Fetch categories
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:8081/saleShoes/category/all');
+      const response = await axios.get('http://localhost:8081/saleShoes/categories/admin');
       if (response.data?.result) {
         setCategories(response.data.result);
       }
@@ -34,7 +34,7 @@ const AdminCategoryPage = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8081/saleShoes/category', {
+      await axios.post('http://localhost:8081/saleShoes/categories', {
         ...formData,
         active: true
       });
@@ -52,7 +52,7 @@ const AdminCategoryPage = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await axios.patch(`http://localhost:8081/saleShoes/category/${editingCategory.id}`, {
+      await axios.patch(`http://localhost:8081/saleShoes/categories/${editingCategory.id}`, {
         ...formData,
         active: editingCategory.active
       });
@@ -73,14 +73,15 @@ const AdminCategoryPage = () => {
       const category = categories.find(c => c.id === categoryId);
       if (!category) return;
 
-      const updatedCategory = {
-        name: category.name,
-        description: category.description,
-        active: !category.active
-      };
+      if (category.active) {
+        // Nếu đang active thì gọi API delete để deactivate
+        await axios.delete(`http://localhost:8081/saleShoes/categories/${categoryId}`);
+      } else {
+        // Nếu đang inactive thì gọi API moveOn để activate
+        await axios.post(`http://localhost:8081/saleShoes/categories/moveon/${categoryId}`);
+      }
 
-      await axios.patch(`http://localhost:8081/saleShoes/category/${categoryId}`, updatedCategory);
-      
+      // Cập nhật state local
       setCategories(categories.map(c => 
         c.id === categoryId 
           ? { ...c, active: !c.active }
@@ -90,7 +91,11 @@ const AdminCategoryPage = () => {
       toast.success('Cập nhật trạng thái thành công');
     } catch (error) {
       console.error('Error toggling category status:', error);
-      toast.error('Không thể cập nhật trạng thái');
+      console.log('Error details:', error.response?.data);
+      toast.error(error.response?.data?.message || 'Không thể cập nhật trạng thái');
+      
+      // Fetch lại data nếu có lỗi
+      fetchCategories();
     }
   };
 

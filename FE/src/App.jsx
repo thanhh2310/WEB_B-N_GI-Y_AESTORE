@@ -20,6 +20,8 @@ import OrderHistory from './pages/OrderHistory';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import { Toaster } from 'react-hot-toast';
+import AdminSizePage from './pages/admin/AdminSizePage';
+import AdminColorPage from './pages/admin/AdminColorPage';
 
 function App() {
   return (
@@ -60,6 +62,8 @@ function App() {
           <Route path="categories" element={<AdminCategoryPage />} />
           <Route path="brands" element={<AdminBrandPage />} />
           <Route path="report" element={<AdminReportPage />} />
+          <Route path="sizes" element={<AdminSizePage />} />
+          <Route path="colors" element={<AdminColorPage />} />
         </Route>
       </Routes>
     </>

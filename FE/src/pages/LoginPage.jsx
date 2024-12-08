@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -17,10 +20,56 @@ const LoginPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login attempt:', formData);
+    setError('');
+    
+    try {
+      const response = await axios.post('http://localhost:8081/saleShoes/auth/log-in', {
+        username: formData.email,
+        password: formData.password
+      });
+
+      if (response.data?.result) {
+        const userData = response.data.result;
+        console.log('User data:', userData);
+
+        // Lưu đầy đủ thông tin user từ response
+        localStorage.setItem('token', userData.token);
+        localStorage.setItem('user', JSON.stringify({
+          username: formData.email,
+          token: userData.token,
+          authenticate: userData.authenticate,
+          sub: userData.sub,
+          // Thêm các thông tin khác từ response nếu có
+        }));
+
+        // Kiểm tra scope trong token để xác định role
+        const token = userData.token;
+        const tokenParts = token.split('.');
+        const payload = JSON.parse(atob(tokenParts[1]));
+        console.log('Token payload:', payload);
+
+        // Kiểm tra scope trong payload
+        const isAdmin = payload.scope === 'ADMIN';
+        console.log('Is admin:', isAdmin);
+
+        if (isAdmin) {
+          toast.success('Đăng nhập thành công với quyền Admin');
+          navigate('/admin/users');
+        } else {
+          toast.success('Đăng nhập thành công');
+          navigate('/');
+        }
+      } else {
+        setError('Đăng nhập thất bại');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      console.log('Error response:', error.response?.data);
+      setError(error.response?.data?.message || 'Đăng nhập thất bại');
+      toast.error('Đăng nhập thất bại');
+    }
   };
 
   return (
@@ -45,18 +94,20 @@ const LoginPage = () => {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+                UserName
               </label>
               <div className="mt-1">
                 <input
                   id="email"
                   name="email"
-                  type="email"
+                  type="text"
                   autoComplete="email"
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className={`appearance-none block w-full px-3 py-2 border ${
+                    error ? 'border-red-300' : 'border-gray-300'
+                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm`}
                 />
               </div>
             </div>

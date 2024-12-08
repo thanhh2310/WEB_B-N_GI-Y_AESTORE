@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -57,11 +60,42 @@ const RegisterPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      // Handle registration logic here
-      console.log('Form submitted:', formData);
+      try {
+        // Format gender thành 1 ký tự (M/F) theo yêu cầu của BE
+        const genderCode = formData.gender === 'male' ? 'M' : 'F';
+
+        // Format date theo yêu cầu của BE
+        const formattedDob = new Date(formData.dob).toISOString().split('T')[0];
+
+        // Gọi API đăng ký từ UserController với format đúng
+        const response = await axios.post('http://localhost:8081/saleShoes/users', {
+          email: formData.email,
+          password: formData.password,
+          username: formData.username,
+          phone: formData.phone,
+          fullName: formData.fullName,
+          gender: genderCode, // Gửi gender dạng 1 ký tự
+          dob: formattedDob, // Gửi date đúng format
+          address: formData.address,
+          active: true
+        });
+
+        if (response.data?.result) {
+          toast.success('Đăng ký thành công');
+          navigate('/signin');
+        } else {
+          toast.error('Đăng ký thất bại');
+        }
+      } catch (error) {
+        console.error('Register error:', error);
+        toast.error(error.response?.data?.message || 'Đăng ký thất bại');
+        if (error.response) {
+          console.log('Error response:', error.response.data);
+        }
+      }
     }
   };
 

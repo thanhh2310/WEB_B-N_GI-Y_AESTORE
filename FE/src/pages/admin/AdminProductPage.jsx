@@ -83,7 +83,7 @@ const AdminProductPage = () => {
       try {
         const [brandsRes, categoriesRes, colorsRes, sizesRes] = await Promise.all([
           axios.get('http://localhost:8081/saleShoes/brands'),
-          axios.get('http://localhost:8081/saleShoes/category'),
+          axios.get('http://localhost:8081/saleShoes/categories'),
           axios.get('http://localhost:8081/saleShoes/colors'),
           axios.get('http://localhost:8081/saleShoes/sizes')
         ]);
@@ -121,13 +121,13 @@ const AdminProductPage = () => {
     });
 
     const [selectedVariants, setSelectedVariants] = useState([
-      { color: '', size: '', quantity: 1, price: 0 }
+      { color: '', size: '', quantity: 1, price: 0, imageUrl: '' }
     ]);
 
     const handleAddVariant = () => {
       setSelectedVariants([
         ...selectedVariants,
-        { color: '', size: '', quantity: 1, price: 0 }
+        { color: '', size: '', quantity: 1, price: 0, imageUrl: '' }
       ]);
     };
 
@@ -165,6 +165,7 @@ const AdminProductPage = () => {
                 size: sizes.find(s => s.id === parseInt(variant.size))?.name,
                 quantity: variant.quantity,
                 price: variant.price,
+                image: { url: variant.imageUrl },
                 active: true
               })
             )
@@ -202,42 +203,28 @@ const AdminProductPage = () => {
                 className="w-full px-4 py-2 border rounded-md"
               />
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Thương hiệu
-                  </label>
-                  <select
-                    value={productForm.brand}
-                    onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-md"
-                    required
-                  >
-                    <option value="">Chọn thương hiệu</option>
-                    {brands.map(brand => (
-                      <option key={brand.id} value={brand.id}>
-                        {brand.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Danh mục
-                  </label>
-                  <select
-                    value={productForm.category}
-                    onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-md"
-                    required
-                  >
-                    <option value="">Chọn danh mục</option>
-                    {categories.map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <select
+                  value={productForm.brand || ''}
+                  onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
+                  className="px-4 py-2 border rounded-md"
+                  required
+                >
+                  <option value="">Chọn thương hiệu</option>
+                  {brands.map(brand => (
+                    <option key={brand.id} value={brand.id}>{brand.name}</option>
+                  ))}
+                </select>
+                <select
+                  value={productForm.category || ''}
+                  onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                  className="px-4 py-2 border rounded-md"
+                  required
+                >
+                  <option value="">Chọn danh mục</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>{category.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -319,6 +306,31 @@ const AdminProductPage = () => {
                         required
                       />
                     </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Link ảnh
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Nhập link ảnh"
+                      value={variant.imageUrl}
+                      onChange={(e) => handleVariantChange(index, 'imageUrl', e.target.value)}
+                      className="px-4 py-2 border rounded-md w-full"
+                    />
+                    {variant.imageUrl && (
+                      <div className="mt-2">
+                        <img 
+                          src={variant.imageUrl}
+                          alt="Preview"
+                          className="w-20 h-20 object-cover rounded-md border"
+                          onError={(e) => {
+                            e.target.src = '/default-product.jpg';
+                            toast.error('Link ảnh không hợp lệ');
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

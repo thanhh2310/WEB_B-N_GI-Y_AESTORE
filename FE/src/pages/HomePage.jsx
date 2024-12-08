@@ -1,12 +1,56 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 
 const HomePage = () => {
+  const navigate = useNavigate();
   const [showSidebar, setShowSidebar] = useState(true);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Kiểm tra token khi component mount
+    const token = localStorage.getItem('token');
+    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    if (token) {
+      // Verify token
+      const verifyToken = async () => {
+        try {
+          const response = await axios.post('http://localhost:8081/saleShoes/auth/check', {
+            token: token
+          });
+          
+          if (response.data?.result) {
+            // Kiểm tra nếu là admin thì chuyển đến trang admin
+            const userRoles = userData.roles || [];
+            const isAdmin = userRoles.some(role => role === 'ADMIN');
+            
+            if (isAdmin) {
+              navigate('/admin');
+            } else {
+              setUser(userData);
+            }
+          } else {
+            // Token không hợp lệ
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            navigate('/signin');
+          }
+        } catch (error) {
+          console.error('Token verification error:', error);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/signin');
+        }
+      };
+
+      verifyToken();
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -31,6 +75,13 @@ const HomePage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Add user info if logged in */}
+      {user && (
+        <div className="mb-4">
+          <p>Welcome, {user.fullName}</p>
+        </div>
+      )}
+      
       <div className="flex justify-end items-center mb-8">
         <div className="flex gap-4">
           <button 
