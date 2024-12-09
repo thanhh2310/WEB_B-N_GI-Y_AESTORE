@@ -32,7 +32,13 @@ const LoginPage = () => {
 
       if (response.data?.result) {
         const userData = response.data.result;
-        console.log('User data:', userData);
+        
+        // Kiểm tra trạng thái active của user
+        if (!userData.active) {
+          setError('Tài khoản đã bị vô hiệu hóa');
+          toast.error('Tài khoản đã bị vô hiệu hóa');
+          return;
+        }
 
         // Lưu đầy đủ thông tin user từ response
         localStorage.setItem('token', userData.token);
@@ -41,18 +47,16 @@ const LoginPage = () => {
           token: userData.token,
           authenticate: userData.authenticate,
           sub: userData.sub,
-          // Thêm các thông tin khác từ response nếu có
+          active: userData.active // Thêm trạng thái active vào localStorage
         }));
 
         // Kiểm tra scope trong token để xác định role
         const token = userData.token;
         const tokenParts = token.split('.');
         const payload = JSON.parse(atob(tokenParts[1]));
-        console.log('Token payload:', payload);
 
         // Kiểm tra scope trong payload
         const isAdmin = payload.scope === 'ADMIN';
-        console.log('Is admin:', isAdmin);
 
         if (isAdmin) {
           toast.success('Đăng nhập thành công với quyền Admin');
@@ -66,9 +70,13 @@ const LoginPage = () => {
       }
     } catch (error) {
       console.error('Login error:', error);
-      console.log('Error response:', error.response?.data);
-      setError(error.response?.data?.message || 'Đăng nhập thất bại');
-      toast.error('Đăng nhập thất bại');
+      if (error.response?.data?.message === 'User is inactive') {
+        setError('Tài khoản đã bị vô hiệu hóa');
+        toast.error('Tài khoản đã bị vô hiệu hóa');
+      } else {
+        setError(error.response?.data?.message || 'Đăng nhập thất bại');
+        toast.error('Đăng nhập thất bại');
+      }
     }
   };
 

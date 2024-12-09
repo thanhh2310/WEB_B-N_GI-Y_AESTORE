@@ -75,24 +75,34 @@ const AdminUsersPage = () => {
   // Toggle user status
   const handleToggleStatus = async (userId) => {
     try {
-      // Gọi API
-      const response = await axios.post(`http://localhost:8081/saleShoes/users/moveon/${userId}`);
-      
-      // Chỉ cập nhật UI khi API thành công
-      if (response.data) {
-        // Cập nhật state local
-        setUsers(prevUsers => 
-          prevUsers.map(user => 
-            user.userId === userId 
-              ? {...user, active: !user.active}
-              : user
-          )
-        );
-        toast.success('Cập nhật trạng thái thành công');
+      const user = users.find(u => u.userId === userId);
+      if (!user) return;
+
+      if (user.active) {
+        // Nếu đang active thì gọi API delete để deactivate
+        await axios.delete(`http://localhost:8081/saleShoes/users/${userId}`);
+      } else {
+        // Nếu đang inactive thì gọi API moveOn để activate
+        await axios.post(`http://localhost:8081/saleShoes/users/moveon/${userId}`);
       }
+
+      // Cập nhật state local
+      setUsers(prevUsers => 
+        prevUsers.map(u => 
+          u.userId === userId 
+            ? { ...u, active: !u.active }
+            : u
+        )
+      );
+
+      toast.success('Cập nhật trạng thái thành công');
     } catch (error) {
       console.error('Error toggling user status:', error);
-      toast.error('Không thể cập nhật trạng thái');
+      console.log('Error details:', error.response?.data);
+      toast.error(error.response?.data?.message || 'Không thể cập nhật trạng thái');
+      
+      // Fetch lại data nếu có lỗi
+      fetchUsers();
     }
   };
 

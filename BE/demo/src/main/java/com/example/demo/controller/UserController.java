@@ -76,7 +76,7 @@ public class UserController {
                 .result(userService.update(userId, request))
                 .build();
     }
-      @PostMapping("/moveon/{userId}")
+    @PostMapping("/moveon/{userId}")
     ApiResponse<Void> moveOn(@PathVariable Integer userId) {
         userService.moveOn(userId);
         return ApiResponse.<Void>builder()
