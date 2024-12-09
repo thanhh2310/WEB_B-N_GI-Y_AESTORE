@@ -31,9 +31,9 @@
         <maven.compiler.release>21</maven.compiler.release>
   
         <java.version>23</java.version>
-<!--        <projectlombok-lombok.version>1.18.30</projectlombok-lombok.version>-->
-<!--        <mapstruct.version>1.5.5.Final</mapstruct.version>-->
-<!--        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>-->
+        <!--        <projectlombok-lombok.version>1.18.30</projectlombok-lombok.version>-->
+        <!--        <mapstruct.version>1.5.5.Final</mapstruct.version>-->
+        <!--        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>-->
         <spotless.version>2.43.0</spotless.version>
     </properties>
     <dependencies>
@@ -84,10 +84,10 @@
 
 
         <!--        <dependency>-->
-<!--            <groupId>org.mapstruct</groupId>-->
-<!--            <artifactId>mapstruct</artifactId>-->
-<!--            <version>${mapstruct.version}</version>-->
-<!--        </dependency>-->
+        <!--            <groupId>org.mapstruct</groupId>-->
+        <!--            <artifactId>mapstruct</artifactId>-->
+        <!--            <version>${mapstruct.version}</version>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -98,7 +98,27 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.11</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.messaging.saaj</groupId>
+            <artifactId>saaj-impl</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
     </dependencies>
+    <!-- https://mvnrepository.com/artifact/com.sun.xml.messaging.saaj/saaj-impl -->
+ 
+
 
     <build>
         <plugins>
@@ -112,19 +132,19 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
-<!--                    <annotationProcessorPaths>-->
-<!--                       -->
-<!--&lt;!&ndash;                        <path>&ndash;&gt;-->
-<!--&lt;!&ndash;                            <groupId>org.projectlombok</groupId>&ndash;&gt;-->
-<!--&lt;!&ndash;                            <artifactId>lombok-mapstruct-binding</artifactId>&ndash;&gt;-->
-<!--&lt;!&ndash;                            <version>${lombok-mapstruct-binding.version}</version>&ndash;&gt;-->
-<!--&lt;!&ndash;                        </path>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <path>&ndash;&gt;-->
-<!--&lt;!&ndash;                            <groupId>org.mapstruct</groupId>&ndash;&gt;-->
-<!--&lt;!&ndash;                            <artifactId>mapstruct-processor</artifactId>&ndash;&gt;-->
-<!--&lt;!&ndash;                            <version>${mapstruct.version}</version>&ndash;&gt;-->
-<!--&lt;!&ndash;                        </path>&ndash;&gt;-->
-<!--                    </annotationProcessorPaths>-->
+                    <!--                    <annotationProcessorPaths>-->
+                    <!--                       -->
+                    <!--&lt;!&ndash;                        <path>&ndash;&gt;-->
+                    <!--&lt;!&ndash;                            <groupId>org.projectlombok</groupId>&ndash;&gt;-->
+                    <!--&lt;!&ndash;                            <artifactId>lombok-mapstruct-binding</artifactId>&ndash;&gt;-->
+                    <!--&lt;!&ndash;                            <version>${lombok-mapstruct-binding.version}</version>&ndash;&gt;-->
+                    <!--&lt;!&ndash;                        </path>&ndash;&gt;-->
+                    <!--&lt;!&ndash;                        <path>&ndash;&gt;-->
+                    <!--&lt;!&ndash;                            <groupId>org.mapstruct</groupId>&ndash;&gt;-->
+                    <!--&lt;!&ndash;                            <artifactId>mapstruct-processor</artifactId>&ndash;&gt;-->
+                    <!--&lt;!&ndash;                            <version>${mapstruct.version}</version>&ndash;&gt;-->
+                    <!--&lt;!&ndash;                        </path>&ndash;&gt;-->
+                    <!--                    </annotationProcessorPaths>-->
                 </configuration>
             </plugin>
         </plugins>

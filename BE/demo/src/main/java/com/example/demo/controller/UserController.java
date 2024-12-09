@@ -10,6 +10,9 @@ import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.UserResponse;
 import com.example.demo.model.User;
 import com.example.demo.service.UserService;
+import com.nimbusds.jose.JOSEException;
+import jakarta.mail.MessagingException;
+import java.text.ParseException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +23,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -31,9 +36,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController {
+
     private final UserService userService;
-      @PostMapping
-    ApiResponse<UserResponse> createUser(@RequestBody  UserRequest request) {
+
+    @PostMapping
+    ApiResponse<UserResponse> createUser(@RequestBody UserRequest request) throws MessagingException {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.createUser(request))
                 .build();
@@ -76,12 +83,46 @@ public class UserController {
                 .result(userService.update(userId, request))
                 .build();
     }
+
     @PostMapping("/moveon/{userId}")
     ApiResponse<Void> moveOn(@PathVariable Integer userId) {
         userService.moveOn(userId);
         return ApiResponse.<Void>builder()
                 .message("Succes update")
-                
                 .build();
+    }
+
+    @GetMapping("/me")
+    public ApiResponse<UserResponse> getUserByToken(@RequestHeader("Authorization") String token) throws ParseException, JOSEException {
+        // Extract token from the Authorization header (in the form of "Bearer <token>")
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7); // Remove the "Bearer " prefix
+        }
+
+        // Find the user by token
+        UserResponse userResponse = userService.findUserByToken(token);
+
+        // Return the response
+        return ApiResponse.<UserResponse>builder()
+                .message("User fetched successfully")
+                .result(userResponse)
+                .build();
+    }
+
+    @GetMapping("/verify")
+    public ApiResponse<String> verifyEmail(@RequestParam("token") String token) {
+        boolean isVerified = userService.verifyEmail(token);
+
+        if (isVerified) {
+            return ApiResponse.<String>builder()
+                    .message("Email verified successfully! You can now log in.")
+                    .result("Email verification successful")
+                    .build();
+        } else {
+            return ApiResponse.<String>builder()
+                    .message("Invalid or expired verification token.")
+                    .result("Email verification failed")
+                    .build();
+        }
     }
 }

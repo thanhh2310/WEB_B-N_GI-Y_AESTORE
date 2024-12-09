@@ -56,6 +56,7 @@ public class ApplicationInitConfig {
                 adminUser.setUsername("admin");
                 adminUser.setPassword(passwordEncoder.encode("admin"));  // Mã hóa mật khẩu
                 adminUser.setEmail("admin@ae_store.com");
+                adminUser.setEmailVerified(true);
                 adminUser.setRoles(new HashSet<>(Set.of(adminRole)));  // Gán role ADMIN cho user admin
                 userRepository.save(adminUser);
             }

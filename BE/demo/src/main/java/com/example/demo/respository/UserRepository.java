@@ -18,4 +18,5 @@ import org.springframework.stereotype.Repository;
 public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByUsername(String username);
     List<User>findByActiveTrue();
+    Optional<User> findByVerificationCode(String verificationCode);
 }

@@ -16,9 +16,13 @@ import com.example.demo.model.User;
 import com.example.demo.respository.CartRepository;
 import com.example.demo.respository.RoleRepository;
 import com.example.demo.respository.UserRepository;
+import com.nimbusds.jose.JOSEException;
+import jakarta.mail.MessagingException;
+import java.text.ParseException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -40,9 +44,11 @@ public class UserService {
     private final UserMapper userMapper;
     private final CartRepository cartRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+    private final AuthenticationService authenticationService;
+    private final MailService emailService;
 
     // Tạo người dùng mới
-    public UserResponse createUser(UserRequest request) {
+    public UserResponse createUser(UserRequest request) throws MessagingException {
         // Tạo đối tượng User từ request
         User user = userMapper.toUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword())); // Mã hóa mật khẩu
@@ -50,9 +56,10 @@ public class UserService {
         // Tìm role USER
         Optional<Role> userRole = roleRepository.findByName("USER");
         HashSet<Role> roles = new HashSet<>();
-        roles.add(userRole.get()); // Thêm role vào set
+        userRole.ifPresent(roles::add); // Thêm role vào set nếu tồn tại
         user.setRoles(roles);  // Gán roles cho user
-
+        String verificationCode = UUID.randomUUID().toString();
+        user.setVerificationCode(verificationCode); // Lưu mã xác nhận vào người dùng
         // Lưu User vào cơ sở dữ liệu trước
         user = userRepository.save(user);
 
@@ -64,8 +71,8 @@ public class UserService {
         // Cập nhật lại User với Cart nếu cần thiết
         user.setCart(cart);  // Liên kết Cart với User
         user = userRepository.save(user);  // Cập nhật lại User với Cart
+        emailService.sendEmail(user.getEmail(), user.getVerificationCode());
 
-        // Trả về thông tin User
         return userMapper.toUserResponse(user);
     }
 
@@ -86,12 +93,12 @@ public class UserService {
     public void moveOn(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
-        if(user.isActive()){
+        if (user.isActive()) {
             user.setActive(false);
-        }else {
+        } else {
             user.setActive(true);
         }
-          // Kích hoạt người dùng
+        // Kích hoạt người dùng
         userRepository.save(user);  // Lưu thay đổi
     }
 
@@ -134,10 +141,33 @@ public class UserService {
             user.setPhone(request.getPhone());
         }
 
-        // Lưu lại thông tin người dùng đã cập nhật
         user = userRepository.save(user);
 
-        // Trả về thông tin người dùng đã cập nhật
         return userMapper.toUserResponse(user);
+    }
+
+    public UserResponse findUserByToken(String token) throws ParseException, JOSEException {
+        String username = authenticationService.getUsernameFromToken(token);
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
+        return userMapper.toUserResponse(user);
+
+    }
+
+    public boolean verifyEmail(String verificationCode) {
+        // Tìm người dùng trong cơ sở dữ liệu theo mã xác thực
+        Optional<User> userOpt = userRepository.findByVerificationCode(verificationCode);
+
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+
+            // Cập nhật trạng thái xác thực của người dùng
+            user.setEmailVerified(true);
+
+            userRepository.save(user);  // Lưu lại người dùng với trạng thái đã xác thực
+
+            return true;
+        }
+
+        return false;
     }
 }

@@ -16,7 +16,9 @@ public enum ErrorCode {
     NOT_ENOUGH_QUANTITY(1009,"Không đủ sản phẩm trong kho"),
     ROLE_NOT_FOUND(1011,"không tồn tại role này"),
     PRODUCTDETAIL_NOT_FOUND(1010,"Không có sản phẩm này"),
-    CART_NOT_FOUND(1015,"Không tồn tại giỏ hàng này");  
+    CART_NOT_FOUND(1015,"Không tồn tại giỏ hàng này"),
+    INVALID_TOKEN(1016,"Token không dùng được"),
+    EMAIL_NOT_VERIFIED(1017,"Tài khoản chưa được xác nhận");
 
     private final int code;
     private final String message;

@@ -86,12 +86,16 @@ public class AuthenticationService {
         var user = userRepository.findByUsername(requestAuthenticate.getUsername()).orElseThrow(() -> new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         boolean check = passwordEncoder.matches(requestAuthenticate.getPassword(), user.getPassword());
+        // Kiểm tra xem người dùng đã xác thực email chưa
+        if (!user.isEmailVerified()) {
+            throw new WebErrorConfig(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
         if (!check) {
             throw new WebErrorConfig(ErrorCode.WRONG_PASSWORD);
         }
 
         var token = generateToken(user);
-         session.setAttribute("token", token);
+        session.setAttribute("token", token);
         return AuthenticationResponse.builder()
                 .token(token)
                 .authenticate(true)
@@ -111,4 +115,27 @@ public class AuthenticationService {
                 .build();
 
     }
+
+    public String getUsernameFromToken(String token) throws ParseException, JOSEException {
+        // Giải mã JWT
+        SignedJWT signedJWT = SignedJWT.parse(token);
+
+        // Xác minh token bằng khóa bí mật (sử dụng MACVerifier với khóa secret)
+        JWSVerifier verifier = new MACVerifier(singerKey);
+        boolean isVerified = signedJWT.verify(verifier);
+
+        if (!isVerified) {
+            throw new WebErrorConfig(ErrorCode.INVALID_TOKEN);  // Nếu token không hợp lệ
+        }
+
+        // Trích xuất 'subject' (username) từ claims
+        String username = signedJWT.getJWTClaimsSet().getSubject();  // 'sub' là tên người dùng (username)
+
+        if (username == null || username.isEmpty()) {
+            throw new WebErrorConfig(ErrorCode.INVALID_TOKEN);  // Nếu không có username trong token
+        }
+
+        return username;  // Trả về username
+    }
+
 }

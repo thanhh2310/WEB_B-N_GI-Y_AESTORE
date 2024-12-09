@@ -44,6 +44,9 @@ public class User {
     @Column(name = "FullName")
     private String fullName;
 
+    private boolean emailVerified = false;
+    @Column(name = "VerificationCode")
+    private String verificationCode;
     @ManyToMany
     @JoinTable(
             name = "UserRole",
@@ -55,8 +58,8 @@ public class User {
     @OneToMany(mappedBy = "user")
     private Set<Address> addresses;
 
-     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-   @JsonBackReference
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private Cart cart;
 
     @OneToMany(mappedBy = "user")

@@ -36,5 +36,5 @@ public class UserResponse {
     private Character gender;
 
     private String fullName;
-
+    private Integer cartId;
 }

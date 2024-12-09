@@ -46,6 +46,7 @@ public class UserMapper {
                 .dob(user.getDob())
                 .gender(user.getGender())
                 .fullName(user.getFullName())
+                .cartId(user.getCart().getId())
                 .build();
 
         return userResponse;
