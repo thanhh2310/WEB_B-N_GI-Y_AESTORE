@@ -16,7 +16,7 @@ const AdminBrandPage = () => {
   // Fetch brands
   const fetchBrands = async () => {
     try {
-      const response = await axios.get('http://localhost:8081/saleShoes/brands');
+      const response = await axios.get('http://localhost:8081/saleShoes/brands/admin');
       if (response.data?.result) {
         setBrands(response.data.result);
       }
@@ -73,29 +73,33 @@ const AdminBrandPage = () => {
       const brand = brands.find(b => b.id === brandId);
       if (!brand) return;
 
-      const updatedBrand = {
-        name: brand.name,
-        description: brand.description,
-        active: !brand.active
-      };
+      // Cập nhật UI trước
+      setBrands(prevBrands => 
+        prevBrands.map(b => 
+          b.id === brandId 
+            ? { ...b, active: !b.active }
+            : b
+        )
+      );
 
-      // Log để debug
-      console.log('Updating brand:', brandId, updatedBrand);
-
-      await axios.patch(`http://localhost:8081/saleShoes/brands/${brandId}`, updatedBrand);
-      
-      // Cập nhật state local
-      setBrands(brands.map(b => 
-        b.id === brandId 
-          ? { ...b, active: !b.active }
-          : b
-      ));
+      // Gọi API dựa vào trạng thái hiện tại
+      if (!brand.active) {
+        // Nếu đang inactive thì gọi API moveOn để activate
+        await axios.post(`http://localhost:8081/saleShoes/brands/moveon/${brandId}`);
+      } else {
+        // Nếu đang active thì gọi API delete để deactivate
+        await axios.delete(`http://localhost:8081/saleShoes/brands/${brandId}`);
+      }
 
       toast.success('Cập nhật trạng thái thành công');
+      
+      // Fetch lại data sau khi cập nhật thành công
+      fetchBrands();
     } catch (error) {
       console.error('Error toggling brand status:', error);
-      console.log('Error details:', error.response?.data); // Log chi tiết lỗi
       toast.error('Không thể cập nhật trạng thái');
+      // Fetch lại data nếu có lỗi để đồng bộ với DB
+      fetchBrands();
     }
   };
 

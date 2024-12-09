@@ -5,21 +5,19 @@
 package com.example.demo.exception;
 
 
+import lombok.Getter;
 
 /**
  *
  * @author Admin
  */
+@Getter
 public class WebErrorConfig extends RuntimeException{
     ErrorCode errorCode;
 
     public WebErrorConfig(ErrorCode errorCode) {
         super(errorCode.getMessage());
         this.errorCode=errorCode;
-    }
-
-    public ErrorCode getErrorCode() {
-        return errorCode;
     }
 
     public void setErrorCode(ErrorCode errorCode) {

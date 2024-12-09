@@ -73,28 +73,32 @@ const AdminCategoryPage = () => {
       const category = categories.find(c => c.id === categoryId);
       if (!category) return;
 
-      if (category.active) {
-        // Nếu đang active thì gọi API delete để deactivate
-        await axios.delete(`http://localhost:8081/saleShoes/categories/${categoryId}`);
-      } else {
+      // Cập nhật UI trước
+      setCategories(prevCategories => 
+        prevCategories.map(c => 
+          c.id === categoryId 
+            ? { ...c, active: !c.active }
+            : c
+        )
+      );
+
+      // Gọi API dựa vào trạng thái hiện tại
+      if (!category.active) {
         // Nếu đang inactive thì gọi API moveOn để activate
         await axios.post(`http://localhost:8081/saleShoes/categories/moveon/${categoryId}`);
+      } else {
+        // Nếu đang active thì gọi API delete để deactivate
+        await axios.delete(`http://localhost:8081/saleShoes/categories/${categoryId}`);
       }
 
-      // Cập nhật state local
-      setCategories(categories.map(c => 
-        c.id === categoryId 
-          ? { ...c, active: !c.active }
-          : c
-      ));
-
       toast.success('Cập nhật trạng thái thành công');
+      
+      // Fetch lại data sau khi cập nhật thành công
+      fetchCategories();
     } catch (error) {
       console.error('Error toggling category status:', error);
-      console.log('Error details:', error.response?.data);
-      toast.error(error.response?.data?.message || 'Không thể cập nhật trạng thái');
-      
-      // Fetch lại data nếu có lỗi
+      toast.error('Không thể cập nhật trạng thái');
+      // Fetch lại data nếu có lỗi để đồng bộ với DB
       fetchCategories();
     }
   };
