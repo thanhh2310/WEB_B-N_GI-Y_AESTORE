@@ -86,8 +86,12 @@ public class UserService {
     public void moveOn(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
-
-        user.setActive(true);  // Kích hoạt người dùng
+        if(user.isActive()){
+            user.setActive(false);
+        }else {
+            user.setActive(true);
+        }
+          // Kích hoạt người dùng
         userRepository.save(user);  // Lưu thay đổi
     }
 

@@ -78,13 +78,15 @@ const AdminUsersPage = () => {
       const user = users.find(u => u.userId === userId);
       if (!user) return;
 
-      if (user.active) {
-        // Nếu đang active thì gọi API delete để deactivate
-        await axios.delete(`http://localhost:8081/saleShoes/users/${userId}`);
-      } else {
-        // Nếu đang inactive thì gọi API moveOn để activate
-        await axios.post(`http://localhost:8081/saleShoes/users/moveon/${userId}`);
-      }
+      // if (user.active) {
+      //   // Nếu đang active thì gọi API delete để deactivate
+      //   await axios.delete(`http://localhost:8081/saleShoes/users/${userId}`);
+      // } else {
+      //   // Nếu đang inactive thì gọi API moveOn để activate
+      //   await axios.post(`http://localhost:8081/saleShoes/users/moveon/${userId}`);
+      // }
+
+      await axios.post(`http://localhost:8081/saleShoes/users/moveon/${userId}`);
 
       // Cập nhật state local
       setUsers(prevUsers => 
