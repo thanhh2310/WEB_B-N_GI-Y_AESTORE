@@ -22,13 +22,25 @@ public class Coupon {
 
     @Column(name = "DateExpire", nullable = false)
     private Date dateExpire;
-
+  
     private Integer quantity;
 
     private String name;
+    private double minPrice;
+    private double maxPrice;
 
     @Column(unique = true)
     private String code;
+    private boolean active=true;
+     public boolean isExpired() {
+        // So sánh ngày hết hạn với ngày hiện tại
+        if (dateExpire.before(new Date())) {
+            // Nếu coupon đã hết hạn, cập nhật active thành false
+            this.active = false;
+            return true;
+        }
+        return false;
+    }
 
 
 

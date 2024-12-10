@@ -1,5 +1,7 @@
 package com.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import lombok.Data;
@@ -17,6 +19,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "UserID")
+     @JsonBackReference 
     private User user;
 
     @Column(name = "DateCreate")
@@ -32,6 +35,7 @@ public class Order {
     )
     private Set<Coupon> coupons;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+      @JsonManagedReference 
     private Set<OrderDetail> orderDetail;
 
 }

@@ -18,7 +18,9 @@ public enum ErrorCode {
     PRODUCTDETAIL_NOT_FOUND(1010,"Không có sản phẩm này"),
     CART_NOT_FOUND(1015,"Không tồn tại giỏ hàng này"),
     INVALID_TOKEN(1016,"Token không dùng được"),
-    EMAIL_NOT_VERIFIED(1017,"Tài khoản chưa được xác nhận");
+    EMAIL_NOT_VERIFIED(1017,"Tài khoản chưa được xác nhận"),
+    COUPON_NOT_FOUND(1018,"Mã giảm giá này không tồn tại"),
+    ORDER_NOT_FOUND(1019,"Không có đơn hàng này");
 
     private final int code;
     private final String message;
