@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 const LoginPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
   });
 
@@ -25,52 +25,82 @@ const LoginPage = () => {
     setError('');
     
     try {
-      const response = await axios.post('http://localhost:8081/saleShoes/auth/log-in', {
-        username: formData.email,
+      const loginData = {
+        username: formData.username.trim(),
         password: formData.password
-      });
+      };
+
+      const response = await axios.post(
+        'http://localhost:8081/saleShoes/auth/log-in', 
+        loginData,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
 
       if (response.data?.result) {
         const userData = response.data.result;
+        console.log('User data from server:', userData);
         
-        // Kiểm tra trạng thái active của user
-        if (!userData.active) {
-          setError('Tài khoản đã bị vô hiệu hóa');
-          toast.error('Tài khoản đã bị vô hiệu hóa');
-          return;
-        }
+        try {
+          const token = userData.token;
+          const tokenParts = token.split('.');
+          const payload = JSON.parse(atob(tokenParts[1]));
+          const isAdmin = payload.sub === 'admin';
 
-        // Lưu đầy đủ thông tin user từ response
-        localStorage.setItem('token', userData.token);
-        localStorage.setItem('user', JSON.stringify({
-          username: formData.email,
-          token: userData.token,
-          authenticate: userData.authenticate,
-          sub: userData.sub,
-          active: userData.active // Thêm trạng thái active vào localStorage
-        }));
+          console.log('Payload:', payload);
+          console.log('Is admin:', isAdmin);
 
-        // Kiểm tra scope trong token để xác định role
-        const token = userData.token;
-        const tokenParts = token.split('.');
-        const payload = JSON.parse(atob(tokenParts[1]));
+          if (isAdmin) {
+            localStorage.setItem('token', userData.token);
+            localStorage.setItem('user', JSON.stringify({
+              username: formData.username,
+              token: userData.token,
+              authenticate: userData.authenticate,
+              sub: payload.sub,
+              role: 'ADMIN'
+            }));
+            
+            toast.success('Đăng nhập thành công với quyền Admin');
+            navigate('/admin/dashboard');
+          } else {
+            if (!userData.authenticate) {
+              setError('Tài khoản chưa được xác thực');
+              toast.error('Vui lòng xác thực email trước khi đăng nhập');
+              return;
+            }
 
-        // Kiểm tra scope trong payload
-        const isAdmin = payload.scope === 'ADMIN';
+            localStorage.setItem('token', userData.token);
+            localStorage.setItem('user', JSON.stringify({
+              username: formData.username,
+              token: userData.token,
+              authenticate: userData.authenticate,
+              sub: payload.sub,
+              role: 'USER'
+            }));
 
-        if (isAdmin) {
-          toast.success('Đăng nhập thành công với quyền Admin');
-          navigate('/admin/users');
-        } else {
-          toast.success('Đăng nhập thành công');
-          navigate('/');
+            toast.success('Đăng nhập thành công');
+            navigate('/');
+          }
+        } catch (tokenError) {
+          console.error('Token parsing error:', tokenError);
+          setError('Lỗi xử lý token');
+          toast.error('Đăng nhập thất bại');
         }
       } else {
         setError('Đăng nhập thất bại');
+        toast.error('Đăng nhập thất bại');
       }
     } catch (error) {
       console.error('Login error:', error);
-      if (error.response?.data?.message === 'User is inactive') {
+      console.log('Error response data:', error.response?.data);
+      
+      if (error.response?.data?.code === 1017) {
+        setError('Tài khoản chưa được xác nhận');
+        toast.error('Tài khoản chưa được xác nhận. Vui lòng kiểm tra email để xác nhận tài khoản.');
+      } else if (error.response?.data?.message === 'User is inactive') {
         setError('Tài khoản đã bị vô hiệu hóa');
         toast.error('Tài khoản đã bị vô hiệu hóa');
       } else {
@@ -101,17 +131,16 @@ const LoginPage = () => {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                UserName
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                Username
               </label>
               <div className="mt-1">
                 <input
-                  id="email"
-                  name="email"
+                  id="username"
+                  name="username"
                   type="text"
-                  autoComplete="email"
                   required
-                  value={formData.email}
+                  value={formData.username}
                   onChange={handleChange}
                   className={`appearance-none block w-full px-3 py-2 border ${
                     error ? 'border-red-300' : 'border-gray-300'
