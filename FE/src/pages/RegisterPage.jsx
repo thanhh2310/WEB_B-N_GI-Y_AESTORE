@@ -80,11 +80,12 @@ const RegisterPage = () => {
           gender: genderCode, // Gửi gender dạng 1 ký tự
           dob: formattedDob, // Gửi date đúng format
           address: formData.address,
-          active: true
+          active: true,
+          email_verified: false
         });
 
         if (response.data?.result) {
-          toast.success('Đăng ký thành công');
+          toast.success('Vui lòng xác thực email!');
           navigate('/signin');
         } else {
           toast.error('Đăng ký thất bại');

@@ -120,32 +120,10 @@ const AdminProductPage = () => {
       active: true
     });
 
-    const [selectedVariants, setSelectedVariants] = useState([
-      { color: '', size: '', quantity: 1, price: 0, imageUrl: '' }
-    ]);
-
-    const handleAddVariant = () => {
-      setSelectedVariants([
-        ...selectedVariants,
-        { color: '', size: '', quantity: 1, price: 0, imageUrl: '' }
-      ]);
-    };
-
-    const handleRemoveVariant = (index) => {
-      setSelectedVariants(selectedVariants.filter((_, i) => i !== index));
-    };
-
-    const handleVariantChange = (index, field, value) => {
-      const newVariants = [...selectedVariants];
-      newVariants[index][field] = value;
-      setSelectedVariants(newVariants);
-    };
-
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        // Create product first
-        const productResponse = await axios.post('http://localhost:8081/saleShoes/products', {
+        const response = await axios.post('http://localhost:8081/saleShoes/products', {
           name: productForm.name,
           description: productForm.description,
           brand: brands.find(b => b.id === parseInt(productForm.brand)),
@@ -153,24 +131,7 @@ const AdminProductPage = () => {
           active: true
         });
 
-        const productId = productResponse.data?.result?.id;
-
-        if (productId) {
-          // Create product details
-          await Promise.all(
-            selectedVariants.map(variant => 
-              axios.post('http://localhost:8081/saleShoes/productdetails', {
-                productId: productId,
-                color: colors.find(c => c.id === parseInt(variant.color))?.name,
-                size: sizes.find(s => s.id === parseInt(variant.size))?.name,
-                quantity: variant.quantity,
-                price: variant.price,
-                image: { url: variant.imageUrl },
-                active: true
-              })
-            )
-          );
-
+        if (response.data?.result) {
           toast.success('Tạo sản phẩm thành công');
           setShowCreateModal(false);
           fetchProducts();
@@ -183,11 +144,10 @@ const AdminProductPage = () => {
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div className="bg-white p-6 rounded-lg w-[800px] max-h-[90vh] overflow-y-auto">
+        <div className="bg-white p-6 rounded-lg w-[500px]">
           <h2 className="text-xl font-bold mb-4">Tạo sản phẩm mới</h2>
           <form onSubmit={handleSubmit}>
-            {/* Product Info */}
-            <div className="space-y-4 mb-6">
+            <div className="space-y-4">
               <input
                 type="text"
                 placeholder="Tên sản phẩm"
@@ -202,141 +162,30 @@ const AdminProductPage = () => {
                 onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                 className="w-full px-4 py-2 border rounded-md"
               />
-              <div className="grid grid-cols-2 gap-4">
-                <select
-                  value={productForm.brand || ''}
-                  onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
-                  className="px-4 py-2 border rounded-md"
-                  required
-                >
-                  <option value="">Chọn thương hiệu</option>
-                  {brands.map(brand => (
-                    <option key={brand.id} value={brand.id}>{brand.name}</option>
-                  ))}
-                </select>
-                <select
-                  value={productForm.category || ''}
-                  onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                  className="px-4 py-2 border rounded-md"
-                  required
-                >
-                  <option value="">Chọn danh mục</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>{category.name}</option>
-                  ))}
-                </select>
-              </div>
+              <select
+                value={productForm.brand}
+                onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
+                className="w-full px-4 py-2 border rounded-md"
+                required
+              >
+                <option value="">Chọn thương hiệu</option>
+                {brands.map(brand => (
+                  <option key={brand.id} value={brand.id}>{brand.name}</option>
+                ))}
+              </select>
+              <select
+                value={productForm.category}
+                onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                className="w-full px-4 py-2 border rounded-md"
+                required
+              >
+                <option value="">Chọn danh mục</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>{category.name}</option>
+                ))}
+              </select>
             </div>
 
-            {/* Variants */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="font-semibold">Biến thể sản phẩm</h3>
-                <button
-                  type="button"
-                  onClick={handleAddVariant}
-                  className="px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200"
-                >
-                  Thêm biến thể
-                </button>
-              </div>
-
-              {selectedVariants.map((variant, index) => (
-                <div key={index} className="p-4 border rounded-md space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Biến thể {index + 1}</span>
-                    {selectedVariants.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveVariant(index)}
-                        className="text-red-500 hover:text-red-600"
-                      >
-                        Xóa
-                      </button>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <select
-                      value={variant.color || ''}
-                      onChange={(e) => handleVariantChange(index, 'color', e.target.value)}
-                      className="px-4 py-2 border rounded-md"
-                      required
-                    >
-                      <option value="">Chọn màu sắc</option>
-                      {colors.map(color => (
-                        <option key={color.id} value={color.id}>{color.name}</option>
-                      ))}
-                    </select>
-                    <select
-                      value={variant.size || ''}
-                      onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
-                      className="px-4 py-2 border rounded-md"
-                      required
-                    >
-                      <option value="">Chọn kích thước</option>
-                      {sizes.map(size => (
-                        <option key={size.id} value={size.id}>{size.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Số lượng
-                      </label>
-                      <input
-                        type="number"
-                        value={variant.quantity}
-                        onChange={(e) => handleVariantChange(index, 'quantity', parseInt(e.target.value))}
-                        className="px-4 py-2 border rounded-md w-full"
-                        min="1"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Giá (VNĐ)
-                      </label>
-                      <input
-                        type="number"
-                        value={variant.price}
-                        onChange={(e) => handleVariantChange(index, 'price', parseFloat(e.target.value))}
-                        className="px-4 py-2 border rounded-md w-full"
-                        min="0"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Link ảnh
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Nhập link ảnh"
-                      value={variant.imageUrl}
-                      onChange={(e) => handleVariantChange(index, 'imageUrl', e.target.value)}
-                      className="px-4 py-2 border rounded-md w-full"
-                    />
-                    {variant.imageUrl && (
-                      <div className="mt-2">
-                        <img 
-                          src={variant.imageUrl}
-                          alt="Preview"
-                          className="w-20 h-20 object-cover rounded-md border"
-                          onError={(e) => {
-                            e.target.src = '/default-product.jpg';
-                            toast.error('Link ảnh không hợp lệ');
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Buttons */}
             <div className="flex justify-end gap-2 mt-6">
               <button
                 type="button"

@@ -10,6 +10,9 @@ const AdminProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingVariant, setEditingVariant] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [colors, setColors] = useState([]);
+  const [sizes, setSizes] = useState([]);
 
   // Fetch product variants grouped by color
   const fetchProductVariants = async () => {
@@ -195,6 +198,203 @@ const AdminProductDetailPage = () => {
     );
   };
 
+  // Add Variant Modal Component
+  const AddVariantModal = () => {
+    const [variantForm, setVariantForm] = useState({
+      color: '',
+      size: '',
+      quantity: 1,
+      price: 0,
+      imageUrl: ''
+    });
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      try {
+        // Tìm color và size object từ selection
+        const selectedColor = colors.find(c => c.id === parseInt(variantForm.color));
+        const selectedSize = sizes.find(s => s.id === parseInt(variantForm.size));
+
+        if (!selectedColor || !selectedSize) {
+          toast.error('Vui lòng chọn màu sắc và kích thước');
+          return;
+        }
+
+        const payload = {
+          productId: parseInt(id),
+          color: selectedColor.name,
+          size: selectedSize.name,
+          quantity: parseInt(variantForm.quantity),
+          price: parseFloat(variantForm.price),
+          imageUrl: variantForm.imageUrl,
+          active: true
+        };
+
+        console.log('Sending payload:', payload);
+
+        const response = await axios.post('http://localhost:8081/saleShoes/productdetails', payload);
+
+        if (response.data?.result) {
+          toast.success('Thêm biến thể thành công');
+          setShowAddModal(false);
+          fetchProductVariants();
+        } else {
+          toast.error('Không thể thêm biến thể: ' + (response.data?.message || 'Lỗi không xác định'));
+        }
+      } catch (error) {
+        console.error('Error creating variant:', error);
+        if (error.response?.data) {
+          console.error('Server error details:', error.response.data);
+        }
+        toast.error('Không thể thêm biến thể: ' + (error.response?.data?.message || error.message));
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="bg-white p-6 rounded-lg w-96">
+          <h2 className="text-xl font-bold mb-4">Thêm biến thể mới</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Màu sắc
+                </label>
+                <select
+                  value={variantForm.color}
+                  onChange={(e) => setVariantForm({ ...variantForm, color: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-md"
+                  required
+                >
+                  <option value="">Chọn màu sắc</option>
+                  {colors.map(color => (
+                    <option key={color.id} value={color.id}>
+                      {color.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Kích thước
+                </label>
+                <select
+                  value={variantForm.size}
+                  onChange={(e) => setVariantForm({ ...variantForm, size: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-md"
+                  required
+                >
+                  <option value="">Chọn kích thước</option>
+                  {sizes.map(size => (
+                    <option key={size.id} value={size.id}>
+                      {size.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Số lượng trong kho
+                </label>
+                <input
+                  type="number"
+                  placeholder="Nhập số lượng"
+                  value={variantForm.quantity}
+                  onChange={(e) => setVariantForm({ ...variantForm, quantity: parseInt(e.target.value) })}
+                  className="w-full px-4 py-2 border rounded-md"
+                  min="1"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Giá bán (VNĐ)
+                </label>
+                <input
+                  type="number"
+                  placeholder="Nhập giá bán"
+                  value={variantForm.price}
+                  onChange={(e) => setVariantForm({ ...variantForm, price: parseFloat(e.target.value) })}
+                  className="w-full px-4 py-2 border rounded-md"
+                  min="0"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Link ảnh sản phẩm
+                </label>
+                <input
+                  type="text"
+                  placeholder="Nhập link ảnh"
+                  value={variantForm.imageUrl}
+                  onChange={(e) => setVariantForm({ ...variantForm, imageUrl: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-md"
+                />
+                {variantForm.imageUrl && (
+                  <div className="mt-2">
+                    <img
+                      src={variantForm.imageUrl}
+                      alt="Preview"
+                      className="w-20 h-20 object-cover rounded-md"
+                      onError={(e) => {
+                        e.target.src = '/default-product.jpg';
+                        toast.error('Link ảnh không hợp lệ');
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="px-4 py-2 border rounded-md"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-black text-white rounded-md"
+              >
+                Thêm
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  // Thêm useEffect để fetch colors và sizes
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [colorsRes, sizesRes] = await Promise.all([
+          axios.get('http://localhost:8081/saleShoes/colors'),
+          axios.get('http://localhost:8081/saleShoes/sizes')
+        ]);
+
+        // Lọc chỉ lấy các item active
+        const activeFilter = items => items.filter(item => item.active);
+
+        setColors(activeFilter(colorsRes.data?.result || []));
+        setSizes(activeFilter(sizesRes.data?.result || []));
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast.error('Không thể tải dữ liệu màu sắc và kích thước');
+      }
+    };
+
+    fetchData();
+  }, []);
+
   // Thêm loading state handler
   if (loading) {
     return (
@@ -208,12 +408,20 @@ const AdminProductDetailPage = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-medium">PRODUCT VARIANTS</h1>
-        <button 
-          className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
-          onClick={() => navigate('/admin/products')}
-        >
-          Back
-        </button>
+        <div className="flex gap-2">
+          <button 
+            className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+            onClick={() => setShowAddModal(true)}
+          >
+            Add Variant
+          </button>
+          <button 
+            className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+            onClick={() => navigate('/admin/products')}
+          >
+            Back
+          </button>
+        </div>
       </div>
 
       {/* Product Variants By Color */}
@@ -278,7 +486,8 @@ const AdminProductDetailPage = () => {
         </div>
       ))}
 
-      {/* Modal */}
+      {/* Add new modal */}
+      {showAddModal && <AddVariantModal />}
       {showEditModal && <EditModal />}
     </div>
   );

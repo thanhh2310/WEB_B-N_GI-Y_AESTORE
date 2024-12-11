@@ -25,7 +25,7 @@ public class Product {
     @JoinColumn(name = "BrandID")
     private Brand brand;
 
-    @OneToMany(mappedBy = "product")
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<ProductDetail> productDetails;
     private boolean active =true;
 } 

@@ -104,7 +104,7 @@ public class UserService {
 
     // Lấy tất cả người dùng đang hoạt động
     public List<User> getAll() {
-        return userRepository.findByActiveTrue();  // Lấy các user đang hoạt động
+        return userRepository.findAll();  // Lấy các user đang hoạt động
     }
 
     // Lấy thông tin người dùng theo ID

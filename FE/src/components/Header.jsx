@@ -23,7 +23,7 @@ const Header = () => {
             const username = payload.sub;
 
             // Gọi API get user by username
-            const response = await axios.get(`http://localhost:8081/saleShoes/users/3`, {
+            const response = await axios.get(`http://localhost:8081/saleShoes/users/me`, {
               headers: {
                 'Authorization': `Bearer ${parsedUser.token}`
               }
