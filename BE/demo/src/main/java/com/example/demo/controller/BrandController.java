@@ -81,4 +81,11 @@ public ApiResponse<List<Brand>> getAll() {
                 .result(brands)
                 .build();  // Trả về ApiResponse với danh sách tất cả các màu sắc
     }
+     @GetMapping("/{name}")
+    public ApiResponse<BrandResponse> getBrandByName(@PathVariable String name) {
+        BrandResponse brandResponse = brandService.getBrandByName(name);
+       return ApiResponse.<BrandResponse>builder()
+                .result(brandResponse)
+                .build();
+    }
 }

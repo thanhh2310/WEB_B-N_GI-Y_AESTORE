@@ -83,8 +83,8 @@ public class ColorService {
         return colorRepository.findAll();
 
     }
-    public Optional<Color> getColorByName(String name) {
-        return colorRepository.findColorByName(name);
+    public Color getColorByName(String name) {
+        return colorRepository.findColorByName(name).orElseThrow(()->new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
     }
 
 }

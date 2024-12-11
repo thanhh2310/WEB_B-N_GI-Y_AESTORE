@@ -81,4 +81,12 @@ public class BrandService {
       public List<Brand> getAllBrandsForAdmin() {
         return brandRepository.findAll();
     }
+          public BrandResponse getBrandByName(String name) {
+        Brand brand = brandRepository.findByName(name).
+                orElseThrow(() -> new WebErrorConfig(ErrorCode.BRAND_NOT_FOUND));
+        if (!brand.isActive()) {
+            throw new WebErrorConfig(ErrorCode.BRAND_NOT_FOUND);
+        }
+        return brandMapper.toBrandResponse(brand);
+    }
 }

@@ -65,25 +65,25 @@ public class ColorController {
     // API để xóa Color
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Integer id) {
-         colorService.delete(id);  // Gọi service để xóa Color
-      
+        colorService.delete(id);  // Gọi service để xóa Color
+
         return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Xóa thành  công ")
-                
                 .build();  // Trả về ApiResponse xác nhận đã xóa thành công hay không
     }
-     @PostMapping("/moveon/{id}")
+
+    @PostMapping("/moveon/{id}")
     public ApiResponse<Void> moveOn(@PathVariable Integer id) {
         colorService.moveOn(id);
         return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Color move on successfully")
-                
                 .build();  // Trả
     }
+
     @GetMapping("/admin")
-     public ApiResponse<List<Color>> getAllForAdmin() {
+    public ApiResponse<List<Color>> getAllForAdmin() {
         List<Color> colors = colorService.getAllColorsForAdmin();  // Gọi service để lấy tất cả Color
         return ApiResponse.<List<Color>>builder()
                 .code(200)
@@ -91,16 +91,26 @@ public class ColorController {
                 .result(colors)
                 .build();  // Trả về ApiResponse với danh sách tất cả các màu sắc
     }
+
     @GetMapping("/name")
-    public ApiResponse<Optional<Color>> getAllForName(@RequestParam String name) {
-         Optional<Color> color = colorService.getColorByName(name);
-         if (color.isPresent()) {
-             return ApiResponse.<Optional<Color>>builder()
-                     .code(200)
-                     .message("thanh cong")
-                     .result(color)
-                     .build();
-         }
-         return null;
+    public ApiResponse<Color> getAllForName(@RequestParam String name) {
+        Color color = colorService.getColorByName(name);
+
+        return ApiResponse.<Color>builder()
+                .code(200)
+                .message("thanh cong")
+                .result(color)
+                .build();
+
+    }
+
+    @GetMapping("/{name}")
+    public ApiResponse<Color> getByName(@PathVariable String name) {
+        Color color = colorService.getColorByName(name);  // Gọi service để lấy Color theo ID
+        return ApiResponse.<Color>builder()
+                .code(200)
+                .message("Color fetched successfully")
+                .result(color)
+                .build();  // Trả về ApiResponse với thông tin màu sắc theo ID
     }
 }

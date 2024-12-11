@@ -87,4 +87,13 @@ public class CategoryService {
         category.setActive(true);
         categoryRespository.save(category);
     }
+        // Read By name
+    public CategoryResponse getCategoryByName(String name ) {
+        Category categoryOpt = categoryRespository.findByName(name).orElseThrow(
+                ()->new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
+        if(!categoryOpt.isActive()) throw new WebErrorConfig(ErrorCode.CATEGORY_NOT_FOUND);
+            return categoryMapper.toCategoryResponse(categoryOpt);
+        
+    }
+
 }

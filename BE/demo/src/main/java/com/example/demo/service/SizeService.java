@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import ch.qos.logback.core.spi.ErrorCodes;
 import com.example.demo.dto.request.SizeRequest;
 import com.example.demo.dto.response.SizeResponse;
 import com.example.demo.exception.ErrorCode;
@@ -68,5 +69,9 @@ public class SizeService {
         Size size = sizeRepository.findById(id).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));  // Tìm kích thước theo ID
         size.setActive(true);
         sizeRepository.save(size);
+    }
+     public SizeResponse getSizeByName(String name) {
+        Size size= sizeRepository.findSizeByName(name).orElseThrow(()->new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
+        return sizeMapper.toSizeResponse(size);
     }
 }

@@ -30,7 +30,7 @@ public class CategoryController {
 
     // Get all categories
     @GetMapping
-   public ApiResponse<List<Category>> getAll() {
+    public ApiResponse<List<Category>> getAll() {
         List<Category> colors = categoryService.getAllCategories();  // Gọi service để lấy tất cả Color
         return ApiResponse.<List<Category>>builder()
                 .code(200)
@@ -51,15 +51,15 @@ public class CategoryController {
 
     @GetMapping("/{id}")
     public ApiResponse<CategoryResponse> getCategoryById(@PathVariable Integer id) {
-       CategoryResponse categoryResponse=categoryService.getCategoryById(id);
+        CategoryResponse categoryResponse = categoryService.getCategoryById(id);
         return ApiResponse.<CategoryResponse>builder()
                 .result(categoryResponse)
                 .message("Chính là nó")
-                
                 .build();
-       
+
     }
-     @PatchMapping("/{id}")
+
+    @PatchMapping("/{id}")
     public ApiResponse<CategoryResponse> updateCategory(@PathVariable Integer id, @RequestBody CategoryRequset categoryRequset) {
         CategoryResponse updatedCategory = categoryService.update(id, categoryRequset);
         return ApiResponse.<CategoryResponse>builder()
@@ -76,20 +76,25 @@ public class CategoryController {
         return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Category deleted successfully")
-                
                 .build();
     }
-     @PostMapping("/moveon/{id}")
-    public ApiResponse<Void> moveOn(@PathVariable Integer id){
-       categoryService.moveOn(id);
-       return ApiResponse.<Void>builder()
+
+    @PostMapping("/moveon/{id}")
+    public ApiResponse<Void> moveOn(@PathVariable Integer id) {
+        categoryService.moveOn(id);
+        return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Category deleted successfully")
-                
                 .build();
     }
-    
-}
-    
-    
 
+    @GetMapping("/{name}")
+    public ApiResponse<CategoryResponse> getCategoryByName(@PathVariable String name) {
+        CategoryResponse categoryResponse = categoryService.getCategoryByName(name);
+        return ApiResponse.<CategoryResponse>builder()
+                .result(categoryResponse)
+                .message("Chính là nó")
+                .build();
+
+    }
+}
