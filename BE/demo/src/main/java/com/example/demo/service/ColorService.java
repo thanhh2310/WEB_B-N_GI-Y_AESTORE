@@ -83,5 +83,8 @@ public class ColorService {
         return colorRepository.findAll();
 
     }
+    public Optional<Color> getColorByName(String name) {
+        return colorRepository.findColorByName(name);
+    }
 
 }

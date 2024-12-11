@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/colors")  // Định nghĩa endpoint cho Color
@@ -89,5 +90,17 @@ public class ColorController {
                 .message("All colors fetched successfully")
                 .result(colors)
                 .build();  // Trả về ApiResponse với danh sách tất cả các màu sắc
+    }
+    @GetMapping("/name")
+    public ApiResponse<Optional<Color>> getAllForName(@RequestParam String name) {
+         Optional<Color> color = colorService.getColorByName(name);
+         if (color.isPresent()) {
+             return ApiResponse.<Optional<Color>>builder()
+                     .code(200)
+                     .message("thanh cong")
+                     .result(color)
+                     .build();
+         }
+         return null;
     }
 }
