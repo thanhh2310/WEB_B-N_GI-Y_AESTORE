@@ -9,7 +9,7 @@ const AdminBrandPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingBrand, setEditingBrand] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
+    name: "",
     active: true
   });
 
@@ -35,12 +35,12 @@ const AdminBrandPage = () => {
     e.preventDefault();
     try {
       await axios.post('http://localhost:8081/saleShoes/brands', {
-        ...formData,
+        name: formData.name,
         active: true
       });
       toast.success('Tạo thương hiệu thành công');
       setShowCreateModal(false);
-      setFormData({ name: '', active: true });
+      setFormData({ name: "", active: true });
       fetchBrands();
     } catch (error) {
       console.error('Error creating brand:', error);
@@ -53,7 +53,7 @@ const AdminBrandPage = () => {
     e.preventDefault();
     try {
       await axios.patch(`http://localhost:8081/saleShoes/brands/${editingBrand.id}`, {
-        ...formData,
+        name: formData.name,
         active: editingBrand.active
       });
       toast.success('Cập nhật thương hiệu thành công');
@@ -116,6 +116,7 @@ const AdminBrandPage = () => {
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="w-full px-4 py-2 border rounded-md mb-4"
             required
+            autoFocus
           />
           <div className="flex justify-end gap-2">
             <button
@@ -149,6 +150,7 @@ const AdminBrandPage = () => {
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="w-full px-4 py-2 border rounded-md mb-4"
             required
+            autoFocus
           />
           <div className="flex justify-end gap-2">
             <button
@@ -269,4 +271,4 @@ const AdminBrandPage = () => {
   );
 };
 
-export default AdminBrandPage; 
+export default AdminBrandPage;

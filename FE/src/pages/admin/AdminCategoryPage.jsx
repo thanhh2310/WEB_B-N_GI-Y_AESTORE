@@ -116,6 +116,7 @@ const AdminCategoryPage = () => {
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="w-full px-4 py-2 border rounded-md mb-4"
             required
+            autoFocus
           />
           <div className="flex justify-end gap-2">
             <button

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
@@ -7,7 +7,7 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
+    password: '', 
     confirmPassword: '',
     username: '',
     phone: '',
@@ -18,6 +18,7 @@ const RegisterPage = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,6 +26,13 @@ const RegisterPage = () => {
       ...prev,
       [name]: value
     }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const validateForm = () => {
@@ -42,11 +50,29 @@ const RegisterPage = () => {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
     }
 
     // Confirm password validation
-    if (formData.password !== formData.confirmPassword) {
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    // Username validation
+    if (!formData.username) {
+      newErrors.username = 'Username is required';
+    } else if (formData.username.length < 3) {
+      newErrors.username = 'Username must be at least 3 characters';
+    }
+
+    // Full name validation
+    if (!formData.fullName) {
+      newErrors.fullName = 'Full name is required';
+    } else if (formData.fullName.length < 2) {
+      newErrors.fullName = 'Full name must be at least 2 characters';
     }
 
     // Phone validation
@@ -54,6 +80,30 @@ const RegisterPage = () => {
       newErrors.phone = 'Phone number is required';
     } else if (!/^[0-9]{10}$/.test(formData.phone)) {
       newErrors.phone = 'Phone number must be 10 digits';
+    }
+
+    // Gender validation
+    if (!formData.gender) {
+      newErrors.gender = 'Please select your gender';
+    }
+
+    // DOB validation
+    if (!formData.dob) {
+      newErrors.dob = 'Date of birth is required';
+    } else {
+      const birthDate = new Date(formData.dob);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      if (age < 13) {
+        newErrors.dob = 'You must be at least 13 years old';
+      }
+    }
+
+    // Address validation
+    if (!formData.address) {
+      newErrors.address = 'Address is required';
+    } else if (formData.address.length < 10) {
+      newErrors.address = 'Please enter a complete address';
     }
 
     setErrors(newErrors);
@@ -64,41 +114,58 @@ const RegisterPage = () => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        // Format gender thành 1 ký tự (M/F) theo yêu cầu của BE
+        setIsSubmitting(true);
         const genderCode = formData.gender === 'male' ? 'M' : 'F';
-
-        // Format date theo yêu cầu của BE
         const formattedDob = new Date(formData.dob).toISOString().split('T')[0];
 
-        // Gọi API đăng ký từ UserController với format đúng
         const response = await axios.post('http://localhost:8081/saleShoes/users', {
-          email: formData.email,
+          email: formData.email.toLowerCase().trim(),
           password: formData.password,
-          username: formData.username,
-          phone: formData.phone,
-          fullName: formData.fullName,
-          gender: genderCode, // Gửi gender dạng 1 ký tự
-          dob: formattedDob, // Gửi date đúng format
-          address: formData.address,
+          username: formData.username.trim(),
+          phone: formData.phone.trim(),
+          fullName: formData.fullName.trim(),
+          gender: genderCode,
+          dob: formattedDob,
+          address: formData.address.trim(),
           active: true,
           email_verified: false
         });
 
         if (response.data?.result) {
-          toast.success('Vui lòng xác thực email!');
+          toast.success('Registration successful! Please verify your email.');
           navigate('/signin');
         } else {
-          toast.error('Đăng ký thất bại');
+          toast.error('Registration failed. Please try again.');
         }
       } catch (error) {
         console.error('Register error:', error);
-        toast.error(error.response?.data?.message || 'Đăng ký thất bại');
-        if (error.response) {
-          console.log('Error response:', error.response.data);
+        if (error.response?.data?.message?.includes('duplicate')) {
+          toast.error('Email or username already exists');
+        } else {
+          toast.error(error.response?.data?.message || 'Registration failed');
         }
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
+
+  // Clear form data when component unmounts
+  useEffect(() => {
+    return () => {
+      setFormData({
+        email: '',
+        password: '',
+        confirmPassword: '',
+        username: '',
+        phone: '',
+        fullName: '',
+        gender: '',
+        dob: '',
+        address: ''
+      });
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -116,7 +183,7 @@ const RegisterPage = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit} noValidate>
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -194,8 +261,11 @@ const RegisterPage = () => {
                   required
                   value={formData.fullName}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className={`appearance-none block w-full px-3 py-2 border ${
+                    errors.fullName ? 'border-red-300' : 'border-gray-300'
+                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm`}
                 />
+                {errors.fullName && <p className="mt-2 text-sm text-red-600">{errors.fullName}</p>}
               </div>
             </div>
 
@@ -212,8 +282,11 @@ const RegisterPage = () => {
                   required
                   value={formData.username}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className={`appearance-none block w-full px-3 py-2 border ${
+                    errors.username ? 'border-red-300' : 'border-gray-300'
+                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm`}
                 />
+                {errors.username && <p className="mt-2 text-sm text-red-600">{errors.username}</p>}
               </div>
             </div>
 
@@ -265,6 +338,7 @@ const RegisterPage = () => {
                   <span className="ml-2">Female</span>
                 </label>
               </div>
+              {errors.gender && <p className="mt-2 text-sm text-red-600">{errors.gender}</p>}
             </div>
 
             {/* Date of Birth */}
@@ -280,8 +354,11 @@ const RegisterPage = () => {
                   required
                   value={formData.dob}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className={`appearance-none block w-full px-3 py-2 border ${
+                    errors.dob ? 'border-red-300' : 'border-gray-300'
+                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm`}
                 />
+                {errors.dob && <p className="mt-2 text-sm text-red-600">{errors.dob}</p>}
               </div>
             </div>
 
@@ -298,17 +375,23 @@ const RegisterPage = () => {
                   required
                   value={formData.address}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className={`appearance-none block w-full px-3 py-2 border ${
+                    errors.address ? 'border-red-300' : 'border-gray-300'
+                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm`}
                 />
+                {errors.address && <p className="mt-2 text-sm text-red-600">{errors.address}</p>}
               </div>
             </div>
 
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+                disabled={isSubmitting}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                  isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-gray-800'
+                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black`}
               >
-                JOIN US
+                {isSubmitting ? 'Processing...' : 'JOIN US'}
               </button>
             </div>
           </form>
@@ -338,4 +421,4 @@ const RegisterPage = () => {
   );
 };
 
-export default RegisterPage; 
+export default RegisterPage;
