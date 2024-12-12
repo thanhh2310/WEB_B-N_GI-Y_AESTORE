@@ -13,26 +13,19 @@ const AdminProductPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    minPrice: 0,
+    brand: '',
+    category: '',
     active: true
   });
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [colors, setColors] = useState([]);
-  const [sizes, setSizes] = useState([]);
-  const [variants, setVariants] = useState([]);
 
   // Fetch products
   const fetchProducts = async () => {
     try {
       const response = await axios.get('http://localhost:8081/saleShoes/products');
       if (response.data?.result) {
-        // Đảm bảo active có giá trị mặc định
-        const productsWithActive = response.data.result.map(product => ({
-          ...product,
-          active: product.active ?? true // Nếu active là null/undefined thì mặc định là true
-        }));
-        setProducts(productsWithActive);
+        setProducts(response.data.result);
       }
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -44,98 +37,82 @@ const AdminProductPage = () => {
     fetchProducts();
   }, []);
 
+  // Fetch brands and categories
+  const fetchBrandsAndCategories = async () => {
+    try {
+      const [brandsRes, categoriesRes] = await Promise.all([
+        axios.get('http://localhost:8081/saleShoes/brands'),
+        axios.get('http://localhost:8081/saleShoes/categories')
+      ]);
+      setBrands(brandsRes.data?.result || []);
+      setCategories(categoriesRes.data?.result || []);
+    } catch (error) {
+      console.error('Error fetching brands or categories:', error);
+      toast.error('Không thể tải dữ liệu thương hiệu hoặc danh mục');
+    }
+  };
+
+  useEffect(() => {
+    fetchBrandsAndCategories();
+  }, []);
+
   // Toggle product status
   const toggleProductStatus = async (productId) => {
     try {
       const product = products.find(p => p.id === productId);
       if (!product) return;
 
-      const updatedProduct = {
-        name: product.name,
-        description: product.description,
-        category: product.category,
-        brand: product.brand,
-        active: !product.active
-      };
+      if (!product.active) {
+        // Nếu đang inactive thì gọi API moveOn để activate
+        await axios.post(`http://localhost:8081/saleShoes/products/moveon/${productId}`);
+      } else {
+        // Nếu đang active thì gọi API delete để deactivate
+        await axios.delete(`http://localhost:8081/saleShoes/products/${productId}`);
+      }
 
-      await axios.patch(`http://localhost:8081/saleShoes/products/${productId}`, updatedProduct);
-      
-      // Cập nhật UI ngay lập tức
-      setProducts(products.map(p => 
-        p.id === productId 
-          ? { ...p, active: !p.active }
-          : p
-      ));
+      // Cập nhật UI sau khi API thành công
+      setProducts(prevProducts => 
+        prevProducts.map(p => 
+          p.id === productId 
+            ? { ...p, active: !p.active }
+            : p
+        )
+      );
 
       toast.success('Cập nhật trạng thái thành công');
+
     } catch (error) {
       console.error('Error toggling product status:', error);
       toast.error('Không thể cập nhật trạng thái');
-      
-      // Fetch lại data nếu có lỗi
+      // Fetch lại data nếu có lỗi để đồng bộ với DB
       fetchProducts();
     }
   };
 
-  // Fetch brands, categories, colors, sizes
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [brandsRes, categoriesRes, colorsRes, sizesRes] = await Promise.all([
-          axios.get('http://localhost:8081/saleShoes/brands'),
-          axios.get('http://localhost:8081/saleShoes/categories'),
-          axios.get('http://localhost:8081/saleShoes/colors'),
-          axios.get('http://localhost:8081/saleShoes/sizes')
-        ]);
-
-        // Log để debug
-        console.log('Brands:', brandsRes.data);
-        console.log('Categories:', categoriesRes.data);
-        console.log('Colors:', colorsRes.data);
-        console.log('Sizes:', sizesRes.data);
-
-        // Lọc chỉ lấy các item active
-        const activeFilter = items => items.filter(item => item.active);
-
-        setBrands(activeFilter(brandsRes.data?.result || []));
-        setCategories(activeFilter(categoriesRes.data?.result || []));
-        setColors(activeFilter(colorsRes.data?.result || []));
-        setSizes(activeFilter(sizesRes.data?.result || []));
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        toast.error('Không thể tải dữ liệu');
-      }
-    };
-
-    fetchData();
-  }, []);
-
   // Create product modal
   const CreateModal = () => {
-    const [productForm, setProductForm] = useState({
-      name: '',
-      description: '',
-      brand: '',
-      category: '',
-      active: true
-    });
-
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        const response = await axios.post('http://localhost:8081/saleShoes/products', {
-          name: productForm.name,
-          description: productForm.description,
-          brand: brands.find(b => b.id === parseInt(productForm.brand)),
-          category: categories.find(c => c.id === parseInt(productForm.category)),
-          active: true
-        });
-
-        if (response.data?.result) {
-          toast.success('Tạo sản phẩm thành công');
-          setShowCreateModal(false);
-          fetchProducts();
+        const response = await axios.get(`http://localhost:8081/saleShoes/products/name/${formData.name}`);
+        if (response.data?.result.length > 0) {
+          toast.error('Sản phẩm đã tồn tại');
+          return;
         }
+
+        const newProduct = {
+          name: formData.name,
+          description: formData.description,
+          brand: formData.brand,
+          category: formData.category,
+          active: true
+        };
+
+        await axios.post('http://localhost:8081/saleShoes/products', newProduct);
+        toast.success('Tạo sản phẩm thành công');
+        setShowCreateModal(false);
+        setFormData({ name: '', description: '', brand: '', category: '', active: true });
+        fetchProducts();
       } catch (error) {
         console.error('Error creating product:', error);
         toast.error('Không thể tạo sản phẩm');
@@ -144,48 +121,45 @@ const AdminProductPage = () => {
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div className="bg-white p-6 rounded-lg w-[500px]">
+        <div className="bg-white p-6 rounded-lg w-96">
           <h2 className="text-xl font-bold mb-4">Tạo sản phẩm mới</h2>
           <form onSubmit={handleSubmit}>
-            <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Tên sản phẩm"
-                value={productForm.name}
-                onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                className="w-full px-4 py-2 border rounded-md"
-                required
-              />
-              <textarea
-                placeholder="Mô tả"
-                value={productForm.description}
-                onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                className="w-full px-4 py-2 border rounded-md"
-              />
-              <select
-                value={productForm.brand}
-                onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
-                className="w-full px-4 py-2 border rounded-md"
-                required
-              >
-                <option value="">Chọn thương hiệu</option>
-                {brands.map(brand => (
-                  <option key={brand.id} value={brand.id}>{brand.name}</option>
-                ))}
-              </select>
-              <select
-                value={productForm.category}
-                onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                className="w-full px-4 py-2 border rounded-md"
-                required
-              >
-                <option value="">Chọn danh mục</option>
-                {categories.map(category => (
-                  <option key={category.id} value={category.id}>{category.name}</option>
-                ))}
-              </select>
-            </div>
-
+            <input
+              type="text"
+              placeholder="Tên sản phẩm"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-4 py-2 border rounded-md"
+              required
+            />
+            <textarea
+              placeholder="Mô tả"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="w-full px-4 py-2 border rounded-md"
+            />
+            <select
+              value={formData.brand}
+              onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+              className="w-full px-4 py-2 border rounded-md"
+              required
+            >
+              <option value="">Chọn thương hiệu</option>
+              {brands.map(brand => (
+                <option key={brand.id} value={brand.id}>{brand.name}</option>
+              ))}
+            </select>
+            <select
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="w-full px-4 py-2 border rounded-md"
+              required
+            >
+              <option value="">Chọn danh mục</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.id}>{category.name}</option>
+              ))}
+            </select>
             <div className="flex justify-end gap-2 mt-6">
               <button
                 type="button"
@@ -207,12 +181,100 @@ const AdminProductPage = () => {
     );
   };
 
+  // Edit product modal
+  const EditModal = () => {
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      try {
+        const updatedProduct = {
+          name: formData.name,
+          description: formData.description,
+          brand: formData.brand,
+          category: formData.category,
+          active: formData.active
+        };
+
+        await axios.patch(`http://localhost:8081/saleShoes/products/${editingProduct.id}`, updatedProduct);
+        toast.success('Cập nhật sản phẩm thành công');
+        setShowEditModal(false);
+        setEditingProduct(null);
+        setFormData({ name: '', description: '', brand: '', category: '', active: true });
+        fetchProducts();
+      } catch (error) {
+        console.error('Error updating product:', error);
+        toast.error('Không thể cập nhật sản phẩm');
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="bg-white p-6 rounded-lg w-96">
+          <h2 className="text-xl font-bold mb-4">Chỉnh sửa sản phẩm</h2>
+          <form onSubmit={handleSubmit}>
+            <input
+              type="text"
+              placeholder="Tên sản phẩm"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-4 py-2 border rounded-md"
+              required
+            />
+            <textarea
+              placeholder="Mô tả"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="w-full px-4 py-2 border rounded-md"
+            />
+            <select
+              value={formData.brand}
+              onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+              className="w-full px-4 py-2 border rounded-md"
+              required
+            >
+              <option value="">Chọn thương hiệu</option>
+              {brands.map(brand => (
+                <option key={brand.id} value={brand.id}>{brand.name}</option>
+              ))}
+            </select>
+            <select
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="w-full px-4 py-2 border rounded-md"
+              required
+            >
+              <option value="">Chọn danh mục</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.id}>{category.name}</option>
+              ))}
+            </select>
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingProduct(null);
+                }}
+                className="px-4 py-2 border rounded-md"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-black text-white rounded-md"
+              >
+                Cập nhật
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <div className="text-sm text-gray-500">
-          View, create, update and manage
-        </div>
+        <div className="text-sm text-gray-500">View, create, update and manage</div>
         <button 
           onClick={() => setShowCreateModal(true)}
           className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
@@ -224,15 +286,13 @@ const AdminProductPage = () => {
       {/* Search Bar */}
       <div className="bg-white rounded-lg shadow mb-6">
         <div className="p-4">
-          <div className="flex gap-4">
-            <input
-              type="text"
-              placeholder="Tìm kiếm"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Tìm kiếm"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+          />
         </div>
       </div>
 
@@ -243,10 +303,11 @@ const AdminProductPage = () => {
             <thead>
               <tr className="border-b">
                 <th className="text-left py-4">ID</th>
-                <th className="text-left py-4">Name / Brand</th>
-                <th className="text-left py-4">Price</th>
+                <th className="text-left py-4">Name</th>
+                <th className="text-left py-4">Brand</th>
+                <th className="text-left py-4">Category</th>
                 <th className="text-center py-4">Status</th>
-                <th className="text-left py-4">Actions</th>
+                <th className="text-right py-4">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -257,20 +318,9 @@ const AdminProductPage = () => {
                 .map((product) => (
                 <tr key={product.id} className="border-b">
                   <td className="py-4">{product.id}</td>
-                  <td className="py-4">
-                    <div className="flex items-center gap-3">
-                      <img 
-                        src={product.imageUrl || '/default-product.jpg'} 
-                        alt={product.name}
-                        className="w-12 h-12 object-cover rounded"
-                      />
-                      <div>
-                        <div>{product.name}</div>
-                        <div className="text-gray-500">{product.brand?.name}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4">{product.minPrice?.toLocaleString('vi-VN')}đ</td>
+                  <td className="py-4">{product.name}</td>
+                  <td className="py-4">{product.brand?.name}</td>
+                  <td className="py-4">{product.category?.name}</td>
                   <td className="py-4">
                     <div className="flex justify-center">
                       <button
@@ -288,7 +338,7 @@ const AdminProductPage = () => {
                     </div>
                   </td>
                   <td className="py-4">
-                    <div className="flex gap-2">
+                    <div className="flex justify-end gap-2">
                       <button 
                         className="text-blue-600 hover:underline"
                         onClick={() => navigate(`/admin/products/${product.id}`)}
@@ -302,7 +352,9 @@ const AdminProductPage = () => {
                           setFormData({
                             name: product.name,
                             description: product.description,
-                            minPrice: product.minPrice
+                            brand: product.brand.id,
+                            category: product.category.id,
+                            active: product.active
                           });
                           setShowEditModal(true);
                         }}

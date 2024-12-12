@@ -230,8 +230,6 @@ const AdminProductDetailPage = () => {
           active: true
         };
 
-        console.log('Sending payload:', payload);
-
         const response = await axios.post('http://localhost:8081/saleShoes/productdetails', payload);
 
         if (response.data?.result) {
@@ -243,9 +241,6 @@ const AdminProductDetailPage = () => {
         }
       } catch (error) {
         console.error('Error creating variant:', error);
-        if (error.response?.data) {
-          console.error('Server error details:', error.response.data);
-        }
         toast.error('Không thể thêm biến thể: ' + (error.response?.data?.message || error.message));
       }
     };
@@ -464,7 +459,7 @@ const AdminProductDetailPage = () => {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="flex justify-center gap-2">
+                      <div className="flex gap-2 justify-end">
                         <button 
                           className="p-1 hover:text-blue-600"
                           onClick={() => {
