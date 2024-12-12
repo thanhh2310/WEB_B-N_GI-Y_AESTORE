@@ -89,8 +89,8 @@ public class SizeController {
                 .result(sizes)
                 .build();  // Trả về ApiResponse với danh sách tất cả các kích thước
     }
-     @GetMapping("/{name}")
-    public ApiResponse<SizeResponse> getByName(@PathVariable String name) {
+     @GetMapping("/name")
+    public ApiResponse<SizeResponse> getByName(@RequestParam String name) {
         SizeResponse sizeResponse = sizeService.getSizeByName(name);  // Gọi service để lấy Size theo ID
         return ApiResponse.<SizeResponse>builder()
                 .code(200)

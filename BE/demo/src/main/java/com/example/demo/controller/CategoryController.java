@@ -88,8 +88,8 @@ public class CategoryController {
                 .build();
     }
 
-    @GetMapping("/{name}")
-    public ApiResponse<CategoryResponse> getCategoryByName(@PathVariable String name) {
+    @GetMapping("/name")
+    public ApiResponse<CategoryResponse> getCategoryByName(@RequestParam String name) {
         CategoryResponse categoryResponse = categoryService.getCategoryByName(name);
         return ApiResponse.<CategoryResponse>builder()
                 .result(categoryResponse)

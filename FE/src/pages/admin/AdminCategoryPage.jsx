@@ -34,6 +34,14 @@ const AdminCategoryPage = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
+      // Kiểm tra xem màu sắc đã tồn tại hay chưa
+      const response = await axios.get(`http://localhost:8081/saleShoes/categories/name?name=${formData.name}`);
+      if (response.data?.result) {
+        toast.error('Category đã tồn tại'); // Thông báo nếu màu sắc đã tồn tại
+        return; // Dừng lại nếu đã tồn tại
+      }
+
+      // Nếu chưa tồn tại, thực hiện tạo mới
       await axios.post('http://localhost:8081/saleShoes/categories', {
         ...formData,
         active: true

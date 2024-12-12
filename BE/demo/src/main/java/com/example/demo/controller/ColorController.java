@@ -105,7 +105,7 @@ public class ColorController {
     }
 
     @GetMapping("/{name}")
-    public ApiResponse<Color> getByName(@PathVariable String name) {
+    public ApiResponse<Color> getByName(@RequestParam String name) {
         Color color = colorService.getColorByName(name);  // Gọi service để lấy Color theo ID
         return ApiResponse.<Color>builder()
                 .code(200)

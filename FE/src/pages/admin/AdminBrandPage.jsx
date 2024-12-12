@@ -34,6 +34,14 @@ const AdminBrandPage = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
+      // Kiểm tra xem màu sắc đã tồn tại hay chưa
+      const response = await axios.get(`http://localhost:8081/saleShoes/brands/name?name=${formData.name}`);
+      if (response.data?.result) {
+        toast.error('Brand đã tồn tại'); // Thông báo nếu màu sắc đã tồn tại
+        return; // Dừng lại nếu đã tồn tại
+      }
+
+      // Nếu chưa tồn tại, thực hiện tạo mới
       await axios.post('http://localhost:8081/saleShoes/brands', {
         name: formData.name,
         active: true
