@@ -1,5 +1,6 @@
 package com.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -16,5 +17,6 @@ public class Address {
 
     @ManyToOne
     @JoinColumn(name = "UserID")
+       @JsonBackReference
     private User user;
 } 

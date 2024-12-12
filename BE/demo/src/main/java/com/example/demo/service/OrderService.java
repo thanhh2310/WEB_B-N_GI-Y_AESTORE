@@ -7,16 +7,19 @@ package com.example.demo.service;
 import com.example.demo.ENUMS.OrderStatus;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.exception.WebErrorConfig;
+import com.example.demo.model.Address;
 import com.example.demo.model.Cart;
 import com.example.demo.model.CartDetail;
 import com.example.demo.model.Coupon;
 import com.example.demo.model.Order;
 import com.example.demo.model.OrderDetail;
 import com.example.demo.model.ProductDetail;
+import com.example.demo.model.User;
 import com.example.demo.respository.CouponRepository;
 import com.example.demo.respository.OrderRepository;
 import com.example.demo.respository.ProductDetailRepository;
 import com.example.demo.respository.ProductRepository;
+import com.example.demo.respository.UserRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,6 +41,7 @@ public class OrderService {
     private final ProductDetailRepository productDetailRepository;
     private final CartService cartService;
     private final CouponRepository couponRepository;
+    private final UserRepository userRepository;
 
     public Order addCoupon(Integer Id, String code) {
         // Lấy đơn hàng dựa trên ID
@@ -68,12 +72,13 @@ public class OrderService {
     public Order create(Cart cart) {
         Order order = new Order();
         order.setUser(cart.getUser());
-        order.setStatus("CHOXACNHAN");  
+        order.setStatus("CHOXACNHAN");
         order.setDateCreate(new Date());
         return order;
     }
 
     public Order placeOrder(Integer userId) {
+
         Cart cart = cartService.getCartByUserId(userId);
         Order order = create(cart);
 
