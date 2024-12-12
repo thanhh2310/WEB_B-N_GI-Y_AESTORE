@@ -4,10 +4,13 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
+import lombok.EqualsAndHashCode;
 
 @Data
 @Entity
 @Table(name = "ProductDetail")
+@EqualsAndHashCode(exclude = {"images"}) 
 public class ProductDetail {
 
     @Id
@@ -22,9 +25,8 @@ public class ProductDetail {
     @JoinColumn(name = "SizeID")
     private Size size;
 
-    @ManyToOne
-    @JoinColumn(name = "ImageID")
-    private Image image;
+    @OneToMany(mappedBy = "productDetail")
+    private Set<Image> images;
 
     @ManyToOne
     @JoinColumn(name = "ProductID")

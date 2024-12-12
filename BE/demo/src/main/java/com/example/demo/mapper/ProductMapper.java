@@ -42,6 +42,7 @@ public class ProductMapper {
                 .description(product.getDescription())
                 .brand(product.getBrand())
                 .category(product.getCategory())
+                .active(product.isActive())
                 .build();
     }
     public void updateProductFromRequest(ProductRequest request, Product product) {

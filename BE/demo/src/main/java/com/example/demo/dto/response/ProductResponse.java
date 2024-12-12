@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Builder
@@ -21,5 +22,6 @@ public class ProductResponse {
     private Brand brand;
     private String description;
     private BigDecimal minPrice;
-    private String imageUrl;
+    private Set<String> imageUrl;
+    private boolean active;
 }

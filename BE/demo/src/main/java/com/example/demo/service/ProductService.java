@@ -11,6 +11,7 @@ import com.example.demo.exception.ErrorCode;
 import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.mapper.ProductDetailMapper;
 import com.example.demo.mapper.ProductMapper;
+import com.example.demo.model.Image;
 import com.example.demo.model.Product;
 import com.example.demo.model.ProductDetail;
 import com.example.demo.respository.ProductDetailRepository;
@@ -19,8 +20,10 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,9 +71,11 @@ public class ProductService {
 
         // Duyệt qua tất cả các sản phẩm
         for (Product product : activeProducts) {
+            // Kiểm tra xem thương hiệu và danh mục có còn hoạt động không
             if (!product.getBrand().isActive() || !product.getCategory().isActive()) {
                 continue;
             }
+
             // Tìm chi tiết sản phẩm có giá thấp nhất cho mỗi sản phẩm
             ProductDetail productDetail = productDetailRepository.findMinPriceDetailByProductId(product.getId());
 
@@ -81,9 +86,23 @@ public class ProductService {
             if (productDetail != null) {
                 // Thiết lập giá cho sản phẩm
                 productResponse.setMinPrice(productDetail.getPrice());
+
                 // Thiết lập URL ảnh cho sản phẩm nếu có
-                if (productDetail.getImage() != null) {
-                    productResponse.setImageUrl(productDetail.getImage().getUrl());
+                if (productDetail.getImages() != null && !productDetail.getImages().isEmpty()) {
+                    // Khởi tạo một danh sách để chứa các URL
+                    Set<String> imageUrls = new HashSet<>();
+
+                    // Duyệt qua tất cả các hình ảnh và lấy URL
+                    for (Image image : productDetail.getImages()) {
+                        // Thêm URL của mỗi hình ảnh vào danh sách
+                        imageUrls.add(image.getUrl());
+                    }
+
+                    // Chuyển danh sách hình ảnh thành chuỗi phân cách (nếu cần)
+                    
+
+                    // Thiết lập URL hình ảnh cho sản phẩm
+                    productResponse.setImageUrl(imageUrls);  
                 }
             }
 

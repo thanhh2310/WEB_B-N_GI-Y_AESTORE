@@ -15,10 +15,13 @@ import com.example.demo.exception.ErrorCode;
 import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.mapper.ProductDetailMapper;
 import com.example.demo.model.Color;
+
+import com.example.demo.model.Image;
 import com.example.demo.model.Product;
 import com.example.demo.model.ProductDetail;
 import com.example.demo.model.Size;
 import com.example.demo.respository.ColorRepository;
+import com.example.demo.respository.IamgeRepository;
 import com.example.demo.respository.ProductDetailRepository;
 
 import java.awt.*;
@@ -27,7 +30,9 @@ import java.util.List;
 import com.example.demo.respository.ProductRepository;
 import com.example.demo.respository.SizeRepository;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,6 +41,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ProductDetailService {
 
+    private final IamgeRepository imageRepository;
     private final ProductDetailRepository productDetailRepository;
     private final ProductDetailMapper productDetailMapper;
     private final ColorRepository colorRepository;
@@ -43,25 +49,22 @@ public class ProductDetailService {
     private final ProductRepository productRepository;
 
     public ProductDetailResponse getProductDetailByColorAndSize(Integer productId, Integer idColor, Integer idSize) {
-    Color color = colorRepository.findById(idColor).orElseThrow(() -> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
-    Size size = sizeRepository.findById(idSize)
-            .orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
-    Product product = productRepository.findById(productId).orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
+        Color color = colorRepository.findById(idColor).orElseThrow(() -> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
+        Size size = sizeRepository.findById(idSize)
+                .orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
+        Product product = productRepository.findById(productId).orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
 
-    // Truy vấn và lấy danh sách các ProductDetail
-    List<ProductDetail> productDetails = productDetailRepository
-            .findByProductAndColorAndSize(product, color, size);
+        // Truy vấn và lấy danh sách các ProductDetail
+        List<ProductDetail> productDetails = productDetailRepository
+                .findByProductAndColorAndSize(product, color, size);
 
+        ProductDetail productDetail = productDetails.isEmpty() ? null : productDetails.get(0);
+        if (productDetail == null) {
+            throw new WebErrorConfig(ErrorCode.PRODUCTDETAIL_NOT_FOUND); // Không tìm thấy đối tượng
+        }
 
-
-    ProductDetail productDetail = productDetails.isEmpty() ? null : productDetails.get(0);
-    if (productDetail == null) {
-        throw new WebErrorConfig(ErrorCode.PRODUCTDETAIL_NOT_FOUND); // Không tìm thấy đối tượng
+        return productDetailMapper.toProductDetailResponse(productDetail);
     }
-
-    return productDetailMapper.toProductDetailResponse(productDetail);
-}
-
 
     public ProductDetailResponse updateProductDetail(Integer id, ProductDetailUpdate request) {
         // Tìm sản phẩm chi tiết
@@ -69,10 +72,9 @@ public class ProductDetailService {
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
 
         // Cập nhật trường Image nếu có
-        if (request.getImage() != null) {
-            existingProductDetail.setImage(request.getImage());
-        }
-
+//        if (request.getImage() != null) {
+//            existingProductDetail.setImages(request.getImage());
+//        }
         // Cập nhật trường Price nếu có
         if (request.getPrice() != null) {
             existingProductDetail.setPrice(request.getPrice());
@@ -95,7 +97,6 @@ public class ProductDetailService {
         return productDetailMapper.toProductDetailResponse(existingProductDetail);
     }
 
-    
     public List<ProductDetailResponse> getAll() {
         List<ProductDetailResponse> productDetailResponses = new ArrayList<>();
         for (ProductDetail p : productDetailRepository.findByActiveTrue()) {
@@ -103,6 +104,7 @@ public class ProductDetailService {
         }
         return productDetailResponses;
     }
+
     public List<ProductDetailResponse> getAllForAdmin() {
         List<ProductDetailResponse> productDetailResponses = new ArrayList<>();
         for (ProductDetail p : productDetailRepository.findAll()) {
@@ -122,7 +124,7 @@ public class ProductDetailService {
         // Tìm kiếm ProductDetail theo id
         ProductDetail productDetail = productDetailRepository.findById(id)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCTDETAIL_NOT_FOUND));
-        
+
         // Chuyển đổi ProductDetail sang ProductDetailResponse và trả về
         return productDetailMapper.toProductDetailResponse(productDetail);
     }
@@ -146,7 +148,7 @@ public class ProductDetailService {
         productDetail.setProduct(product);
         productDetail.setColor(color);
         productDetail.setSize(size);
-        productDetail.setImage(request.getImage());
+
         productDetail.setPrice(request.getPrice());
         productDetail.setDescription(request.getDescription());
         productDetail.setQuantity(request.getQuantity());
@@ -154,29 +156,42 @@ public class ProductDetailService {
 
         // Lưu vào database
         productDetail = productDetailRepository.save(productDetail);
+        if (request.getImage() != null) {
+            // Tạo mới đối tượng Image (giả sử Image có constructor hoặc phương thức để tạo đối tượng từ URL hoặc chuỗi)
+            Set<Image> images = new HashSet<>();
+            for (String imageUrl : request.getImage()) {  // Giả sử request.getImage() là một danh sách các URL hoặc chuỗi URL
+                Image image = new Image();  // Tạo đối tượng Image
+                image.setUrl(imageUrl);  // Gán URL cho hình ảnh (hoặc xử lý thêm tùy theo yêu cầu)
+                image.setProductDetail(productDetail);
+                imageRepository.save(image);
+                images.add(image);  // Thêm vào set hình ảnh
+            }
+            
+            productDetail.setImages(images);
+            productDetail = productDetailRepository.save(productDetail);
 
-        // Trả về ProductDetailResponse đã được chuyển đổi
+        }
         return productDetailMapper.toProductDetailResponse(productDetail);
     }
 
     public List<Size> getProductDetailsByColor(Integer productId, Integer colorId) {
         List<ProductDetail> details = productDetailRepository.findByProductIdAndColorIdOrderBySizeId(productId, colorId);
-        List<Size> sizes=new ArrayList<>();
-        for(ProductDetail p:details){
+        List<Size> sizes = new ArrayList<>();
+        for (ProductDetail p : details) {
             sizes.add(p.getSize());
         }
         return sizes;
     }
-     public List<Color> getProductDetailsBySize(Integer productId, Integer colorId) {
+
+    public List<Color> getProductDetailsBySize(Integer productId, Integer colorId) {
         List<ProductDetail> details = productDetailRepository.findByProductIdAndColorIdOrderBySizeId(productId, colorId);
-        List<Color> colors=new ArrayList<>();
-        for(ProductDetail p:details){
+        List<Color> colors = new ArrayList<>();
+        for (ProductDetail p : details) {
             colors.add(p.getColor());
         }
         return colors;
     }
 
-    
     public void moveOn(Integer id) {
         ProductDetail productDetail = productDetailRepository.findById(id)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));

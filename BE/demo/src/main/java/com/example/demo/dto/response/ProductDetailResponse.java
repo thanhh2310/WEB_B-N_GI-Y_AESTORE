@@ -11,6 +11,7 @@ import com.example.demo.model.Product;
 import com.example.demo.model.Size;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
 
@@ -25,7 +26,7 @@ public class ProductDetailResponse {
     private Integer productId;  // Truyền trực tiếp đối tượng Product
     private String color;      // Truyền trực tiếp đối tượng Color
     private String size;        // Truyền trực tiếp đối tượng Size
-    private Image image;      // Truyền trực tiếp đối tượng Image
+    private Set<String> image;      // Truyền trực tiếp đối tượng Image
     private BigDecimal price; // Giá sản phẩm
     private String description; // Mô tả chi tiết
     private Integer quantity;
