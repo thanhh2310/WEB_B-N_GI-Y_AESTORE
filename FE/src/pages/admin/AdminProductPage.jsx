@@ -23,7 +23,7 @@ const AdminProductPage = () => {
   // Fetch products
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://localhost:8081/saleShoes/products');
+      const response = await axios.get('http://localhost:8081/saleShoes/products/admin');
       if (response.data?.result) {
         setProducts(response.data.result);
       }

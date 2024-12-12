@@ -1,4 +1,53 @@
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+
 const Sidebar = () => {
+  const [brands, setBrands] = useState([]);
+  const [sizes, setSizes] = useState([]);
+  const [colors, setColors] = useState([]);
+
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const response = await axios.get('http://localhost:8081/saleShoes/brands');
+        if (response.data && response.data.result) {
+          const activeBrands = response.data.result.filter(brand => brand.active);
+          setBrands(activeBrands);
+        }
+      } catch (error) {
+        console.error('Error fetching brands:', error);
+      }
+    };
+
+    const fetchSizes = async () => {
+      try {
+        const response = await axios.get('http://localhost:8081/saleShoes/sizes');
+        if (response.data && response.data.result) {
+          const activeSizes = response.data.result.filter(size => size.active);
+          setSizes(activeSizes);
+        }
+      } catch (error) {
+        console.error('Error fetching sizes:', error);
+      }
+    };
+
+    const fetchColors = async () => {
+      try {
+        const response = await axios.get('http://localhost:8081/saleShoes/colors');
+        if (response.data && response.data.result) {
+          const activeColors = response.data.result.filter(color => color.active);
+          setColors(activeColors);
+        }
+      } catch (error) {
+        console.error('Error fetching colors:', error);
+      }
+    };
+
+    fetchBrands();
+    fetchSizes();
+    fetchColors();
+  }, []);
+
   const priceRanges = [
     {
       label: 'Dưới 1.000.000 đ',
@@ -16,29 +65,6 @@ const Sidebar = () => {
       label: '4.000.000 đ - 6.000.000 đ',
       value: '4m-6m'
     }
-  ];
-
-  const sizes = [
-    { label: '35( 4 )', value: '35' },
-    { label: '35.5( 20 )', value: '35.5' },
-    { label: '36( 15 )', value: '36' },
-    { label: '36.5( 16 )', value: '36.5' },
-    { label: '37( 6 )', value: '37' }
-  ];
-
-  const brands = [
-    { label: 'Adidas', count: 120 },
-    { label: 'Converse', count: 98 },
-    { label: 'Dior', count: 45 },
-    { label: 'FILA', count: 67 }
-  ];
-
-  const colors = [
-    { name: 'Black', code: '#000000', count: 56 },
-    { name: 'White', code: '#FFFFFF', count: 48 },
-    { name: 'Red', code: '#FF0000', count: 32 },
-    { name: 'Blue', code: '#0000FF', count: 28 },
-    { name: 'Green', code: '#00FF00', count: 24 }
   ];
 
   return (
@@ -70,18 +96,24 @@ const Sidebar = () => {
         <h3 className="font-medium mb-4">Size</h3>
         <p className="text-sm text-gray-500 mb-2">Kích thước</p>
         <ul className="space-y-2">
-          {sizes.map((size) => (
-            <li key={size.value}>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="rounded border-gray-300 text-black focus:ring-black" 
-                />
-                <span className="text-sm">{size.label}</span>
-              </label>
-            </li>
-          ))}
+          {sizes.length > 0 ? (
+            sizes.map((size) => (
+              <li key={size.id}>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-gray-300 text-black focus:ring-black" 
+                  />
+                  <span className="text-sm">{size.name}</span>
+                </label>
+              </li>
+            ))
+          ) : (
+            <li key="no-sizes">Không có kích thước</li>
+          )}
         </ul>
+
+
         <button className="text-sm text-gray-500 mt-2 hover:text-black">
           + Show More
         </button>
@@ -92,18 +124,23 @@ const Sidebar = () => {
         <h3 className="font-medium mb-4">Brand</h3>
         <p className="text-sm text-gray-500 mb-2">Thương hiệu</p>
         <ul className="space-y-2">
-          {brands.map((brand) => (
-            <li key={brand.label}>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="rounded border-gray-300 text-black focus:ring-black" 
-                />
-                <span className="text-sm">{brand.label}</span>
-              </label>
-            </li>
-          ))}
-        </ul>
+  {brands.length > 0 ? (
+    brands.map((brand) => (
+      <li key={brand.id}>
+        <label className="flex items-center space-x-2 cursor-pointer">
+          <input 
+            type="checkbox" 
+            className="rounded border-gray-300 text-black focus:ring-black" 
+          />
+          <span className="text-sm">{brand.name}</span>
+        </label>
+      </li>
+    ))
+  ) : (
+    <li key="no-brands">Không có thương hiệu</li>
+  )}
+</ul>
+
       </div>
 
       {/* Colors */}
@@ -111,23 +148,28 @@ const Sidebar = () => {
         <h3 className="font-medium mb-4">Colors</h3>
         <p className="text-sm text-gray-500 mb-2">Màu sắc</p>
         <div className="grid grid-cols-4 gap-2">
-          {colors.map((color) => (
-            <div 
-              key={color.name}
-              className="flex flex-col items-center gap-1"
-            >
-              <button
-                className="w-8 h-8 rounded-full border border-gray-300 hover:border-black"
-                style={{ backgroundColor: color.code }}
-                title={color.name}
-              />
-              <span className="text-xs text-gray-500">{color.count}</span>
-            </div>
-          ))}
-        </div>
+  {colors.length > 0 ? (
+    colors.map((color) => (
+      <div 
+        key={color.id}
+        className="flex flex-col items-center gap-1"
+      >
+        <button
+          className="w-8 h-8 rounded-full border border-gray-300 hover:border-black"
+          style={{ backgroundColor: color.colorCode }}
+          title={color.colorName}
+        />
+        <span className="text-xs text-gray-500">{color.name}</span>
+      </div>
+    ))
+  ) : (
+    <div key="no-colors">Không có màu sắc</div>
+  )}
+</div>
+
       </div>
     </aside>
   );
 };
 
-export default Sidebar; 
+export default Sidebar;

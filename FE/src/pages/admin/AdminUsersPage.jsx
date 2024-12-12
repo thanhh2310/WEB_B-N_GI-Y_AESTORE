@@ -12,6 +12,7 @@ const AdminUsersPage = () => {
   const [formData, setFormData] = useState({
     username: '',
     fullName: '',
+    phone: '',
     email: '',
     password: '',
   });
@@ -111,7 +112,10 @@ const AdminUsersPage = () => {
   // Filter users based on search query
   const filteredUsers = users?.filter(user =>
     user.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.userId?.toString().includes(searchQuery.toLowerCase())
   ) || [];
 
   // Modal components
@@ -260,6 +264,7 @@ const AdminUsersPage = () => {
                 <th className="text-left py-4">#</th>
                 <th className="text-left py-4">Full name</th>
                 <th className="text-left py-4">Email</th>
+                <th className="text-left py-4">Phone</th>
                 <th className="text-center py-4">Status</th>
                 <th className="text-right py-4">Actions</th>
               </tr>
@@ -279,6 +284,7 @@ const AdminUsersPage = () => {
                     <td className="py-4">{user.userId}</td>
                     <td className="py-4">{user.fullName}</td>
                     <td className="py-4">{user.email}</td>
+                    <td className="py-4">{user.phone}</td>
                     <td className="py-4">
                       <div className="flex justify-center">
                         <button
@@ -305,7 +311,8 @@ const AdminUsersPage = () => {
                               username: user.username,
                               fullName: user.fullName,
                               email: user.email,
-                              password: ''
+                              password: '',
+                              phone: user.phone
                             });
                             setShowEditModal(true);
                           }}

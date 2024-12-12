@@ -1,37 +1,122 @@
-const menuItems = [
-  {
-    title: 'Dashboard',
-    path: '/admin/dashboard',
-    icon: <svg>...</svg>
-  },
-  {
-    title: 'Products',
-    path: '/admin/products',
-    icon: <svg>...</svg>
-  },
-  {
-    title: 'Categories',
-    path: '/admin/categories',
-    icon: <svg>...</svg>
-  },
-  {
-    title: 'Brands',
-    path: '/admin/brands',
-    icon: <svg>...</svg>
-  },
-  {
-    title: 'Sizes',
-    path: '/admin/sizes',
-    icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
-    </svg>
-  },
-  {
-    title: 'Colors',
-    path: '/admin/colors',
-    icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z" />
-    </svg>
-  },
-  // ... other menu items ...
-]; 
+import { useState } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+
+const AdminLayout = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [openDropdown, setOpenDropdown] = useState({});
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    toast.success('Đăng xuất thành công');
+    navigate('/signin');
+  };
+
+  const menuItems = [
+    {
+      title: 'User',
+      path: '/admin/users',
+      icon: <svg>...</svg>
+    },
+    {
+      title: 'Order', 
+      path: '/admin/orders',
+      icon: <svg>...</svg>
+    },
+    {
+      title: 'Product',
+      path: '/admin/products',
+      icon: <svg>...</svg>,
+      subItems: [
+        { title: 'Color', path: '/admin/colors' },
+        { title: 'Brand', path: '/admin/brands' },
+        { title: 'Category', path: '/admin/categories' },
+        { title: 'Size', path: '/admin/sizes' },
+      ]
+    },
+    // ... other menu items ...
+  ];
+
+  return (
+    <div className="flex h-screen">
+      <div className="w-64 bg-white border-r">
+        <div className="flex items-center gap-2 px-4 py-6 border-b">
+          <img src="/nike-logo.png" alt="Nike Logo" className="w-10" />
+          <span className="font-medium">Admin Dashboard</span>
+        </div>
+        <nav className="p-4">
+          <ul className="space-y-2">
+            {menuItems.map((item, index) => (
+              <li key={item.title}>
+                {item.subItems ? (
+                  <div
+                    onClick={() => setOpenDropdown(prev => ({
+                      ...prev,
+                      [index]: !prev[index]
+                    }))}
+                    className={`flex items-center justify-between p-4 text-gray-700 hover:bg-gray-100 cursor-pointer ${
+                      location.pathname === item.path ? 'bg-gray-100' : ''
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      {item.icon}
+                      <span className="ml-2">{item.title}</span>
+                    </div>
+                    <span>{openDropdown[index] ? '▲' : '▼'}</span>
+                  </div>
+                ) : (
+                  <Link
+                    to={item.path}
+                    className={`flex items-center p-4 text-gray-700 hover:bg-gray-100 ${
+                      location.pathname === item.path ? 'bg-gray-100' : ''
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="ml-2">{item.title}</span>
+                  </Link>
+                )}
+                {item.subItems && openDropdown[index] && (
+                  <ul className="pl-6 bg-gray-50">
+                    {item.subItems.map((subItem) => (
+                      <li key={subItem.title}>
+                        <Link 
+                          to={subItem.path}
+                          className={`block p-2 text-gray-600 hover:bg-gray-200 ${
+                            location.pathname === subItem.path ? 'bg-gray-200' : ''
+                          }`}
+                        >
+                          {subItem.title}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+
+      <div className="flex-1 flex flex-col">
+        <header className="bg-white border-b">
+          <div className="flex justify-between items-center px-8 py-6">
+            <h1 className="text-2xl font-medium">Admin Dashboard</h1>
+            <button 
+              onClick={handleLogout}
+              className="px-4 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        </header>
+        <main className="flex-1 overflow-auto p-8 bg-gray-50">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default AdminLayout;
