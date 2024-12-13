@@ -131,6 +131,7 @@ const AdminProductPage = () => {
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-4 py-2 border rounded-md"
               required
+              autoFocus
             />
             <textarea
               placeholder="Mô tả"

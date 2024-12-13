@@ -34,22 +34,40 @@ const AdminBrandPage = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      // Kiểm tra xem màu sắc đã tồn tại hay chưa
-      const response = await axios.get(`http://localhost:8081/saleShoes/brands/name?name=${formData.name}`);
-      if (response.data?.result) {
-        toast.error('Brand đã tồn tại'); // Thông báo nếu màu sắc đã tồn tại
-        return; // Dừng lại nếu đã tồn tại
+      try {
+        // Kiểm tra xem màu sắc đã tồn tại hay chưa
+        const response = await axios.get(`http://localhost:8081/saleShoes/brands/name?name=${formData.name}`);
+        if (response.data?.result) {
+          toast.error('Brand đã tồn tại'); // Thông báo nếu màu sắc đã tồn tại
+          return; // Dừng lại nếu đã tồn tại
+        }
+        await axios.post('http://localhost:8081/saleShoes/brands', {
+          name: formData.name,
+          active: true
+        });
+        toast.success('Tạo thương hiệu thành công');
+        setShowCreateModal(false);
+        setFormData({ name: "", active: true });
+        fetchBrands();
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+          // Brand không tồn tại, tiếp tục tạo mới
+          await axios.post('http://localhost:8081/saleShoes/brands', {
+            name: formData.name,
+            active: true
+          });
+          toast.success('Tạo thương hiệu thành công');
+          setShowCreateModal(false);
+          setFormData({ name: "", active: true });
+          fetchBrands();
+        } else {
+          // Xử lý lỗi khác
+          throw error;
+        }
       }
 
       // Nếu chưa tồn tại, thực hiện tạo mới
-      await axios.post('http://localhost:8081/saleShoes/brands', {
-        name: formData.name,
-        active: true
-      });
-      toast.success('Tạo thương hiệu thành công');
-      setShowCreateModal(false);
-      setFormData({ name: "", active: true });
-      fetchBrands();
+      
     } catch (error) {
       console.error('Error creating brand:', error);
       toast.error('Không thể tạo thương hiệu');
