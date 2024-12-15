@@ -41,6 +41,7 @@ public class CartService {
       public void clearCart(Integer id) {
         Cart cart = getCart(id); // Retrieve the cart
         cartDetailRepository.deleteAllByCartId(id);
+        cart.setTotalAmount(BigDecimal.ZERO);
         cart.getItems().clear(); // Remove items from the cart object
         cartRepository.deleteById(id); // Delete the cart itself
     }

@@ -4,12 +4,14 @@
  */
 package com.example.demo.controller;
 
+import com.example.demo.dto.request.OrderRequest;
 import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.model.Order;
 import com.example.demo.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,9 +26,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderControler {
     private final OrderService orderService;
     @PostMapping
-    ApiResponse<Order> create(@RequestParam Integer userId ){
+    ApiResponse<Order> create(@RequestBody OrderRequest request ){
         return ApiResponse.<Order>builder()
-                .result(orderService.placeOrder(userId))
+                .result(orderService.placeOrder(request))
                 .build();
     }
      @GetMapping("/addCoupon")

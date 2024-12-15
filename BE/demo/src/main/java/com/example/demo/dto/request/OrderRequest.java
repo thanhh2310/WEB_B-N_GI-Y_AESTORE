@@ -17,25 +17,17 @@ import jakarta.persistence.OneToMany;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
+import lombok.Data;
 
 /**
  *
  * @author Admin
  */
+@Data
+
 public class OrderRequest {
 
-    private Integer id;
-
-    @ManyToOne
-
-    private User user;
-
-    private Date dateCreate;
-
-    private String status;
-    private BigDecimal total;
-
-    private Set<Coupon> coupons;
-    private Set<OrderDetail> orderDetail;
+   private Integer userId;
+   private String address;
 
 }

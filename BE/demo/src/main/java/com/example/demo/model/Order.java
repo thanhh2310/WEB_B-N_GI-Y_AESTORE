@@ -7,10 +7,12 @@ import java.math.BigDecimal;
 import lombok.Data;
 import java.util.Date;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
 
 @Data
 @Entity
-@Table(name = "`Order`")
+@Table(name = "Orders")
+//@EqualsAndHashCode(exclude = {"user", "orderDetail"})
 public class Order {
 
     @Id
@@ -19,7 +21,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "UserID")
-     @JsonBackReference 
+    @JsonBackReference
     private User user;
 
     @Column(name = "DateCreate")
@@ -34,8 +36,9 @@ public class Order {
             inverseJoinColumns = @JoinColumn(name = "CouponID")
     )
     private Set<Coupon> coupons;
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-      @JsonManagedReference 
+    @OneToMany(mappedBy = "order")
+    @JsonManagedReference
     private Set<OrderDetail> orderDetail;
 
+    private String address;
 }
