@@ -34,13 +34,13 @@ const AdminColorPage = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      // Kiểm tra xem màu sắc đã tồn tại hay chưa
+      try {
+        // Kiểm tra xem màu sắc đã tồn tại hay chưa
       const response = await axios.get(`http://localhost:8081/saleShoes/colors/name?name=${formData.name}`);
       if (response.data?.result) {
         toast.error('Màu sắc đã tồn tại'); // Thông báo nếu màu sắc đã tồn tại
         return; // Dừng lại nếu đã tồn tại
       }
-
       // Nếu chưa tồn tại, thực hiện tạo mới
       await axios.post('http://localhost:8081/saleShoes/colors', {
         ...formData,
@@ -50,6 +50,26 @@ const AdminColorPage = () => {
       setShowCreateModal(false);
       setFormData({ name: '', active: true });
       fetchColors();
+        
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+          // Màu sắc không tồn tại, tiếp tục tạo mới
+          await axios.post('http://localhost:8081/saleShoes/colors', {
+            ...formData,
+            active: true
+          });
+          toast.success('Tạo màu sắc thành công');
+          setShowCreateModal(false);
+          setFormData({ name: '', active: true });
+          fetchColors();
+        } else {
+          // Xử lý lỗi khác
+          throw error;
+        }
+        
+      }
+
+      
     } catch (error) {
       console.error('Error creating color:', error);
       toast.error('Không thể tạo màu sắc');
@@ -154,6 +174,7 @@ const AdminColorPage = () => {
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="w-full px-4 py-2 border rounded-md mb-4"
             required
+            autoFocus
           />
           <div className="flex justify-end gap-2">
             <button

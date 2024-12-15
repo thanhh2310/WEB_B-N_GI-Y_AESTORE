@@ -34,13 +34,13 @@ const AdminSizePage = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      // Kiểm tra xem màu sắc đã tồn tại hay chưa
+      try {
+        // Kiểm tra xem màu sắc đã tồn tại hay chưa
       const response = await axios.get(`http://localhost:8081/saleShoes/sizes/name?name=${formData.name}`);
       if (response.data?.result) {
         toast.error('Size đã tồn tại'); // Thông báo nếu màu sắc đã tồn tại
         return; // Dừng lại nếu đã tồn tại
       }
-
       // Nếu chưa tồn tại, thực hiện tạo mới
       await axios.post('http://localhost:8081/saleShoes/sizes', {
         ...formData,
@@ -50,6 +50,25 @@ const AdminSizePage = () => {
       setShowCreateModal(false);
       setFormData({ name: '', active: true });
       fetchSizes();
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+          // Size không tồn tại, tiếp tục tạo mới
+          await axios.post('http://localhost:8081/saleShoes/sizes', {
+            ...formData,
+            active: true
+          });
+          toast.success('Tạo kích thước thành công');
+          setShowCreateModal(false);
+          setFormData({ name: '', active: true });
+          fetchSizes();
+        } else {
+          // Xử lý lỗi khác
+          throw error;
+        }
+        
+      }
+
+      
     } catch (error) {
       console.error('Error creating size:', error);
       toast.error('Không thể tạo kích thước');
