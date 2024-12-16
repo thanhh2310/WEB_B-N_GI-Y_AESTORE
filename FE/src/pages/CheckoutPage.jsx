@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { getProvinces, getDistricts, getWards, calculateShippingFee } from '../services/addressApi';
 import { ORDER_STATUS } from '../data/orderStatus';
@@ -200,47 +201,39 @@ const CheckoutPage = () => {
     </div>
   );
 
-  // Tách logic xử lý đặt hàng ra khỏi handleSubmit
   const processOrder = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
+
+      // Chuẩn bị dữ liệu đơn hàng theo format của API
       const orderData = {
-        items: checkoutItems,
-        shippingInfo: {
-          fullName: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          province: selectedProvince,
-          district: selectedDistrict,
-          ward: formData.ward,
-          note: formData.note
-        },
-        paymentMethod: formData.paymentMethod,
-        shippingFee,
-        total: total
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`
       };
 
+      // Gọi API tạo đơn hàng
       const response = await axios.post('http://localhost:8081/saleShoes/orders', orderData);
 
       if (response.data?.result) {
-        // Clear checkout items and cart
-        localStorage.removeItem('checkoutItems');
+        // Xóa giỏ hàng sau khi đặt hàng thành công
         localStorage.removeItem('cart');
+        localStorage.removeItem('checkoutItems');
 
-        // If payment method is banking, redirect to payment page
+        // Nếu thanh toán bằng banking, chuyển đến trang thanh toán
         if (formData.paymentMethod === 'banking') {
           const paymentResponse = await axios.post('http://localhost:8081/saleShoes/payments/createPayment', {
-            orderId: response.data.result.id,
-            amount: total
+            orderId: response.data.result.id
           });
+          
           if (paymentResponse.data?.paymentUrl) {
             window.location.href = paymentResponse.data.paymentUrl;
             return;
           }
         }
 
-        // For COD or if banking payment creation fails, redirect to success page
+        // Chuyển đến trang thành công
         navigate(`/order-success/${response.data.result.id}`);
         toast.success('Đặt hàng thành công!');
       }
@@ -253,7 +246,7 @@ const CheckoutPage = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!validateForm()) return;
     setShowConfirmModal(true);

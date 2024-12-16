@@ -103,12 +103,21 @@ const ProductDetail = () => {
 
       setLoading(true);
 
+      // Lấy thông tin user từ localStorage
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user) {
+        toast.error('Vui lòng đăng nhập để thêm vào giỏ hàng');
+        navigate('/signin', { state: { from: `/product/${id}` } });
+        return;
+      }
+
       // Gọi API để thêm vào giỏ hàng
       const response = await axios.post(`http://localhost:8081/saleShoes/cartdetails/item/add/${selectedVariant.id}/${quantity}`);
 
       if (response.data?.message === "Add Item Success") {
         // Lưu thông tin giỏ hàng vào localStorage
         const cartItem = {
+          userId: user.id, // Thêm user_id vào cart item
           productId: product.id,
           variantId: selectedVariant.id,
           name: product.name,
@@ -120,9 +129,30 @@ const ProductDetail = () => {
         };
 
         const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
-        const updatedCart = [...existingCart, cartItem];
-        localStorage.setItem('cart', JSON.stringify(updatedCart));
+        
+        // Kiểm tra xem item đã tồn tại trong giỏ hàng chưa
+        const existingItemIndex = existingCart.findIndex(
+          item => item.variantId === cartItem.variantId && item.userId === user.id
+        );
 
+        let updatedCart;
+        if (existingItemIndex !== -1) {
+          // Nếu item đã tồn tại, cập nhật số lượng
+          updatedCart = existingCart.map((item, index) => {
+            if (index === existingItemIndex) {
+              return {
+                ...item,
+                quantity: item.quantity + quantity
+              };
+            }
+            return item;
+          });
+        } else {
+          // Nếu item chưa tồn tại, thêm mới
+          updatedCart = [...existingCart, cartItem];
+        }
+
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
         toast.success('Đã thêm vào giỏ hàng');
       }
     } catch (error) {

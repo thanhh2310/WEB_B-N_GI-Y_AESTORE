@@ -28,8 +28,13 @@ const CartPage = () => {
   useEffect(() => {
     // Load cart items from localStorage
     const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
+    const user = JSON.parse(localStorage.getItem('user'));
+    
+    if (savedCart && user) {
+      // Lọc chỉ lấy các item của user hiện tại
+      const allCartItems = JSON.parse(savedCart);
+      const userCartItems = allCartItems.filter(item => item.userId === user.id);
+      setCartItems(userCartItems);
     }
   }, []);
 
@@ -94,18 +99,22 @@ const CartPage = () => {
 
   // Thêm hàm xử lý thanh toán
   const handleCheckout = () => {
-    // Kiểm tra nếu giỏ hàng trống
-    if (cartItems.length === 0) {
-      toast.error('Giỏ hàng của bạn đang trống');
+    // Kiểm tra đăng nhập
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      toast.error('Vui lòng đăng nhập để thanh toán');
+      navigate('/signin', { state: { from: '/cart' } }); // Lưu trang trước khi chuyển đến đăng nhập
       return;
     }
 
-    // Lưu voucher đã áp dụng vào localStorage
-    if (appliedVouchers.length > 0) {
-      localStorage.setItem('appliedVouchers', JSON.stringify(appliedVouchers));
+    // Kiểm tra giỏ hàng có sản phẩm không
+    if (cartItems.length === 0) {
+      toast.error('Giỏ hàng trống');
+      return;
     }
 
-    // Chuyển đến trang thanh toán
+    // Lưu thông tin giỏ hàng vào localStorage để checkout
+    localStorage.setItem('checkoutItems', JSON.stringify(cartItems));
     navigate('/checkout');
   };
 
