@@ -95,27 +95,77 @@ const ProductDetail = () => {
   };
 
   const addToCart = async () => {
-    if (!selectedVariant) {
-      toast.error('Vui lòng chọn màu sắc và kích thước');
-      return;
-    }
-
-    if (quantity > selectedVariant.quantity) {
-      toast.error('Số lượng vượt quá hàng có sẵn');
-      return;
-    }
-
     try {
-      await axios.post('http://localhost:8081/saleShoes/cart/add', {
-        productId: selectedVariant.productId,
-        quantity: quantity,
-        color: selectedVariant.color,
-        size: selectedVariant.size
-      });
-      toast.success('Đã thêm vào giỏ hàng!');
+      if (!selectedVariant) {
+        toast.error('Vui lòng chọn màu sắc và kích thước');
+        return;
+      }
+
+      setLoading(true);
+
+      // Gọi API để thêm vào giỏ hàng
+      const response = await axios.post(`http://localhost:8081/saleShoes/cartdetails/item/add/${selectedVariant.id}/${quantity}`);
+
+      if (response.data?.message === "Add Item Success") {
+        // Lưu thông tin giỏ hàng vào localStorage
+        const cartItem = {
+          productId: product.id,
+          variantId: selectedVariant.id,
+          name: product.name,
+          price: selectedVariant.price,
+          quantity: quantity,
+          image: selectedVariant.image[0],
+          color: selectedColor,
+          size: selectedSize,
+        };
+
+        const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const updatedCart = [...existingCart, cartItem];
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
+
+        toast.success('Đã thêm vào giỏ hàng');
+      }
     } catch (error) {
       console.error('Error adding to cart:', error);
-      toast.error('Có lỗi xảy ra khi thêm vào giỏ hàng');
+      toast.error('Không thể thêm vào giỏ hàng');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const buyNow = async () => {
+    try {
+      if (!selectedVariant) {
+        toast.error('Vui lòng chọn màu sắc và kích thước');
+        return;
+      }
+
+      setLoading(true);
+
+      // Thêm vào giỏ hàng trước
+      await addToCart();
+
+      // Lưu thông tin đơn hàng tạm thời để sử dụng ở trang checkout
+      const orderItem = {
+        productId: product.id,
+        variantId: selectedVariant.id,
+        name: product.name,
+        price: selectedVariant.price,
+        quantity: quantity,
+        image: selectedVariant.image[0],
+        color: selectedColor,
+        size: selectedSize,
+      };
+
+      localStorage.setItem('checkoutItems', JSON.stringify([orderItem]));
+
+      // Chuyển đến trang checkout
+      navigate('/checkout');
+    } catch (error) {
+      console.error('Error processing buy now:', error);
+      toast.error('Có lỗi xảy ra');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -593,20 +643,21 @@ const ProductDetail = () => {
           <div className="flex gap-4">
             <button
               onClick={addToCart}
-              className="flex-1 py-3 border-2 border-black text-black rounded-full hover:bg-gray-100 transition-colors"
-              disabled={!selectedVariant}
+              className={`flex-1 py-3 border-2 border-black text-black rounded-full 
+                ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'} 
+                transition-colors`}
+              disabled={loading || !selectedVariant}
             >
-              Thêm vào giỏ
+              {loading ? 'Đang xử lý...' : 'Thêm vào giỏ'}
             </button>
             <button
-              onClick={() => {
-                addToCart();
-                navigate('/checkout');
-              }}
-              className="flex-1 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
-              disabled={!selectedVariant}
+              onClick={buyNow}
+              className={`flex-1 py-3 bg-black text-white rounded-full 
+                ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'} 
+                transition-colors`}
+              disabled={loading || !selectedVariant}
             >
-              Mua ngay
+              {loading ? 'Đang xử lý...' : 'Mua ngay'}
             </button>
           </div>
         </div>

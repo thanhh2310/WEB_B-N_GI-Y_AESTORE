@@ -15,6 +15,7 @@ const CheckoutPage = () => {
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [shippingFee, setShippingFee] = useState(0);
+  const [checkoutItems, setCheckoutItems] = useState([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -96,6 +97,20 @@ const CheckoutPage = () => {
     };
     loadWards();
   }, [selectedDistrict]);
+
+  useEffect(() => {
+    // Load checkout items
+    const savedCheckoutItems = localStorage.getItem('checkoutItems');
+    if (savedCheckoutItems) {
+      setCheckoutItems(JSON.parse(savedCheckoutItems));
+    } else {
+      // Nếu không có checkoutItems, lấy từ cart
+      const savedCart = localStorage.getItem('cart');
+      if (savedCart) {
+        setCheckoutItems(JSON.parse(savedCart));
+      }
+    }
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

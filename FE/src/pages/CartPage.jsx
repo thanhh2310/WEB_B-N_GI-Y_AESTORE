@@ -26,14 +26,11 @@ const CartPage = () => {
   const total = Math.max(0, subtotal - totalDiscount);
 
   useEffect(() => {
-    // Lấy dữ liệu giỏ hàng từ localStorage khi component mount
-    const loadCart = () => {
-      const savedCart = localStorage.getItem('cart');
-      if (savedCart) {
-        setCartItems(JSON.parse(savedCart));
-      }
-    };
-    loadCart();
+    // Load cart items from localStorage
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      setCartItems(JSON.parse(savedCart));
+    }
   }, []);
 
   // Cập nhật số lượng sản phẩm
