@@ -55,25 +55,31 @@ const CheckoutPage = () => {
     // Load user info and saved addresses
     const loadUserInfo = async () => {
       try {
-        const response = await axios.get('http://localhost:8081/saleShoes/users/me', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user'));
+        
+        if (!token || !user) {
+          toast.error('Vui lòng đăng nhập để tiếp tục');
+          navigate('/signin');
+          return;
+        }
+
+        // Lấy thông tin user
+        const userResponse = await axios.get('http://localhost:8081/saleShoes/users/me', {
+          headers: { Authorization: `Bearer ${token}` }
         });
         
-        if (response.data) {
+        if (userResponse.data?.result) {
           setFormData(prev => ({
             ...prev,
-            fullName: response.data.result.fullName || '',
-            email: response.data.result.email || '',
-            phone: response.data.result.phone || ''
+            fullName: userResponse.data.result.fullName || '',
+            email: userResponse.data.result.email || '',
+            phone: userResponse.data.result.phone || ''
           }));
 
-          // Load saved addresses
-          const addressesResponse = await axios.get('http://localhost:8081/saleShoes/users/addresses', {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
+          // Lấy danh sách địa chỉ đã lưu
+          const addressesResponse = await axios.get(`http://localhost:8081/saleShoes/addresses/user/${user.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
           });
 
           if (addressesResponse.data?.result) {
@@ -81,12 +87,13 @@ const CheckoutPage = () => {
           }
         }
       } catch (error) {
+        console.error('Error loading user info:', error);
         toast.error('Không thể tải thông tin người dùng');
       }
     };
 
     loadUserInfo();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     // Load tỉnh/thành phố
@@ -158,16 +165,57 @@ const CheckoutPage = () => {
     }));
   };
 
-  const handleSavedAddressSelect = (address) => {
-    setFormData(prev => ({
-      ...prev,
-      address: address.address,
-      city: address.city,
-      district: address.district,
-      ward: address.ward
-    }));
-    setSelectedProvince(address.provinceCode);
-    setSelectedDistrict(address.districtCode);
+  // Xử lý khi chọn địa chỉ đã lưu
+  const handleSavedAddressSelect = async (address) => {
+    try {
+      // Lấy chi tiết địa chỉ
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:8081/saleShoes/addresses/${address.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data?.result) {
+        const addressDetail = response.data.result;
+        setFormData(prev => ({
+          ...prev,
+          address: addressDetail.address,
+          city: addressDetail.province,
+          district: addressDetail.district,
+          ward: addressDetail.ward
+        }));
+        setSelectedProvince(addressDetail.provinceCode);
+        setSelectedDistrict(addressDetail.districtCode);
+      }
+    } catch (error) {
+      console.error('Error loading address details:', error);
+      toast.error('Không thể tải thông tin địa chỉ');
+    }
+  };
+
+  // Lưu địa chỉ mới
+  const saveNewAddress = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user'));
+
+      const addressData = {
+        userId: user.id,
+        address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`,
+        provinceCode: selectedProvince,
+        districtCode: selectedDistrict,
+        wardCode: formData.wardCode,
+        isDefault: savedAddresses.length === 0 // Nếu là địa chỉ đầu tiên thì set làm mặc định
+      };
+
+      await axios.post('http://localhost:8081/saleShoes/addresses', addressData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      toast.success('Đã lưu địa chỉ mới');
+    } catch (error) {
+      console.error('Error saving address:', error);
+      toast.error('Không thể lưu địa chỉ');
+    }
   };
 
   const validateForm = () => {
@@ -270,10 +318,7 @@ const CheckoutPage = () => {
       if (response.data?.result) {
         // Lưu địa chỉ mới
         await axios.post('http://localhost:8081/saleShoes/users/addresses', {
-          address: formData.address,
-          city: formData.city,
-          district: formData.district,
-          ward: formData.ward,
+          address:`${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`,
           provinceCode: selectedProvince,
           districtCode: selectedDistrict,
           wardCode: formData.ward
@@ -312,9 +357,16 @@ const CheckoutPage = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  // Xử lý khi submit form
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+
+    // Hỏi người dùng có muốn lưu địa chỉ mới không
+    if (window.confirm('Bạn có muốn lưu địa chỉ này cho lần sau không?')) {
+      await saveNewAddress();
+    }
+
     setShowConfirmModal(true);
   };
 
@@ -334,16 +386,19 @@ const CheckoutPage = () => {
                 <div className="mb-6">
                   <h3 className="text-lg font-medium mb-2">Địa chỉ đã lưu</h3>
                   <div className="space-y-2">
-                    {savedAddresses.map((address, index) => (
+                    {savedAddresses.map((address) => (
                       <div
-                        key={index}
+                        key={address.id}
                         onClick={() => handleSavedAddressSelect(address)}
                         className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
                       >
                         <p className="font-medium">{address.address}</p>
                         <p className="text-sm text-gray-600">
-                          {address.ward}, {address.district}, {address.city}
+                          {address.ward}, {address.district}, {address.province}
                         </p>
+                        {address.isDefault && (
+                          <span className="text-xs text-green-600">Mặc định</span>
+                        )}
                       </div>
                     ))}
                   </div>
