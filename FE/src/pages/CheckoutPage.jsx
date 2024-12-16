@@ -16,6 +16,7 @@ const CheckoutPage = () => {
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [shippingFee, setShippingFee] = useState(0);
   const [checkoutItems, setCheckoutItems] = useState([]);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -168,66 +169,94 @@ const CheckoutPage = () => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-    
+  // Confirmation Modal Component
+  const ConfirmModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+        <h3 className="text-lg font-medium mb-4">Xác nhận đặt hàng</h3>
+        <p className="text-gray-600 mb-6">
+          Bạn có chắc chắn muốn đặt đơn hàng này?
+          {formData.paymentMethod === 'banking' && (
+            <span className="block mt-2 text-sm">
+              Bạn sẽ được chuyển đến trang thanh toán sau khi xác nhận.
+            </span>
+          )}
+        </p>
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={() => setShowConfirmModal(false)}
+            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+          >
+            Hủy
+          </button>
+          <button
+            onClick={processOrder}
+            className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors"
+          >
+            Xác nhận
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Tách logic xử lý đặt hàng ra khỏi handleSubmit
+  const processOrder = async () => {
     setLoading(true);
-
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      const selectedProvinceName = provinces.find(p => p.code === selectedProvince)?.name;
-      const selectedDistrictName = districts.find(d => d.code === selectedDistrict)?.name;
-      const selectedWardName = wards.find(w => w.code === formData.ward)?.name;
-
-      const order = {
-        id: `ORD${Date.now()}`,
-        items: cartItems,
-        vouchers: appliedVouchers,
-        shipping: {
-          ...formData,
-          province: selectedProvinceName,
-          district: selectedDistrictName,
-          ward: selectedWardName,
-          fee: shippingFee
+      const orderData = {
+        items: checkoutItems,
+        shippingInfo: {
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          province: selectedProvince,
+          district: selectedDistrict,
+          ward: formData.ward,
+          note: formData.note
         },
-        payment: {
-          method: formData.paymentMethod,
-          subtotal,
-          shipping: shippingFee,
-          discount: 0,
-          total: total + shippingFee
-        },
-        status: ORDER_STATUS.PENDING,
-        timeline: [
-          {
-            status: ORDER_STATUS.PENDING,
-            time: new Date().toISOString(),
-            note: 'Đơn hàng được tạo'
-          }
-        ],
-        createdAt: new Date().toISOString()
+        paymentMethod: formData.paymentMethod,
+        shippingFee,
+        total: total
       };
 
-      // Lưu đơn hàng
-      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-      orders.push(order);
-      localStorage.setItem('orders', JSON.stringify(orders));
+      const response = await axios.post('http://localhost:8081/saleShoes/orders', orderData);
 
-      // Clear cart và vouchers
-      localStorage.removeItem('cart');
-      localStorage.removeItem('appliedVouchers');
+      if (response.data?.result) {
+        // Clear checkout items and cart
+        localStorage.removeItem('checkoutItems');
+        localStorage.removeItem('cart');
 
-      toast.success('Đặt hàng thành công!');
-      navigate(`/order-success/${order.id}`);
+        // If payment method is banking, redirect to payment page
+        if (formData.paymentMethod === 'banking') {
+          const paymentResponse = await axios.post('http://localhost:8081/saleShoes/payments/createPayment', {
+            orderId: response.data.result.id,
+            amount: total
+          });
+          if (paymentResponse.data?.paymentUrl) {
+            window.location.href = paymentResponse.data.paymentUrl;
+            return;
+          }
+        }
 
+        // For COD or if banking payment creation fails, redirect to success page
+        navigate(`/order-success/${response.data.result.id}`);
+        toast.success('Đặt hàng thành công!');
+      }
     } catch (error) {
-      toast.error('Có lỗi xảy ra, vui lòng thử lại');
+      console.error('Error placing order:', error);
+      toast.error('Có lỗi xảy ra khi đặt hàng');
     } finally {
       setLoading(false);
+      setShowConfirmModal(false);
     }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    setShowConfirmModal(true);
   };
 
   return (
@@ -449,6 +478,9 @@ const CheckoutPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Show confirmation modal */}
+      {showConfirmModal && <ConfirmModal />}
     </div>
   );
 };
