@@ -15,4 +15,5 @@ public class ProductRequest {
     private String description;
     private Category category;
     private Brand brand;
+//    private boolean active;
 }

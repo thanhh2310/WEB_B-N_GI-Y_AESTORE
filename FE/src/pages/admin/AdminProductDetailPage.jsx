@@ -20,8 +20,15 @@ const AdminProductDetailPage = () => {
       setLoading(true);
       const response = await axios.get(`http://localhost:8081/saleShoes/productdetails/product/${id}/variants`);
       
-      if (response.data?.result) {
-        setVariantsByColor(response.data.result);
+      if (response.data?.result != null) {
+        // Group variants by color
+        const groupedVariants = {};
+        Object.keys(response.data.result).forEach(color => {
+          groupedVariants[color] = response.data.result[color];
+        });
+        setVariantsByColor(groupedVariants);
+      } else if (response.data?.result === null) {
+        toast.error('Không tìm thấy sản phẩm');
       }
     } catch (error) {
       console.error('Error fetching product variants:', error);
@@ -30,6 +37,7 @@ const AdminProductDetailPage = () => {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     if (id) {
@@ -58,7 +66,7 @@ const AdminProductDetailPage = () => {
 
       await axios.patch(`http://localhost:8081/saleShoes/productdetails/${variantId}`, updatedVariant);
       
-      // Cập nhật state local
+      // Update local state
       setVariantsByColor(prev => {
         const newState = { ...prev };
         Object.keys(newState).forEach(color => {
@@ -73,6 +81,7 @@ const AdminProductDetailPage = () => {
     } catch (error) {
       console.error('Error toggling variant status:', error);
       toast.error('Không thể cập nhật trạng thái');
+      fetchProductVariants(); // Refresh data if error
     }
   };
 
@@ -86,12 +95,23 @@ const AdminProductDetailPage = () => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
+        // Validate form data
+        if (editForm.quantity < 0) {
+          toast.error('Số lượng không được âm');
+          return;
+        }
+
+        if (editForm.price < 0) {
+          toast.error('Giá không được âm');
+          return;
+        }
+
         const updatedVariant = {
           productId: editingVariant.productId,
           color: editingVariant.color,
           size: editingVariant.size,
-          quantity: editForm.quantity,
-          price: editForm.price,
+          quantity: parseInt(editForm.quantity),
+          price: parseFloat(editForm.price),
           description: editingVariant.description,
           active: editingVariant.active
         };
@@ -116,9 +136,10 @@ const AdminProductDetailPage = () => {
 
         toast.success('Cập nhật thành công');
         setShowEditModal(false);
+        setEditingVariant(null);
       } catch (error) {
         console.error('Error updating variant:', error);
-        toast.error('Không thể cập nhật biến thể');
+        toast.error('Không thể cập nhật biến thể: ' + (error.response?.data?.message || error.message));
       }
     };
 
@@ -201,149 +222,262 @@ const AdminProductDetailPage = () => {
   // Add Variant Modal Component
   const AddVariantModal = () => {
     const [variantForm, setVariantForm] = useState({
-      color: '',
-      size: '',
+      selectedColors: [],
+      selectedSizes: [],
       quantity: 1,
       price: 0,
-      imageUrl: ''
+      imageUrls: ['']
     });
+
+    const handleAddImageField = () => {
+      if (variantForm.imageUrls.length < 3) {
+        setVariantForm({
+          ...variantForm,
+          imageUrls: [...variantForm.imageUrls, '']
+        });
+      }
+    };
+
+    const handleRemoveImageField = (index) => {
+      const newImageUrls = variantForm.imageUrls.filter((_, i) => i !== index);
+      setVariantForm({
+        ...variantForm,
+        imageUrls: newImageUrls
+      });
+    };
+
+    const handleImageUrlChange = (index, value) => {
+      const newImageUrls = [...variantForm.imageUrls];
+      newImageUrls[index] = value;
+      setVariantForm({
+        ...variantForm,
+        imageUrls: newImageUrls
+      });
+    };
+
+    const handleColorChange = (colorId) => {
+      const isSelected = variantForm.selectedColors.includes(colorId);
+      setVariantForm({
+        ...variantForm,
+        selectedColors: isSelected
+          ? variantForm.selectedColors.filter(id => id !== colorId)
+          : [...variantForm.selectedColors, colorId]
+      });
+    };
+
+    const handleSizeChange = (sizeId) => {
+      const isSelected = variantForm.selectedSizes.includes(sizeId);
+      setVariantForm({
+        ...variantForm,
+        selectedSizes: isSelected
+          ? variantForm.selectedSizes.filter(id => id !== sizeId)
+          : [...variantForm.selectedSizes, sizeId]
+      });
+    };
 
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        // Tìm color và size object từ selection
-        const selectedColor = colors.find(c => c.id === parseInt(variantForm.color));
-        const selectedSize = sizes.find(s => s.id === parseInt(variantForm.size));
-
-        if (!selectedColor || !selectedSize) {
-          toast.error('Vui lòng chọn màu sắc và kích thước');
+        // Validate form data
+        if (variantForm.selectedColors.length === 0) {
+          toast.error('Vui lòng chọn ít nhất một màu sắc');
           return;
         }
 
-        const payload = {
-          productId: parseInt(id),
-          color: selectedColor.name,
-          size: selectedSize.name,
-          quantity: parseInt(variantForm.quantity),
-          price: parseFloat(variantForm.price),
-          imageUrl: variantForm.imageUrl,
-          active: true
-        };
-
-        const response = await axios.post('http://localhost:8081/saleShoes/productdetails', payload);
-
-        if (response.data?.result) {
-          toast.success('Thêm biến thể thành công');
-          setShowAddModal(false);
-          fetchProductVariants();
-        } else {
-          toast.error('Không thể thêm biến thể: ' + (response.data?.message || 'Lỗi không xác định'));
+        if (variantForm.selectedSizes.length === 0) {
+          toast.error('Vui lòng chọn ít nhất một kích thước');
+          return;
         }
+
+        if (variantForm.quantity < 1) {
+          toast.error('Số lượng phải lớn hơn 0');
+          return;
+        }
+
+        if (variantForm.price < 0) {
+          toast.error('Giá không được âm');
+          return;
+        }
+
+        // Tạo các biến thể cho mỗi combination của color và size
+        const variants = [];
+        for (const colorId of variantForm.selectedColors) {
+          for (const sizeId of variantForm.selectedSizes) {
+            const selectedColor = colors.find(c => c.id === parseInt(colorId));
+            const selectedSize = sizes.find(s => s.id === parseInt(sizeId));
+
+            // Kiểm tra xem combination này đã tồn tại chưa
+            const existingVariant = Object.values(variantsByColor)
+              .flat()
+              .find(v => 
+                v.color === selectedColor.name && 
+                v.size === selectedSize.name
+              );
+
+            if (existingVariant) {
+              toast.error(`Biến thể ${selectedColor.name} - ${selectedSize.name} đã tồn tại`);
+              continue;
+            }
+
+            variants.push({
+              productId: parseInt(id),
+              color: selectedColor.name,
+              size: selectedSize.name,
+              quantity: parseInt(variantForm.quantity),
+              price: parseFloat(variantForm.price),
+              image: variantForm.imageUrls.filter(url => url.trim() !== ''),
+              active: true
+            });
+          }
+        }
+
+        // Gửi request tạo các biến thể
+        for (const variant of variants) {
+          await axios.post('http://localhost:8081/saleShoes/productdetails', variant);
+        }
+
+        toast.success('Thêm biến thể thành công');
+        setShowAddModal(false);
+        fetchProductVariants();
       } catch (error) {
-        console.error('Error creating variant:', error);
+        console.error('Error creating variants:', error);
         toast.error('Không thể thêm biến thể: ' + (error.response?.data?.message || error.message));
       }
     };
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div className="bg-white p-6 rounded-lg w-96">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center overflow-y-auto">
+        <div className="bg-white p-6 rounded-lg w-[500px] my-8">
           <h2 className="text-xl font-bold mb-4">Thêm biến thể mới</h2>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Màu sắc
+                  Màu sắc (có thể chọn nhiều)
                 </label>
-                <select
-                  value={variantForm.color}
-                  onChange={(e) => setVariantForm({ ...variantForm, color: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-md"
-                  required
-                >
-                  <option value="">Chọn màu sắc</option>
+                <div className="grid grid-cols-2 gap-2">
                   {colors.map(color => (
-                    <option key={color.id} value={color.id}>
-                      {color.name}
-                    </option>
+                    <label
+                      key={color.id}
+                      className="flex items-center space-x-2 p-2 border rounded cursor-pointer hover:bg-gray-50"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={variantForm.selectedColors.includes(color.id.toString())}
+                        onChange={() => handleColorChange(color.id.toString())}
+                        className="rounded border-gray-300"
+                      />
+                      <span className="text-sm">{color.name}</span>
+                    </label>
                   ))}
-                </select>
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Kích thước
+                  Kích thước (có thể chọn nhiều)
                 </label>
-                <select
-                  value={variantForm.size}
-                  onChange={(e) => setVariantForm({ ...variantForm, size: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-md"
-                  required
-                >
-                  <option value="">Chọn kích thước</option>
+                <div className="grid grid-cols-2 gap-2">
                   {sizes.map(size => (
-                    <option key={size.id} value={size.id}>
-                      {size.name}
-                    </option>
+                    <label
+                      key={size.id}
+                      className="flex items-center space-x-2 p-2 border rounded cursor-pointer hover:bg-gray-50"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={variantForm.selectedSizes.includes(size.id.toString())}
+                        onChange={() => handleSizeChange(size.id.toString())}
+                        className="rounded border-gray-300"
+                      />
+                      <span className="text-sm">{size.name}</span>
+                    </label>
                   ))}
-                </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Số lượng trong kho
+                  </label>
+                  <input
+                    type="number"
+                    value={variantForm.quantity}
+                    onChange={(e) => setVariantForm({ ...variantForm, quantity: parseInt(e.target.value) })}
+                    className="w-full px-4 py-2 border rounded-md"
+                    min="1"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Giá bán (VNĐ)
+                  </label>
+                  <input
+                    type="number"
+                    value={variantForm.price}
+                    onChange={(e) => setVariantForm({ ...variantForm, price: parseFloat(e.target.value) })}
+                    className="w-full px-4 py-2 border rounded-md"
+                    min="0"
+                    required
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Số lượng trong kho
+                  Link ảnh sản phẩm (tối đa 3 ảnh)
                 </label>
-                <input
-                  type="number"
-                  placeholder="Nhập số lượng"
-                  value={variantForm.quantity}
-                  onChange={(e) => setVariantForm({ ...variantForm, quantity: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border rounded-md"
-                  min="1"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Giá bán (VNĐ)
-                </label>
-                <input
-                  type="number"
-                  placeholder="Nhập giá bán"
-                  value={variantForm.price}
-                  onChange={(e) => setVariantForm({ ...variantForm, price: parseFloat(e.target.value) })}
-                  className="w-full px-4 py-2 border rounded-md"
-                  min="0"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Link ảnh sản phẩm
-                </label>
-                <input
-                  type="text"
-                  placeholder="Nhập link ảnh"
-                  value={variantForm.imageUrl}
-                  onChange={(e) => setVariantForm({ ...variantForm, imageUrl: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-md"
-                />
-                {variantForm.imageUrl && (
-                  <div className="mt-2">
-                    <img
-                      src={variantForm.imageUrl}
-                      alt="Preview"
-                      className="w-20 h-20 object-cover rounded-md"
-                      onError={(e) => {
-                        e.target.src = '/default-product.jpg';
-                        toast.error('Link ảnh không hợp lệ');
-                      }}
+                {variantForm.imageUrls.map((url, index) => (
+                  <div key={index} className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={url}
+                      onChange={(e) => handleImageUrlChange(index, e.target.value)}
+                      placeholder="Nhập link ảnh"
+                      className="flex-1 px-4 py-2 border rounded-md"
                     />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImageField(index)}
+                      className="px-2 py-1 text-red-600 hover:text-red-800"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
+                ))}
+                {variantForm.imageUrls.length < 3 && (
+                  <button
+                    type="button"
+                    onClick={handleAddImageField}
+                    className="text-blue-600 hover:text-blue-800 text-sm"
+                  >
+                    + Thêm ảnh
+                  </button>
                 )}
               </div>
+
+              {variantForm.imageUrls.some(url => url.trim() !== '') && (
+                <div className="grid grid-cols-3 gap-2">
+                  {variantForm.imageUrls.map((url, index) => (
+                    url.trim() !== '' && (
+                      <div key={index} className="relative">
+                        <img
+                          src={url}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-md"
+                          onError={(e) => {
+                            e.target.src = '/default-product.jpg';
+                            toast.error(`Link ảnh ${index + 1} không hợp lệ`);
+                          }}
+                        />
+                      </div>
+                    )
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-2 mt-6">
