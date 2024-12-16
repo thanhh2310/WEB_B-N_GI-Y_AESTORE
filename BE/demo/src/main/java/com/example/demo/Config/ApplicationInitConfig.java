@@ -5,8 +5,10 @@
 package com.example.demo.Config;
 
 
+import com.example.demo.model.Payment;
 import com.example.demo.model.Role;
 import com.example.demo.model.User;
+import com.example.demo.respository.PaymentRepository;
 import com.example.demo.respository.RoleRepository;
 import com.example.demo.respository.UserRepository;
 import java.util.HashSet;
@@ -28,7 +30,7 @@ public class ApplicationInitConfig {
     BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
 
     @Bean
-    ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository) {
+    ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository,PaymentRepository paymentRepository) {
         return args -> {
             // Tạo và lưu các role ADMIN và USER nếu chưa tồn tại
             Role adminRole = roleRepository.findByName("ADMIN").orElseGet(() -> {
@@ -60,7 +62,13 @@ public class ApplicationInitConfig {
                 adminUser.setRoles(new HashSet<>(Set.of(adminRole)));  // Gán role ADMIN cho user admin
                 userRepository.save(adminUser);
             }
-
+            Payment payment =new Payment();
+            payment.setName("COD");
+            paymentRepository.save(payment);
+            Payment payment2=new Payment();
+            payment2.setName("VNPAY");
+            paymentRepository.save(payment2);
+            
             // Kiểm tra nếu người dùng "user" chưa tồn tại trong cơ sở dữ liệu
            
         };

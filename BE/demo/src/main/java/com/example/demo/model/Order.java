@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @Entity
 @Table(name = "Orders")
-//@EqualsAndHashCode(exclude = {"user", "orderDetail"})
+@EqualsAndHashCode(exclude = {"user", "orderDetail"})
 public class Order {
 
     @Id
@@ -36,9 +36,8 @@ public class Order {
             inverseJoinColumns = @JoinColumn(name = "CouponID")
     )
     private Set<Coupon> coupons;
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Set<OrderDetail> orderDetail;
-
     private String address;
 }

@@ -33,4 +33,10 @@ public class OrderDetail {
     private Integer quantity;
 
     private String attention;
+     public OrderDetail(Order order, ProductDetail productDetail, Integer quantity, BigDecimal price) {
+        this.order = order;
+        this.productDetail = productDetail;
+        this.quantity = quantity;
+        this.price = price;
+    }
 }

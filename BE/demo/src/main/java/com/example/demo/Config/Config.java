@@ -24,7 +24,7 @@ import javax.crypto.spec.SecretKeySpec;
  *
  * @author Admin
  */
-public class VnpayConfig {
+public class Config {
 
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
    public static String vnp_ReturnUrl = "http://localhost:8080/vnpay_jsp/vnpay_return.jsp";

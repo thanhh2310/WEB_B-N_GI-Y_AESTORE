@@ -4,15 +4,15 @@
  */
 package com.example.demo.respository;
 
-import com.example.demo.model.Order;
-import com.example.demo.model.User;
-import java.util.List;
+import com.example.demo.model.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 /**
  *
  * @author Admin
  */
-public interface OrderRepository extends JpaRepository<Order, Integer> {
-    List<Order> findOrderByUser(User user);
+@Repository
+public interface PaymentRepository extends JpaRepository<Payment, Integer> {
+    
 }

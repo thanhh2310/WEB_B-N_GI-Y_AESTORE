@@ -6,8 +6,10 @@ package com.example.demo.service;
 
 import com.example.demo.ENUMS.OrderStatus;
 import com.example.demo.dto.request.OrderRequest;
+import com.example.demo.dto.response.OrderResponse;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.exception.WebErrorConfig;
+import com.example.demo.mapper.OrderMapper;
 import com.example.demo.model.Address;
 import com.example.demo.model.Cart;
 import com.example.demo.model.CartDetail;
@@ -41,13 +43,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class OrderService {
-    
+
     private final OrderRepository orderRepository;
     private final ProductDetailRepository productDetailRepository;
     private final CartService cartService;
     private final CouponRepository couponRepository;
     private final UserRepository userRepository;
-    
+    private final OrderMapper orderMapper;
+
     public Order addCoupon(Integer Id, String code) {
         // Lấy đơn hàng dựa trên ID
         Order order = getOrder(Id);
@@ -73,7 +76,7 @@ public class OrderService {
         // Lưu lại đơn hàng đã cập nhật và trả về
         return orderRepository.save(order);
     }
-    
+
     public Order create(Cart cart) {
         Order order = new Order();
         order.setUser(cart.getUser());
@@ -81,13 +84,14 @@ public class OrderService {
         order.setDateCreate(new Date());
         return order;
     }
-    
-    public Order placeOrder(OrderRequest request) {
-        
+
+    public OrderResponse placeOrder(OrderRequest request) {
+
         Cart cart = cartService.getCartByUserId(request.getUserId());
-        log.info(cart.getId()+"Vu");
+        log.info(cart.getId() + "Vu");
         Order order = create(cart);
         order.setAddress(request.getAddress());
+
         // Tạo chi tiết đơn hàng từ các sản phẩm trong giỏ hàng
         List<OrderDetail> orderItemList = createOrderDetails(order, cart);
         order.setOrderDetail(new HashSet<>(orderItemList));
@@ -97,28 +101,24 @@ public class OrderService {
         // Lưu đơn hàng và xóa giỏ hàng
         Order savedOrder = orderRepository.save(order);
         cartService.clearCart(cart.getId());
-        return savedOrder;
+        return orderMapper.tOrderResponse(order);
     }
-    
+
     private List<OrderDetail> createOrderDetails(Order order, Cart cart) {
-        List<OrderDetail> orderDetails = new ArrayList<>();
-        
-        for (CartDetail cartDetail : cart.getItems()) {
-            ProductDetail productDetail = cartDetail.getProductDetail();
-            productDetail.setQuantity(productDetail.getQuantity() - cartDetail.getQuantity());
-            productDetailRepository.save(productDetail);
-            
-            OrderDetail orderDetail = new OrderDetail();
-            orderDetail.setOrder(order);
-            orderDetail.setProductDetail(productDetail);
-            orderDetail.setQuantity(cartDetail.getQuantity());
-            orderDetail.setPrice(cartDetail.getUnitPrice());
-            orderDetails.add(orderDetail);
-        }
-        
-        return orderDetails;
+        return cart.getItems().stream().map(cartItem -> {
+            ProductDetail product = cartItem.getProductDetail();
+            product.setQuantity(product.getQuantity() - cartItem.getQuantity());
+            productDetailRepository.save(product);
+            return new OrderDetail(
+                    order,
+                    product,
+                    cartItem.getQuantity(),
+                    cartItem.getUnitPrice());
+
+        }).toList();
+
     }
-    
+
     private BigDecimal getTotalPrice(List<OrderDetail> orderDetails) {
         BigDecimal total = BigDecimal.ZERO;
         for (OrderDetail orderDetail : orderDetails) {
@@ -127,12 +127,12 @@ public class OrderService {
         }
         return total;
     }
-    
+
     public Order getOrder(Integer Id) {
         return orderRepository.findById(Id)
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.ORDER_NOT_FOUND));
     }
-    
+
     private BigDecimal calculateDiscount(Order order, Coupon coupon) {
         // Lấy tổng giá trị đơn hàng
         BigDecimal totalPrice = getTotalPrice(new ArrayList<>(order.getOrderDetail()));
@@ -156,4 +156,42 @@ public class OrderService {
         // Nếu không thỏa mãn điều kiện, trả về giá trị giảm giá bằng 0
         return BigDecimal.ZERO;
     }
+
+    public List<OrderResponse> getOrderByUser(String username) {
+        // Tìm người dùng từ username
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new WebErrorConfig(ErrorCode.USER_NOT_FOUND));
+
+        // Lấy tất cả các đơn hàng của người dùng đó
+        List<Order> orders = orderRepository.findOrderByUser(user);
+
+        // Ánh xạ các đơn hàng sang OrderResponse
+        List<OrderResponse> orderResponses = new ArrayList<>();
+        for (Order order : orders) {
+            orderResponses.add(orderMapper.tOrderResponse(order));
+        }
+
+        // Trả về danh sách OrderResponse
+        return orderResponses;
+    }
+
+    public OrderResponse updateOrderStatus(Integer orderId, String newStatus) {
+        // Lấy đơn hàng từ ID
+        Order order = getOrder(orderId);
+
+        // Kiểm tra trạng thái mới có hợp lệ không
+        try {
+            // Kiểm tra xem trạng thái mới có phải là một giá trị hợp lệ trong enum OrderStatus không
+            OrderStatus status = OrderStatus.valueOf(newStatus);
+            order.setStatus(status.name());  // Cập nhật trạng thái của đơn hàng
+        } catch (IllegalArgumentException e) {
+            // Nếu không phải là giá trị hợp lệ, ném ra một lỗi hoặc xử lý tùy ý
+            throw new WebErrorConfig(ErrorCode.INVALID_ORDER_STATUS);
+        }
+
+        // Lưu lại đơn hàng sau khi thay đổi trạng thái
+         orderRepository.save(order);
+         return orderMapper.tOrderResponse(order);
+    }
+
 }

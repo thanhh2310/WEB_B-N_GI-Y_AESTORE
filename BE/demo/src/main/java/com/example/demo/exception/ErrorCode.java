@@ -21,8 +21,8 @@ public enum ErrorCode {
     EMAIL_NOT_VERIFIED(1017,"Tài khoản chưa được xác nhận"),
     COUPON_NOT_FOUND(1018,"Mã giảm giá này không tồn tại"),
     ORDER_NOT_FOUND(1019,"Không có đơn hàng này"),
-    NOT_ENOUGH_VALUE(1020,"Số lượng vượt quá cho phép");
-
+    NOT_ENOUGH_VALUE(1020,"Số lượng vượt quá cho phép"),
+    INVALID_ORDER_STATUS(1021,"Không có trạng thái đơn hàng này");
     private final int code;
     private final String message;
 

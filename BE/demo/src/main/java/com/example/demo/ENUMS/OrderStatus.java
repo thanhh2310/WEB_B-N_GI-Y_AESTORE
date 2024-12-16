@@ -12,5 +12,6 @@ public enum OrderStatus {
     CHOXACNHAN,
     XACNHAN,
     GIAOHANG,
-    HOANTHANH;
+    HOANTHANH,
+    HUYDONHANG;
 }

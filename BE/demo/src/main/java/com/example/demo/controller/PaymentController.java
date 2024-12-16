@@ -29,8 +29,8 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/createPayment")
-    public PaymentResponse createPayment( @RequestParam Integer userId,HttpServletRequest req) throws UnsupportedEncodingException {
-        return paymentService.createPayment(userId, req);  // Truyền req vào đây
+    public PaymentResponse createPayment(HttpServletRequest req) throws UnsupportedEncodingException {
+        return paymentService.createPayment( req);  // Truyền req vào đây
     }
 }
 
