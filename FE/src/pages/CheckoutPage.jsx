@@ -18,6 +18,7 @@ const CheckoutPage = () => {
   const [shippingFee, setShippingFee] = useState(0);
   const [checkoutItems, setCheckoutItems] = useState([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -50,6 +51,41 @@ const CheckoutPage = () => {
     if (savedVouchers) {
       setAppliedVouchers(JSON.parse(savedVouchers));
     }
+
+    // Load user info and saved addresses
+    const loadUserInfo = async () => {
+      try {
+        const response = await axios.get('http://localhost:8081/saleShoes/users/me', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (response.data) {
+          setFormData(prev => ({
+            ...prev,
+            fullName: response.data.result.fullName || '',
+            email: response.data.result.email || '',
+            phone: response.data.result.phone || ''
+          }));
+
+          // Load saved addresses
+          const addressesResponse = await axios.get('http://localhost:8081/saleShoes/users/addresses', {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+
+          if (addressesResponse.data?.result) {
+            setSavedAddresses(addressesResponse.data.result);
+          }
+        }
+      } catch (error) {
+        toast.error('Không thể tải thông tin người dùng');
+      }
+    };
+
+    loadUserInfo();
   }, []);
 
   useEffect(() => {
@@ -120,6 +156,18 @@ const CheckoutPage = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleSavedAddressSelect = (address) => {
+    setFormData(prev => ({
+      ...prev,
+      address: address.address,
+      city: address.city,
+      district: address.district,
+      ward: address.ward
+    }));
+    setSelectedProvince(address.provinceCode);
+    setSelectedDistrict(address.districtCode);
   };
 
   const validateForm = () => {
@@ -210,13 +258,31 @@ const CheckoutPage = () => {
         fullName: formData.fullName,
         email: formData.email,
         phone: formData.phone,
-        address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`
+        address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`,
+        provinceCode: selectedProvince,
+        districtCode: selectedDistrict,
+        wardCode: formData.ward
       };
 
       // Gọi API tạo đơn hàng
       const response = await axios.post('http://localhost:8081/saleShoes/orders', orderData);
 
       if (response.data?.result) {
+        // Lưu địa chỉ mới
+        await axios.post('http://localhost:8081/saleShoes/users/addresses', {
+          address: formData.address,
+          city: formData.city,
+          district: formData.district,
+          ward: formData.ward,
+          provinceCode: selectedProvince,
+          districtCode: selectedDistrict,
+          wardCode: formData.ward
+        }, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
         // Xóa giỏ hàng sau khi đặt hàng thành công
         localStorage.removeItem('cart');
         localStorage.removeItem('checkoutItems');
@@ -262,6 +328,28 @@ const CheckoutPage = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <h2 className="text-xl font-semibold mb-4">Thông tin giao hàng</h2>
+
+              {/* Saved Addresses Section */}
+              {savedAddresses.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-medium mb-2">Địa chỉ đã lưu</h3>
+                  <div className="space-y-2">
+                    {savedAddresses.map((address, index) => (
+                      <div
+                        key={index}
+                        onClick={() => handleSavedAddressSelect(address)}
+                        className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+                      >
+                        <p className="font-medium">{address.address}</p>
+                        <p className="text-sm text-gray-600">
+                          {address.ward}, {address.district}, {address.city}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-4">
                 <div>
                   <label className="block mb-1">Họ tên</label>
@@ -271,6 +359,7 @@ const CheckoutPage = () => {
                     value={formData.fullName}
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                    readOnly
                   />
                 </div>
 
@@ -283,6 +372,7 @@ const CheckoutPage = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                      readOnly
                     />
                   </div>
                   <div>
@@ -293,6 +383,7 @@ const CheckoutPage = () => {
                       value={formData.phone}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                      readOnly
                     />
                   </div>
                 </div>
@@ -478,4 +569,4 @@ const CheckoutPage = () => {
   );
 };
 
-export default CheckoutPage; 
+export default CheckoutPage;

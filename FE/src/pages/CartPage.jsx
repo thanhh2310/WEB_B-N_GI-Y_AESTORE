@@ -196,18 +196,19 @@ const CartPage = () => {
             </div>
           )}
 
-          {/* Favourites Section */}
-          <div className="mt-12">
-            <h2 className="text-2xl font-medium mb-4">Favourites</h2>
-            <div>
-              <p>Want to view your favourites?</p>
-              <div className="flex gap-2 mt-2">
-                <Link to="/join" className="underline">Join us</Link>
-                <span>or</span>
-                <Link to="/signin" className="underline">Sign in</Link>
+          {!localStorage.getItem('user') && (
+            <div className="mt-12">
+              <h2 className="text-2xl font-medium mb-4">Favourites</h2>
+              <div>
+                <p>Want to view your favourites?</p>
+                <div className="flex gap-2 mt-2">
+                  <Link to="/join" className="underline">Join us</Link>
+                  <span>or</span>
+                  <Link to="/signin" className="underline">Sign in</Link>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Summary Section */}

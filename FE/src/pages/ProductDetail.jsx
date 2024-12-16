@@ -94,6 +94,37 @@ const ProductDetail = () => {
     return [...new Set(sizesForColor)];
   };
 
+  const getUserInfo = async () => {
+    const token = localStorage.getItem('token'); // Lấy token từ localStorage
+  
+    if (!token) {
+      console.error('No token found in localStorage');
+      toast.error('Bạn cần đăng nhập để thực hiện thao tác này.');
+      return null;
+    }
+  
+    try {
+      const response = await axios.get('http://localhost:8081/saleShoes/users/me', {
+        headers: {
+          Authorization: `Bearer ${token}` // Đính kèm token vào header Authorization
+        }
+      });
+  
+      var cartId = response.data?.result?.cartId;
+  
+      if (!cartId) {
+        console.warn('No cartId found in user info');
+      }
+      return cartId || null; // Trả về cartId hoặc null
+    } catch (error) {
+      console.error('Error fetching user info:', error.response?.data || error.message);
+      toast.error( cartId);
+      return null;
+    }
+  };
+  
+
+
   const addToCart = async () => {
     try {
       if (!selectedVariant) {
@@ -111,8 +142,13 @@ const ProductDetail = () => {
         return;
       }
 
+      const cartId = await getUserInfo();
+      if (!cartId) {
+        toast.error('Không tìm thấy giỏ hàng của bạn. Vui lòng thử lại.');
+        return;
+      }
       // Gọi API để thêm vào giỏ hàng
-      const response = await axios.post(`http://localhost:8081/saleShoes/cartdetails/item/add/${selectedVariant.id}/${quantity}`);
+      const response = await axios.post(`http://localhost:8081/saleShoes/cartdetails/item/add/${selectedVariant.id}/${quantity}${cartId ? `?cartId=${cartId}` : ''}`);
 
       if (response.data?.message === "Add Item Success") {
         // Lưu thông tin giỏ hàng vào localStorage
