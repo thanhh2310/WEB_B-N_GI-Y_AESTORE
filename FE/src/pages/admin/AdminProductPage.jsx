@@ -80,7 +80,6 @@ const AdminProductPage = () => {
       );
 
       toast.success('Cập nhật trạng thái thành công');
-
     } catch (error) {
       console.error('Error toggling product status:', error);
       toast.error('Không thể cập nhật trạng thái');
@@ -94,6 +93,22 @@ const AdminProductPage = () => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
+        // Validate form data
+        if (!formData.name.trim()) {
+          toast.error('Tên sản phẩm không được để trống');
+          return;
+        }
+
+        if (!formData.brand) {
+          toast.error('Vui lòng chọn thương hiệu');
+          return;
+        }
+
+        if (!formData.category) {
+          toast.error('Vui lòng chọn danh mục');
+          return;
+        }
+
         const response = await axios.get(`http://localhost:8081/saleShoes/products/name/${formData.name}`);
         if (response.data?.result.length > 0) {
           toast.error('Sản phẩm đã tồn tại');
@@ -101,12 +116,19 @@ const AdminProductPage = () => {
         }
 
         const newProduct = {
-          name: formData.name,
-          description: formData.description,
-          brand: formData.brand,
-          category: formData.category,
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+          brand: {
+            id: formData.brand,
+            name: brands.find(b => b.id === formData.brand)?.name || "" // Lấy tên từ danh sách brands
+          },
+          category: {
+            id: formData.category,
+            name: categories.find(c => c.id === formData.category)?.name || "" // Lấy tên từ danh sách categories
+          },
           active: true
         };
+        
 
         await axios.post('http://localhost:8081/saleShoes/products', newProduct);
         toast.success('Tạo sản phẩm thành công');
@@ -115,7 +137,7 @@ const AdminProductPage = () => {
         fetchProducts();
       } catch (error) {
         console.error('Error creating product:', error);
-        toast.error('Không thể tạo sản phẩm');
+        toast.error(error.response?.data?.message || 'Không thể tạo sản phẩm');
       }
     };
 
@@ -138,6 +160,7 @@ const AdminProductPage = () => {
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full px-4 py-2 border rounded-md"
+              
             />
             <select
               value={formData.brand}

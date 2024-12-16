@@ -6,9 +6,11 @@ import axios from 'axios';
 const ProductDetail = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
+  const [productVariants, setProductVariants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewForm, setReviewForm] = useState({
@@ -22,35 +24,100 @@ const ProductDetail = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProductData = async () => {
       try {
-        const response = await axios.get(`http://localhost:8081/saleShoes/products/${id}`);
-        const productData = response.data?.result;
-        if (productData) {
+        setLoading(true);
+        // Fetch cả thông tin sản phẩm và variants
+        const [productResponse, variantsResponse] = await Promise.all([
+          axios.get(`http://localhost:8081/saleShoes/products/${id}`),
+          axios.get(`http://localhost:8081/saleShoes/products/productdetails/${id}`)
+        ]);
+
+        // Xử lý thông tin chung của sản phẩm
+        if (productResponse.data?.result) {
+          const productData = productResponse.data.result;
           setProduct({
             id: productData.id,
             name: productData.name,
             description: productData.description,
-            price: productData.minPrice || 0,
-            images: productData.imageUrl ? [productData.imageUrl] : ['/path/to/default/image.jpg'],
             category: productData.category?.name,
             brand: productData.brand?.name,
-            sizes: ['38', '39', '40', '41', '42'],
-            colors: ['Black', 'White', 'Red']
+            minPrice: productData.minPrice,
+            imageUrl: productData.imageUrl
           });
-        } else {
-          toast.error('Không tìm thấy sản phẩm');
+        }
+
+        // Xử lý variants
+        if (variantsResponse.data?.result) {
+          const variants = variantsResponse.data.result;
+          setProductVariants(variants);
+
+          // Set màu và size mặc định từ variant đầu tiên
+          if (variants.length > 0) {
+            const uniqueColors = [...new Set(variants.map(v => v.color))];
+            const uniqueSizes = [...new Set(variants.map(v => v.size))];
+            
+            if (uniqueColors.length > 0) setSelectedColor(uniqueColors[0]);
+            if (uniqueSizes.length > 0) setSelectedSize(uniqueSizes[0]);
+          }
         }
       } catch (error) {
-        console.error('Error fetching product:', error);
-        toast.error('Không tìm thấy sản phẩm');
+        console.error('Error fetching product data:', error);
+        toast.error('Không thể tải thông tin sản phẩm');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProduct();
+    fetchProductData();
   }, [id]);
+
+  // Cập nhật selectedVariant khi color hoặc size thay đổi
+  useEffect(() => {
+    if (selectedColor && selectedSize) {
+      const variant = productVariants.find(
+        v => v.color === selectedColor && v.size === selectedSize
+      );
+      setSelectedVariant(variant);
+    }
+  }, [selectedColor, selectedSize, productVariants]);
+
+  const getAvailableColors = () => {
+    return [...new Set(productVariants.map(variant => variant.color))];
+  };
+
+  const getAvailableSizes = () => {
+    // Lọc size theo màu đã chọn
+    const sizesForColor = productVariants
+      .filter(variant => variant.color === selectedColor)
+      .map(variant => variant.size);
+    return [...new Set(sizesForColor)];
+  };
+
+  const addToCart = async () => {
+    if (!selectedVariant) {
+      toast.error('Vui lòng chọn màu sắc và kích thước');
+      return;
+    }
+
+    if (quantity > selectedVariant.quantity) {
+      toast.error('Số lượng vượt quá hàng có sẵn');
+      return;
+    }
+
+    try {
+      await axios.post('http://localhost:8081/saleShoes/cart/add', {
+        productId: selectedVariant.productId,
+        quantity: quantity,
+        color: selectedVariant.color,
+        size: selectedVariant.size
+      });
+      toast.success('Đã thêm vào giỏ hàng!');
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Có lỗi xảy ra khi thêm vào giỏ hàng');
+    }
+  };
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -88,43 +155,6 @@ const ProductDetail = () => {
 
     fetchSizesAndColors();
   }, []);
-
-  const addToCart = async () => {
-    if (!selectedSize) {
-      toast.error('Vui lòng chọn size');
-      return;
-    }
-
-    if (!selectedColor) {
-      toast.error('Vui lòng chọn màu');
-      return;
-    }
-
-    try {
-      await axios.post('http://localhost:8081/saleShoes/cart/add', {
-        productId: product.id,
-        quantity: quantity,
-        color: selectedColor,
-        size: selectedSize
-      });
-      toast.success('Đã thêm vào giỏ hàng!');
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-      toast.error('Có lỗi xảy ra khi thêm vào giỏ hàng');
-    }
-  };
-
-  const buyNow = () => {
-    if (!selectedSize) {
-      toast.error('Vui lòng chọn size');
-      return;
-    }
-    
-    // Thêm vào giỏ hàng
-    addToCart();
-    // Chuyển đến trang thanh toán
-    navigate('/checkout');
-  };
 
   const renderStars = (rating) => {
     return [...Array(5)].map((_, index) => (
@@ -441,72 +471,87 @@ const ProductDetail = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Product Images */}
         <div className="space-y-4">
-          <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
-            <img
-              src={product.images[0]}
-              alt={product.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.src = '/path/to/default/image.jpg'; // Fallback image
-              }}
-            />
-          </div>
+          {selectedVariant && selectedVariant.image && selectedVariant.image.length > 0 ? (
+            <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
+              <img
+                src={selectedVariant.image[0]}
+                alt={product?.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = '/path/to/default/image.jpg';
+                }}
+              />
+            </div>
+          ) : product?.imageUrl && (
+            <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = '/path/to/default/image.jpg';
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Product Info */}
         <div className="space-y-6">
           <div>
-            <h1 className="text-3xl font-bold">{product.name}</h1>
+            <h1 className="text-3xl font-bold">{product?.name}</h1>
             <p className="text-xl mt-2">
-              {product.price > 0 ? `${product.price.toLocaleString('vi-VN')}đ` : 'Liên hệ'}
+              {selectedVariant 
+                ? `${selectedVariant.price.toLocaleString('vi-VN')}đ` 
+                : product?.minPrice 
+                  ? `${product.minPrice.toLocaleString('vi-VN')}đ`
+                  : 'Liên hệ'}
             </p>
           </div>
 
-          {product.description && (
+          {/* Category and Brand */}
+          <div className="space-y-2 text-sm text-gray-600">
+            {product?.category && <p>Danh mục: {product.category}</p>}
+            {product?.brand && <p>Thương hiệu: {product.brand}</p>}
+          </div>
+
+          {product?.description && (
             <div>
               <h2 className="font-semibold mb-2">Mô tả</h2>
               <p className="text-gray-600">{product.description}</p>
             </div>
           )}
 
-          {/* Category and Brand */}
-          <div className="space-y-2 text-sm text-gray-600">
-            {product.category && <p>Danh mục: {product.category}</p>}
-            {product.brand && <p>Thương hiệu: {product.brand}</p>}
+          {/* Colors */}
+          <div>
+            <h2 className="font-semibold mb-2">Màu sắc</h2>
+            <div className="flex gap-4">
+              {getAvailableColors().map((color) => (
+                <button
+                  key={color}
+                  className={`px-4 py-2 border rounded-lg hover:border-black
+                    ${selectedColor === color ? 'border-black bg-black text-white' : ''}`}
+                  onClick={() => setSelectedColor(color)}
+                >
+                  {color}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Colors */}
-          {colors.length > 0 && (
-            <div>
-              <h2 className="font-semibold mb-2">Màu sắc</h2>
-              <div className="flex gap-4">
-                {colors.map((color) => (
-                  <button
-                    key={color.id}
-                    className={`px-4 py-2 border rounded-lg hover:border-black
-                      ${selectedColor === color.name ? 'border-black bg-black text-white' : ''}`}
-                    onClick={() => setSelectedColor(color.name)}
-                  >
-                    {color.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Sizes */}
-          {sizes.length > 0 && (
+          {selectedColor && (
             <div>
               <h2 className="font-semibold mb-2">Size</h2>
               <div className="grid grid-cols-4 gap-2">
-                {sizes.map((size) => (
+                {getAvailableSizes().map((size) => (
                   <button
-                    key={size.id}
+                    key={size}
                     className={`px-4 py-2 border rounded-lg hover:border-black
-                      ${selectedSize === size.name ? 'border-black bg-black text-white' : ''}`}
-                    onClick={() => setSelectedSize(size.name)}
+                      ${selectedSize === size ? 'border-black bg-black text-white' : ''}`}
+                    onClick={() => setSelectedSize(size)}
                   >
-                    {size.name}
+                    {size}
                   </button>
                 ))}
               </div>
@@ -526,11 +571,22 @@ const ProductDetail = () => {
               <span>{quantity}</span>
               <button
                 className="px-3 py-1 border rounded-lg"
-                onClick={() => setQuantity(quantity + 1)}
+                onClick={() => {
+                  if (selectedVariant && quantity < selectedVariant.quantity) {
+                    setQuantity(quantity + 1);
+                  } else {
+                    toast.error('Đã đạt số lượng tối đa');
+                  }
+                }}
               >
                 +
               </button>
             </div>
+            {selectedVariant && (
+              <p className="text-sm text-gray-500 mt-1">
+                Còn {selectedVariant.quantity} sản phẩm
+              </p>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -538,12 +594,17 @@ const ProductDetail = () => {
             <button
               onClick={addToCart}
               className="flex-1 py-3 border-2 border-black text-black rounded-full hover:bg-gray-100 transition-colors"
+              disabled={!selectedVariant}
             >
               Thêm vào giỏ
             </button>
             <button
-              onClick={buyNow}
+              onClick={() => {
+                addToCart();
+                navigate('/checkout');
+              }}
               className="flex-1 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
+              disabled={!selectedVariant}
             >
               Mua ngay
             </button>
@@ -551,7 +612,7 @@ const ProductDetail = () => {
         </div>
       </div>
 
-      {/* Review section remains the same */}
+      {/* Giữ nguyên phần review section */}
       {reviewSection}
     </div>
   );

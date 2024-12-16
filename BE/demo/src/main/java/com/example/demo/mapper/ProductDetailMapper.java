@@ -79,7 +79,8 @@ public class ProductDetailMapper {
                 .image(imageUrls) // Truyền Set các URL hình ảnh
                 .price(productDetail.getPrice()) // Giá sản phẩm
                 .description(productDetail.getDescription()) // Mô tả chi tiết sản phẩm
-                .quantity(productDetail.getQuantity()) // Số lượng sản phẩm
+                .quantity(productDetail.getQuantity())
+                .active(productDetail.isActive())// Số lượng sản phẩm
                 .build();
     }
 
