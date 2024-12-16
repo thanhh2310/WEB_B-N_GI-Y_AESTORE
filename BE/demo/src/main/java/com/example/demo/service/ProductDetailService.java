@@ -35,10 +35,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+ @Slf4j
 public class ProductDetailService {
 
     private final IamgeRepository imageRepository;
@@ -47,11 +49,13 @@ public class ProductDetailService {
     private final ColorRepository colorRepository;
     private final SizeRepository sizeRepository;
     private final ProductRepository productRepository;
-
-    public ProductDetailResponse getProductDetailByColorAndSize(Integer productId, Integer idColor, Integer idSize) {
-        Color color = colorRepository.findById(idColor).orElseThrow(() -> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
-        Size size = sizeRepository.findById(idSize)
-                .orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
+   
+    public ProductDetailResponse getProductDetailByColorAndSize(Integer productId, String colorName, String sizeName) {
+        Color color = colorRepository.findColorByName(colorName).orElseThrow(() -> new WebErrorConfig(ErrorCode.COLOR_NOT_FOUND));
+        log.info(color.getName());
+        log.info(sizeName);
+        Size size = sizeRepository.findSizeByName(sizeName).orElseThrow(() -> new WebErrorConfig(ErrorCode.SIZE_NOT_FOUND));
+     
         Product product = productRepository.findById(productId).orElseThrow(() -> new WebErrorConfig(ErrorCode.PRODUCT_NOT_FOUND));
 
         // Truy vấn và lấy danh sách các ProductDetail

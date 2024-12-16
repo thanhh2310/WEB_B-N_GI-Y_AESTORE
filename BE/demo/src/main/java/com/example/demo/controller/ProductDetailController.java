@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -32,14 +33,14 @@ public class ProductDetailController {
 
     private final ProductDetailService productDetailService;
 
-    @GetMapping("/product/{idProduct}/color/{idColor}/size/{idSize}")
+    @GetMapping("/product/{idProduct}")
     public ApiResponse<ProductDetailResponse> getProductDetail(
             @PathVariable Integer idProduct,
-            @PathVariable Integer idColor,
-            @PathVariable Integer idSize) {
+            @RequestParam String colorName,
+            @RequestParam String sizeName) {
 
         // Gọi service để lấy chi tiết sản phẩm theo màu và kích thước
-        ProductDetailResponse createdProduct = productDetailService.getProductDetailByColorAndSize(idProduct, idColor, idSize);
+        ProductDetailResponse createdProduct = productDetailService.getProductDetailByColorAndSize(idProduct, colorName, sizeName);
 
         // Trả về phản hồi ApiResponse
         return ApiResponse.<ProductDetailResponse>builder()
