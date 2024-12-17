@@ -39,6 +39,7 @@ public class UserMapper {
     public UserResponse toUserResponse(User user) {
 
         UserResponse userResponse = UserResponse.builder()
+                .userId(user.getUserId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .phone(user.getPhone())

@@ -1,106 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import OrderTimeline from '../components/OrderTimeline';
 import { getOrderTimeline } from '../data/orderStatus';
+import axios from 'axios';
 
 const OrderHistory = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const navigate = useNavigate();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - sau này sẽ được thay thế bằng dữ liệu thật từ API
-  const orders = [
-    {
-      id: "ORD001",
-      date: "2024-03-15",
-      total: 2500000,
-      status: "pending",
-      items: [
-        {
-          id: 1,
-          productId: "1",
-          name: "Nike Air Max 270",
-          color: "Black/White",
-          size: "42",
-          price: 2500000,
-          quantity: 1,
-          image: "/products/airmax-270.jpg"
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+          toast.error('Vui lòng đăng nhập để xem lịch sử đơn hàng');
+          navigate('/signin');
+          return;
         }
-      ],
-      timeline: [
-        {
-          status: 'pending',
-          time: null,
-          isCompleted: false
-        },
-        {
-          status: 'confirmed',
-          time: null,
-          isCompleted: false
-        },
-        {
-          status: 'shipping',
-          time: null,
-          isCompleted: false
-        },
-        {
-          status: 'delivered',
-          time: null,
-          isCompleted: false
+
+        const response = await axios.get(`http://localhost:8081/saleShoes/ordersusername?username=${user.username}`);
+        if (response.data?.result) {
+          setOrders(response.data.result);
         }
-      ]
-    },
-    {
-      id: "ORD002",
-      date: "2024-03-10",
-      total: 4800000,
-      status: "completed",
-      items: [
-        {
-          id: 2,
-          productId: "2",
-          name: "Nike Air Force 1",
-          color: "White",
-          size: "41",
-          price: 2300000,
-          quantity: 1,
-          image: "/products/airforce-1.jpg"
-        },
-        {
-          id: 3,
-          productId: "3",
-          name: "Nike Zoom Fly 5",
-          color: "Blue",
-          size: "42",
-          price: 2500000,
-          quantity: 1,
-          image: "/products/zoom-fly-5.jpg"
-        }
-      ],
-      timeline: [
-        {
-          status: 'pending',
-          time: null,
-          isCompleted: false
-        },
-        {
-          status: 'confirmed',
-          time: null,
-          isCompleted: false
-        },
-        {
-          status: 'shipping',
-          time: null,
-          isCompleted: false
-        },
-        {
-          status: 'delivered',
-          time: null,
-          isCompleted: false
-        }
-      ]
-    }
-  ];
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        toast.error('Không thể tải lịch sử đơn hàng');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [navigate]);
 
   // Hàm thêm vào giỏ hàng
   const addToCart = (item) => {
@@ -174,117 +108,60 @@ const OrderHistory = () => {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Lịch sử đơn hàng</h1>
 
-      {/* Filter Controls */}
-      <div className="mb-6">
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-4 py-2 border rounded-lg bg-white"
-        >
-          <option value="all">Tất cả đơn hàng</option>
-          <option value="pending">Đang xử lý</option>
-          <option value="completed">Đã hoàn thành</option>
-          <option value="cancelled">Đã hủy</option>
-        </select>
-      </div>
-
-      {/* Orders List */}
-      <div className="space-y-6">
-        {filteredOrders.map((order) => (
-          <div 
-            key={order.id}
-            className="border rounded-lg p-6 bg-white shadow-sm hover:shadow-md transition-shadow"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h2 className="text-lg font-semibold">Đơn hàng #{order.id}</h2>
-                <p className="text-gray-600">
-                  Ngày đặt: {new Date(order.date).toLocaleDateString('vi-VN')}
-                </p>
-              </div>
-              <div className="text-right">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-                  {getStatusText(order.status)}
-                </span>
-                <p className="mt-2 font-semibold">
-                  Tổng tiền: {order.total.toLocaleString('vi-VN')}đ
-                </p>
-              </div>
-            </div>
-
-            {/* Order Items */}
-            <div className="space-y-4">
-              {order.items.map((item) => (
-                <div key={item.id} className="flex gap-4 border-t pt-4">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-24 h-24 object-cover rounded cursor-pointer"
-                    onClick={() => navigate(`/product/${item.productId}`)}
-                  />
-                  <div className="flex-grow">
-                    <h3 
-                      className="font-medium hover:text-blue-600 cursor-pointer"
-                      onClick={() => navigate(`/product/${item.productId}`)}
-                    >
-                      {item.name}
-                    </h3>
-                    <p className="text-gray-600">
-                      Màu: {item.color} | Size: {item.size}
-                    </p>
-                    <p className="text-gray-600">
-                      Số lượng: {item.quantity}
-                    </p>
-                    <p className="font-medium">
-                      {item.price.toLocaleString('vi-VN')}đ
-                    </p>
-                    <button
-                      onClick={() => addToCart(item)}
-                      className="mt-2 px-4 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors text-sm"
-                    >
-                      Mua lại
-                    </button>
-                  </div>
+      {loading ? (
+        <div>Đang tải...</div>
+      ) : (
+        <div className="space-y-6">
+          {orders.map((order) => (
+            <div key={order.id} className="border rounded-lg p-6 bg-white shadow-sm">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold">Đơn hàng #{order.id}</h2>
+                  <p className="text-gray-600">
+                    Ngày đặt: {new Date(order.dateCreate).toLocaleDateString('vi-VN')}
+                  </p>
                 </div>
-              ))}
-            </div>
+                <div className="text-right">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
+                    {getStatusText(order.status)}
+                  </span>
+                </div>
+              </div>
 
-            {/* Action Buttons */}
-            <div className="mt-4 flex gap-4">
-              <Link
-                to={`/order/${order.id}`}
-                className="text-blue-600 hover:text-blue-800"
-              >
-                Xem chi tiết
-              </Link>
-              {order.status === 'pending' && (
-                <button
-                  className="text-red-600 hover:text-red-800"
-                  onClick={() => {
-                    // Thêm logic hủy đơn hàng ở đây
-                    alert('Chức năng hủy đơn hàng sẽ được thêm sau');
-                  }}
-                >
-                  Hủy đơn hàng
-                </button>
-              )}
-            </div>
+              <div className="space-y-4">
+                {order.orderDetail.map((item) => (
+                  <div key={item.id} className="flex gap-4 border-t pt-4">
+                    <img
+                      src={item.productDetail.image[0]}
+                      alt=""
+                      className="w-24 h-24 object-cover rounded"
+                    />
+                    <div className="flex-grow">
+                      <p className="font-medium">Size: {item.productDetail.size}</p>
+                      <p>Màu: {item.productDetail.color}</p>
+                      <p>Số lượng: {item.quantity}</p>
+                      <p>Giá: {item.price.toLocaleString('vi-VN')}₫</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-            <div className="mt-4">
-              <OrderTimeline 
-                status={order.status || 'pending'}
-                timeline={order.timeline || []}
-              />
+              <div className="mt-4 pt-4 border-t">
+                <p>Địa chỉ: {order.address}</p>
+                <p className="font-medium">
+                  Tổng tiền: {order.orderDetail.reduce((total, item) => total + item.price * item.quantity, 0).toLocaleString('vi-VN')}₫
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
 
-        {filteredOrders.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            Không tìm thấy đơn hàng nào
-          </div>
-        )}
-      </div>
+          {orders.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              Bạn chưa có đơn hàng nào
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

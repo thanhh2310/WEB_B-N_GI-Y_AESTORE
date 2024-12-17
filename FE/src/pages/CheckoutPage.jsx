@@ -70,15 +70,16 @@ const CheckoutPage = () => {
         });
         
         if (userResponse.data?.result) {
+          const userData = userResponse.data.result;
           setFormData(prev => ({
             ...prev,
-            fullName: userResponse.data.result.fullName || '',
-            email: userResponse.data.result.email || '',
-            phone: userResponse.data.result.phone || ''
+            fullName: userData.fullName || '',
+            email: userData.email || '',
+            phone: userData.phone || ''
           }));
 
-          // Lấy danh sách địa chỉ đã lưu
-          const addressesResponse = await axios.get(`http://localhost:8081/saleShoes/addresses/user/${user.id}`, {
+          // Lấy danh sách địa chỉ đã lưu - thêm token vào header
+          const addressesResponse = await axios.get(`http://localhost:8081/saleShoes/address?userId=${userData.userId}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
 
@@ -88,7 +89,12 @@ const CheckoutPage = () => {
         }
       } catch (error) {
         console.error('Error loading user info:', error);
-        toast.error('Không thể tải thông tin người dùng');
+        if (error.response?.status === 401) {
+          toast.error('Phiên đăng nhập hết hạn');
+          navigate('/signin');
+        } else {
+          toast.error('Không thể tải thông tin người dùng');
+        }
       }
     };
 
@@ -166,29 +172,18 @@ const CheckoutPage = () => {
   };
 
   // Xử lý khi chọn địa chỉ đã lưu
-  const handleSavedAddressSelect = async (address) => {
-    try {
-      // Lấy chi tiết địa chỉ
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:8081/saleShoes/addresses/${address.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.data?.result) {
-        const addressDetail = response.data.result;
-        setFormData(prev => ({
-          ...prev,
-          address: addressDetail.address,
-          city: addressDetail.province,
-          district: addressDetail.district,
-          ward: addressDetail.ward
-        }));
-        setSelectedProvince(addressDetail.provinceCode);
-        setSelectedDistrict(addressDetail.districtCode);
-      }
-    } catch (error) {
-      console.error('Error loading address details:', error);
-      toast.error('Không thể tải thông tin địa chỉ');
+  const handleSavedAddressSelect = (address) => {
+    // Parse địa chỉ thành các thành phần
+    const addressParts = address.address.split(', ');
+    if (addressParts.length >= 4) {
+      const [streetAddress, ward, district, city] = addressParts;
+      setFormData(prev => ({
+        ...prev,
+        address: streetAddress,
+        ward: ward,
+        district: district,
+        city: city
+      }));
     }
   };
 
@@ -197,24 +192,31 @@ const CheckoutPage = () => {
     try {
       const token = localStorage.getItem('token');
       const user = JSON.parse(localStorage.getItem('user'));
+      
+      if (!user || !token) {
+        toast.error('Vui lòng đăng nhập để lưu địa chỉ');
+        return;
+      }
 
       const addressData = {
         userId: user.id,
-        address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`,
-        provinceCode: selectedProvince,
-        districtCode: selectedDistrict,
-        wardCode: formData.wardCode,
-        isDefault: savedAddresses.length === 0 // Nếu là địa chỉ đầu tiên thì set làm mặc định
+        address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`
       };
 
-      await axios.post('http://localhost:8081/saleShoes/addresses', addressData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.post('http://localhost:8081/saleShoes/address', addressData);
 
-      toast.success('Đã lưu địa chỉ mới');
+      if (response.data?.result) {
+        setSavedAddresses(prev => [...prev, response.data.result]);
+        toast.success('Đã lưu địa chỉ mới');
+      }
     } catch (error) {
       console.error('Error saving address:', error);
-      toast.error('Không thể lưu địa chỉ');
+      if (error.response?.status === 401) {
+        toast.error('Phiên đăng nhập hết hạn');
+        navigate('/signin');
+      } else {
+        toast.error('Không thể lưu địa chỉ');
+      }
     }
   };
 
@@ -297,52 +299,62 @@ const CheckoutPage = () => {
     </div>
   );
 
+  const getUserInfo = async () => {
+    const token = localStorage.getItem('token'); // Lấy token từ localStorage
+  
+    if (!token) {
+      console.error('No token found in localStorage');
+      toast.error('Bạn cần đăng nhập để thực hiện thao tác này.');
+      return null;
+    }
+  
+    try {
+      const response = await axios.get('http://localhost:8081/saleShoes/users/me', {
+        headers: {
+          Authorization: `Bearer ${token}` // Đính kèm token vào header Authorization
+        }
+      });
+  
+      var userId = response.data?.result?.userId;
+  
+      if (!userId) {
+        console.warn('No cartId found in user info');
+      }
+      return userId || null; // Trả về cartId hoặc null
+    } catch (error) {
+      console.error('Error fetching user info:', error.response?.data || error.message);
+      toast.error( userId);
+      return null;
+    }
+  };
+
   const processOrder = async () => {
     try {
       setLoading(true);
 
-      // Chuẩn bị dữ liệu đơn hàng theo format của API
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user'));
+      const userIds = await getUserInfo();
+      
+      if (!user || !token) {
+        toast.error('Vui lòng đăng nhập để đặt hàng');
+        navigate('/signin');
+        return;
+      }
+
+      // Chuẩn bị dữ liệu đơn hàng
       const orderData = {
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`,
-        provinceCode: selectedProvince,
-        districtCode: selectedDistrict,
-        wardCode: formData.ward
+        userId: userIds,
+        address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`
       };
 
-      // Gọi API tạo đơn hàng
+      // Gọi API tạo đơn hàng với token
       const response = await axios.post('http://localhost:8081/saleShoes/orders', orderData);
 
       if (response.data?.result) {
-        // Lưu địa chỉ mới
-        await axios.post('http://localhost:8081/saleShoes/users/addresses', {
-          address:`${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`,
-          provinceCode: selectedProvince,
-          districtCode: selectedDistrict,
-          wardCode: formData.ward
-        }, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-
         // Xóa giỏ hàng sau khi đặt hàng thành công
         localStorage.removeItem('cart');
         localStorage.removeItem('checkoutItems');
-
-        // Nếu thanh toán bằng banking, chuyển đến trang thanh toán
-        if (formData.paymentMethod === 'banking') {
-          const paymentResponse = await axios.post('http://localhost:8081/saleShoes/payments/createPayment', {
-            orderId: response.data.result.id
-          });
-          
-          if (paymentResponse.data?.paymentUrl) {
-            window.location.href = paymentResponse.data.paymentUrl;
-            return;
-          }
-        }
 
         // Chuyển đến trang thành công
         navigate(`/order-success/${response.data.result.id}`);
@@ -350,7 +362,12 @@ const CheckoutPage = () => {
       }
     } catch (error) {
       console.error('Error placing order:', error);
-      toast.error('Có lỗi xảy ra khi đặt hàng');
+      if (error.response?.status === 401) {
+        toast.error('Phiên đăng nhập hết hạn');
+        navigate('/signin');
+      } else {
+        toast.error('Có lỗi xảy ra khi đặt hàng');
+      }
     } finally {
       setLoading(false);
       setShowConfirmModal(false);
@@ -393,12 +410,6 @@ const CheckoutPage = () => {
                         className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
                       >
                         <p className="font-medium">{address.address}</p>
-                        <p className="text-sm text-gray-600">
-                          {address.ward}, {address.district}, {address.province}
-                        </p>
-                        {address.isDefault && (
-                          <span className="text-xs text-green-600">Mặc định</span>
-                        )}
                       </div>
                     ))}
                   </div>
