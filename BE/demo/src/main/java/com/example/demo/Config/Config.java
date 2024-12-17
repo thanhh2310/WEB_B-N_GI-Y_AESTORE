@@ -27,7 +27,9 @@ import javax.crypto.spec.SecretKeySpec;
 public class Config {
 
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-   public static String vnp_ReturnUrl = "http://localhost:5173";
+
+    public static String vnp_ReturnUrl = "http://localhost:5173";
+
     public static String vnp_TmnCode = "XBQB4LS5";
     public static String secretKey = "9YNXWDTEY4EUROTENGIJOCQNSJ2VVO8S";
     public static String vnp_Version = "2.1.0";
@@ -135,16 +137,17 @@ public class Config {
         }
         return sb.toString();
     }
-      public static String getPaymentURL(Map<String, String> paramsMap, boolean encodeKey) {
+
+    public static String getPaymentURL(Map<String, String> paramsMap, boolean encodeKey) {
         return paramsMap.entrySet().stream()
                 .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty())
                 .sorted(Map.Entry.comparingByKey())
-                .map(entry ->
-                        (encodeKey ? URLEncoder.encode(entry.getKey(),
+                .map(entry
+                        -> (encodeKey ? URLEncoder.encode(entry.getKey(),
                                 StandardCharsets.US_ASCII)
-                                : entry.getKey()) + "=" +
-                                URLEncoder.encode(entry.getValue()
-                                , StandardCharsets.US_ASCII))
+                        : entry.getKey()) + "="
+                + URLEncoder.encode(entry.getValue(),
+                        StandardCharsets.US_ASCII))
                 .collect(Collectors.joining("&"));
     }
 }

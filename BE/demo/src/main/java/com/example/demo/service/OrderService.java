@@ -7,6 +7,7 @@ package com.example.demo.service;
 import com.example.demo.ENUMS.OrderStatus;
 import com.example.demo.dto.request.OrderRequest;
 import com.example.demo.dto.response.OrderResponse;
+import com.example.demo.dto.response.PaymentResponse;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.exception.WebErrorConfig;
 import com.example.demo.mapper.OrderMapper;
@@ -25,6 +26,8 @@ import com.example.demo.respository.PaymentRepository;
 import com.example.demo.respository.ProductDetailRepository;
 import com.example.demo.respository.ProductRepository;
 import com.example.demo.respository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -55,6 +58,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final OrderMapper orderMapper;
     private final PaymentRepository paymentRepository;
+    private final PaymentService paymentService;
 
     public Order addCoupon(Integer Id, String code) {
         // Lấy đơn hàng dựa trên ID
@@ -90,13 +94,23 @@ public class OrderService {
         return order;
     }
 
-    public OrderResponse placeOrder(OrderRequest request) {
+    public OrderResponse placeOrder(OrderRequest request, HttpServletRequest req) throws UnsupportedEncodingException {
         // Lấy giỏ hàng của người dùng
         Cart cart = cartService.getCartByUserId(request.getUserId());
-        log.info(cart.getId() + "Vu");
+        
+        if (cart == null || cart.getId() == null) {
+            throw new IllegalArgumentException("Giỏ hàng không hợp lệ hoặc không tìm thấy giỏ hàng.");
+        }
+
+        log.info(cart.getId() + " Vu");
 
         // Tạo đơn hàng từ giỏ hàng
         Order order = create(cart);
+        orderRepository.save(order);
+        if (order.getId() == null) {
+            throw new IllegalArgumentException("Đơn hàng không hợp lệ, ID là null.");
+        }
+
         order.setAddress(request.getAddress());
 
         // Tạo chi tiết đơn hàng từ các sản phẩm trong giỏ hàng
@@ -112,12 +126,21 @@ public class OrderService {
                 .orElseThrow(() -> new WebErrorConfig(ErrorCode.PAYMENT_NOT_FOUND));
         order.setPayment(payment);
 
-        // Lưu đơn hàng vào cơ sở dữ liệu và xóa giỏ hàng
-        Order savedOrder = orderRepository.save(order);
-        cartService.clearCart(cart.getId());
+        OrderResponse orderResponse = orderMapper.tOrderResponse(order);
 
-        // Trả về thông tin đơn hàng đã tạo
-        return orderMapper.tOrderResponse(order);
+        if (payment.getName().equals("VNPAY")) {
+            PaymentResponse paymentResponse = paymentService.createPayment(req, order.getId());
+            String url = paymentResponse.getUrl();
+            orderResponse.setUrl(url);
+        } else {
+            orderResponse.setUrl("");
+        }
+
+        // Lưu đơn hàng vào cơ sở dữ liệu và xóa giỏ hàng
+        orderRepository.save(order); // Lưu order
+        cartService.clearCart(cart.getId()); // Xóa giỏ hàng
+
+        return orderResponse;
     }
 
     private List<OrderDetail> createOrderDetails(Order order, Cart cart) {
