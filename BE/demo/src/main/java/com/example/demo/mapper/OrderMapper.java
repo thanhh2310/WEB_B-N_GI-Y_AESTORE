@@ -37,6 +37,7 @@ public class OrderMapper {
                 .userId(user.getUserId()) // Kiểm tra userId của user
                 .orderDetail(orderDetails)
                 .status(order.getStatus())
+                .total(order.getTotal())
                 .coupons(coupons) // Ánh xạ coupons
                 .address(order.getAddress()) // Ánh xạ address
                 .dateCreate(order.getDateCreate())

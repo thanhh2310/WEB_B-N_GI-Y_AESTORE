@@ -24,6 +24,7 @@ public class OrderDetailMapper {
                 .orderId(orderDetail.getOrder().getId())
                 .quantity(orderDetail.getQuantity())
                 .price(orderDetail.getPrice())
+                
                 .productDetail(productDetailMapper.toProductDetailResponse(orderDetail.getProductDetail()))
                 .build();
     }

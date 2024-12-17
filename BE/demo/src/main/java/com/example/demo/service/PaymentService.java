@@ -95,4 +95,9 @@ public class PaymentService {
         return payemenDto;
 
     }
+    public boolean check(String responseCode){
+        if(responseCode.equals("00")) return true;
+        return false;
+        
+    }
 }

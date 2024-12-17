@@ -5,6 +5,7 @@
 package com.example.demo.dto.response;
 
 import com.example.demo.model.Coupon;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
 import lombok.Builder;
@@ -30,4 +31,5 @@ public class OrderResponse {
     private Set<OrderDetailResponse> orderDetail;
     private String address;
     private String status;
+    private BigDecimal total;
 }
