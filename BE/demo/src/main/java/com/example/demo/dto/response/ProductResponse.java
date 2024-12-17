@@ -22,6 +22,6 @@ public class ProductResponse {
     private Brand brand;
     private String description;
     private BigDecimal minPrice;
-    private Set<String> imageUrl;
+    private String  imageUrl;
     private boolean active;
 }

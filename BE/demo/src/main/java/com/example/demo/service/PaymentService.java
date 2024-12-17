@@ -31,20 +31,21 @@ public class PaymentService {
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
         String orderType = "other";
-        Order order=orderRepository.findById(orderId).orElseThrow(()->new WebErrorConfig(ErrorCode.ORDER_NOT_FOUND));
-        BigDecimal total =order.getTotal();
-        long amount = 100000 * 100;
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new WebErrorConfig(ErrorCode.ORDER_NOT_FOUND));
+        BigDecimal total = order.getTotal();
+        long amount = total.multiply(BigDecimal.valueOf(100)).longValue();
 //        String bankCode = req.getParameter("bankCode");
-
+        
         String vnp_TxnRef = Config.getRandomNumber(8);
         String vnp_IpAddr = Config.getIpAddress(req);
 
         String vnp_TmnCode = Config.vnp_TmnCode;
-
+        Integer userId=order.getUser().getUserId();
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", vnp_Version);
         vnp_Params.put("vnp_Command", vnp_Command);
         vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
+//        vnp_Params.put("vnp_AppUserId",String.valueOf(userId));
         vnp_Params.put("vnp_Amount", String.valueOf(amount));
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_BankCode", "NCB");

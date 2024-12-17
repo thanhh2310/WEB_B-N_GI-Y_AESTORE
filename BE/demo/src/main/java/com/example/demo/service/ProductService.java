@@ -89,20 +89,11 @@ public class ProductService {
 
                 // Thiết lập URL ảnh cho sản phẩm nếu có
                 if (productDetail.getImages() != null && !productDetail.getImages().isEmpty()) {
-                    // Khởi tạo một danh sách để chứa các URL
-                    Set<String> imageUrls = new HashSet<>();
-
-                    // Duyệt qua tất cả các hình ảnh và lấy URL
-                    for (Image image : productDetail.getImages()) {
-                        // Thêm URL của mỗi hình ảnh vào danh sách
-                        imageUrls.add(image.getUrl());
-                    }
-
-                    // Chuyển danh sách hình ảnh thành chuỗi phân cách (nếu cần)
-                    
+                    // Lấy ảnh đầu tiên trong danh sách
+                    Image firstImage = productDetail.getImages().iterator().next();  // Lấy ảnh đầu tiên từ Set
 
                     // Thiết lập URL hình ảnh cho sản phẩm
-                    productResponse.setImageUrl(imageUrls);  
+                    productResponse.setImageUrl(firstImage.getUrl());
                 }
             }
 
