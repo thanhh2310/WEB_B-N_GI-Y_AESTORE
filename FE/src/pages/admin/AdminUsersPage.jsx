@@ -299,7 +299,7 @@ const AdminUsersPage = () => {
                         <button
                           onClick={() => handleToggleStatus(user.userId)}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                            user.active ? 'bg-green-500' : 'bg-gray-300'
+                            user.active ? 'bg-gray-300' : 'bg-gray-300'
                           }`}
                         >
                           <span

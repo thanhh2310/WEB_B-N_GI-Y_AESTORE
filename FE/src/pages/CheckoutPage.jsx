@@ -30,7 +30,7 @@ const CheckoutPage = () => {
     district: '',
     ward: '',
     note: '',
-    paymentMethod: 'cod' // cod, banking, momo
+    paymentMethod: 'COD' // COD, VNPAY
   });
 
   // Tính toán giá tiền
@@ -275,7 +275,7 @@ const CheckoutPage = () => {
         <h3 className="text-lg font-medium mb-4">Xác nhận đặt hàng</h3>
         <p className="text-gray-600 mb-6">
           Bạn có chắc chắn muốn đặt đơn hàng này?
-          {formData.paymentMethod === 'banking' && (
+          {formData.paymentMethod === 'VNPAY' && (
             <span className="block mt-2 text-sm">
               Bạn sẽ được chuyển đến trang thanh toán sau khi xác nhận.
             </span>
@@ -345,7 +345,8 @@ const CheckoutPage = () => {
       // Chuẩn bị dữ liệu đơn hàng
       const orderData = {
         userId: userIds,
-        address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`
+        address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`,
+        paymentMethod: formData.paymentMethod
       };
 
       // Gọi API tạo đơn hàng với token
@@ -538,8 +539,8 @@ const CheckoutPage = () => {
                   <input
                     type="radio"
                     name="paymentMethod"
-                    value="cod"
-                    checked={formData.paymentMethod === 'cod'}
+                    value="COD"
+                    checked={formData.paymentMethod === 'COD'}
                     onChange={handleInputChange}
                   />
                   <span>Thanh toán khi nhận hàng (COD)</span>
@@ -549,22 +550,11 @@ const CheckoutPage = () => {
                   <input
                     type="radio"
                     name="paymentMethod"
-                    value="banking"
-                    checked={formData.paymentMethod === 'banking'}
+                    value="VNPAY"
+                    checked={formData.paymentMethod === 'VNPAY'}
                     onChange={handleInputChange}
                   />
                   <span>Chuyển khoản ngân hàng</span>
-                </label>
-
-                <label className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="momo"
-                    checked={formData.paymentMethod === 'momo'}
-                    onChange={handleInputChange}
-                  />
-                  <span>Ví MoMo</span>
                 </label>
               </div>
             </div>

@@ -21,6 +21,7 @@ const ProductDetail = () => {
   const [reviews, setReviews] = useState([]);
   const [sizes, setSizes] = useState([]);
   const [colors, setColors] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -79,6 +80,7 @@ const ProductDetail = () => {
         v => v.color === selectedColor && v.size === selectedSize
       );
       setSelectedVariant(variant);
+      setCurrentImageIndex(0); // Reset image index when variant changes
     }
   }, [selectedColor, selectedSize, productVariants]);
 
@@ -123,7 +125,21 @@ const ProductDetail = () => {
     }
   };
   
+  const nextImage = () => {
+    if (selectedVariant && selectedVariant.image) {
+      setCurrentImageIndex((prevIndex) => 
+        prevIndex === selectedVariant.image.length - 1 ? 0 : prevIndex + 1
+      );
+    }
+  };
 
+  const previousImage = () => {
+    if (selectedVariant && selectedVariant.image) {
+      setCurrentImageIndex((prevIndex) => 
+        prevIndex === 0 ? selectedVariant.image.length - 1 : prevIndex - 1
+      );
+    }
+  };
 
   const addToCart = async () => {
     try {
@@ -134,7 +150,7 @@ const ProductDetail = () => {
 
       setLoading(true);
 
-      // Lấy thông tin user từ localStorage
+      // Lấy thông tin user t��� localStorage
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user) {
         toast.error('Vui lòng đăng nhập để thêm vào giỏ hàng');
@@ -281,7 +297,7 @@ const ProductDetail = () => {
         viewBox="0 0 20 20"
         fill="currentColor"
       >
-        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
       </svg>
     ));
   };
@@ -584,153 +600,199 @@ const ProductDetail = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Product Images */}
-        <div className="space-y-4">
-          {selectedVariant && selectedVariant.image && selectedVariant.image.length > 0 ? (
-            <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
-              <img
-                src={selectedVariant.image[0]}
-                alt={product?.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = '/path/to/default/image.jpg';
-                }}
-              />
-            </div>
-          ) : product?.imageUrl && (
-            <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = '/path/to/default/image.jpg';
-                }}
-              />
-            </div>
-          )}
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Left Column - Product Images */}
+        <div className="lg:w-1/2">
+          <div className="relative">
+            {selectedVariant && selectedVariant.image && selectedVariant.image.length > 0 ? (
+              <>
+                <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
+                  <img
+                    src={selectedVariant.image[currentImageIndex]}
+                    alt={product?.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = '/path/to/default/image.jpg';
+                    }}
+                  />
+                </div>
+                {selectedVariant.image.length > 1 && (
+                  <>
+                    <button
+                      onClick={previousImage}
+                      className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </>
+                )}
+                <div className="flex gap-2 mt-4 overflow-x-auto">
+                  {selectedVariant.image.map((img, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 ${
+                        currentImageIndex === index ? 'border-black' : 'border-transparent'
+                      }`}
+                    >
+                      <img
+                        src={img}
+                        alt={`Thumbnail ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : product?.imageUrl && (
+              <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = '/path/to/default/image.jpg';
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Product Info */}
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">{product?.name}</h1>
-            <p className="text-xl mt-2">
-              {selectedVariant 
-                ? `${selectedVariant.price.toLocaleString('vi-VN')}đ` 
-                : product?.minPrice 
-                  ? `${product.minPrice.toLocaleString('vi-VN')}đ`
-                  : 'Liên hệ'}
-            </p>
-          </div>
-
-          {/* Category and Brand */}
-          <div className="space-y-2 text-sm text-gray-600">
-            {product?.category && <p>Danh mục: {product.category}</p>}
-            {product?.brand && <p>Thương hiệu: {product.brand}</p>}
-          </div>
-
-          {product?.description && (
+        {/* Right Column - Product Info */}
+        <div className="lg:w-1/2">
+          <div className="space-y-6">
             <div>
-              <h2 className="font-semibold mb-2">Mô tả</h2>
-              <p className="text-gray-600">{product.description}</p>
+              <h1 className="text-3xl font-bold">{product?.name}</h1>
+              <p className="text-xl mt-2">
+                {selectedVariant 
+                  ? `${selectedVariant.price.toLocaleString('vi-VN')}đ` 
+                  : product?.minPrice 
+                    ? `${product.minPrice.toLocaleString('vi-VN')}đ`
+                    : 'Liên hệ'}
+              </p>
             </div>
-          )}
 
-          {/* Colors */}
-          <div>
-            <h2 className="font-semibold mb-2">Màu sắc</h2>
-            <div className="flex gap-4">
-              {getAvailableColors().map((color) => (
-                <button
-                  key={color}
-                  className={`px-4 py-2 border rounded-lg hover:border-black
-                    ${selectedColor === color ? 'border-black bg-black text-white' : ''}`}
-                  onClick={() => setSelectedColor(color)}
-                >
-                  {color}
-                </button>
-              ))}
+            {/* Category and Brand */}
+            <div className="space-y-2 text-sm text-gray-600">
+              {product?.category && <p>Danh mục: {product.category}</p>}
+              {product?.brand && <p>Thương hiệu: {product.brand}</p>}
             </div>
-          </div>
 
-          {/* Sizes */}
-          {selectedColor && (
+            {/* Description */}
+            {product?.description && (
+              <div>
+                <h2 className="font-semibold mb-2">Mô tả</h2>
+                <p className="text-gray-600">{product.description}</p>
+              </div>
+            )}
+
+            {/* Colors */}
             <div>
-              <h2 className="font-semibold mb-2">Size</h2>
-              <div className="grid grid-cols-4 gap-2">
-                {getAvailableSizes().map((size) => (
+              <h2 className="font-semibold mb-2">Màu sắc</h2>
+              <div className="flex gap-4">
+                {getAvailableColors().map((color) => (
                   <button
-                    key={size}
+                    key={color}
                     className={`px-4 py-2 border rounded-lg hover:border-black
-                      ${selectedSize === size ? 'border-black bg-black text-white' : ''}`}
-                    onClick={() => setSelectedSize(size)}
+                      ${selectedColor === color ? 'border-black bg-black text-white' : ''}`}
+                    onClick={() => setSelectedColor(color)}
                   >
-                    {size}
+                    {color}
                   </button>
                 ))}
               </div>
             </div>
-          )}
 
-          {/* Quantity */}
-          <div>
-            <h2 className="font-semibold mb-2">Số lượng</h2>
-            <div className="flex items-center gap-4">
+            {/* Sizes */}
+            {selectedColor && (
+              <div>
+                <h2 className="font-semibold mb-2">Size</h2>
+                <div className="grid grid-cols-4 gap-2">
+                  {getAvailableSizes().map((size) => (
+                    <button
+                      key={size}
+                      className={`px-4 py-2 border rounded-lg hover:border-black
+                        ${selectedSize === size ? 'border-black bg-black text-white' : ''}`}
+                      onClick={() => setSelectedSize(size)}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quantity */}
+            <div>
+              <h2 className="font-semibold mb-2">Số lượng</h2>
+              <div className="flex items-center gap-4">
+                <button
+                  className="px-3 py-1 border rounded-lg"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                >
+                  -
+                </button>
+                <span>{quantity}</span>
+                <button
+                  className="px-3 py-1 border rounded-lg"
+                  onClick={() => {
+                    if (selectedVariant && quantity < selectedVariant.quantity) {
+                      setQuantity(quantity + 1);
+                    } else {
+                      toast.error('Đã đạt số lượng tối đa');
+                    }
+                  }}
+                >
+                  +
+                </button>
+              </div>
+              {selectedVariant && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Còn {selectedVariant.quantity} sản phẩm
+                </p>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-4">
               <button
-                className="px-3 py-1 border rounded-lg"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                onClick={addToCart}
+                className={`flex-1 py-3 border-2 border-black text-black rounded-full 
+                  ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'} 
+                  transition-colors`}
+                disabled={loading || !selectedVariant}
               >
-                -
+                {loading ? 'Đang xử lý...' : 'Thêm vào giỏ'}
               </button>
-              <span>{quantity}</span>
               <button
-                className="px-3 py-1 border rounded-lg"
-                onClick={() => {
-                  if (selectedVariant && quantity < selectedVariant.quantity) {
-                    setQuantity(quantity + 1);
-                  } else {
-                    toast.error('Đã đạt số lượng tối đa');
-                  }
-                }}
+                onClick={buyNow}
+                className={`flex-1 py-3 bg-black text-white rounded-full 
+                  ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'} 
+                  transition-colors`}
+                disabled={loading || !selectedVariant}
               >
-                +
+                {loading ? 'Đang xử lý...' : 'Mua ngay'}
               </button>
             </div>
-            {selectedVariant && (
-              <p className="text-sm text-gray-500 mt-1">
-                Còn {selectedVariant.quantity} sản phẩm
-              </p>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4">
-            <button
-              onClick={addToCart}
-              className={`flex-1 py-3 border-2 border-black text-black rounded-full 
-                ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'} 
-                transition-colors`}
-              disabled={loading || !selectedVariant}
-            >
-              {loading ? 'Đang xử lý...' : 'Thêm vào giỏ'}
-            </button>
-            <button
-              onClick={buyNow}
-              className={`flex-1 py-3 bg-black text-white rounded-full 
-                ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'} 
-                transition-colors`}
-              disabled={loading || !selectedVariant}
-            >
-              {loading ? 'Đang xử lý...' : 'Mua ngay'}
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Giữ nguyên phần review section */}
-      {reviewSection}
+      {/* Review Section - Full Width */}
+      <div className="mt-12">
+        {reviewSection}
+      </div>
     </div>
   );
 };

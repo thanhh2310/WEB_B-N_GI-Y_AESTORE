@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link,useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
 import { toast } from 'react-hot-toast';
 
 const OrderSuccessPage = () => {
   const { orderId } = useParams();
-  const [order, setOrder] = useState(null);
+  const [orders, setOrders] = useState([]);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchOrder = async () => {
+    const fetchOrders = async () => {
       try {
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user) {
@@ -22,20 +21,18 @@ const OrderSuccessPage = () => {
 
         const response = await axios.get(`http://localhost:8081/saleShoes/orders/username?username=${user.username}`);
         if (response.data?.result) {
-          setOrder(response.data.result);
+          setOrders(response.data.result);
         }
       } catch (error) {
-        console.error('Error fetching order:', error);
+        console.error('Error fetching orders:', error);
         toast.error('Không thể tải thông tin đơn hàng');
       } finally {
         setLoading(false);
       }
     };
 
-    if (orderId) {
-      fetchOrder();
-    }
-  }, [orderId]);
+    fetchOrders();
+  }, [navigate]);
 
   if (loading) {
     return (
@@ -45,13 +42,31 @@ const OrderSuccessPage = () => {
     );
   }
 
-  if (!order) {
+  if (!orders || orders.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">Không tìm thấy đơn hàng</div>
       </div>
     );
   }
+
+  const latestOrder = orders[0];
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('vi-VN');
+  };
+
+  const getStatusText = (status) => {
+    const statusMap = {
+      'CHOXACNHAN': 'Chờ xác nhận',
+      'DAXACNHAN': 'Đã xác nhận',
+      'DANGGIAO': 'Đang giao',
+      'DAGIAO': 'Đã giao',
+      'DAHUY': 'Đã hủy'
+    };
+    return statusMap[status] || status;
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -64,16 +79,23 @@ const OrderSuccessPage = () => {
 
         <h1 className="text-3xl font-bold mb-4">Đặt hàng thành công!</h1>
         <p className="text-gray-600 mb-8">
-          Cảm ơn bạn đã đặt hàng. Mã đơn hàng của bạn là: <span className="font-medium">{order.id}</span>
+          Cảm ơn bạn đã đặt hàng. Mã đơn hàng của bạn là: <span className="font-medium">{latestOrder.id}</span>
         </p>
 
         <div className="bg-gray-50 p-6 rounded-lg text-left mb-8">
           <h2 className="font-semibold mb-4">Chi tiết đơn hàng</h2>
+          
+          <div className="mb-4">
+            <p>Ngày đặt: {formatDate(latestOrder.dateCreate)}</p>
+            <p>Trạng thái: <span className="font-medium">{getStatusText(latestOrder.status)}</span></p>
+            <p>Phương thức thanh toán: {latestOrder.payment}</p>
+          </div>
+
           <div className="space-y-4">
-            {order.orderDetail.map((item) => (
-              <div key={item.id} className="flex gap-4">
+            {latestOrder.orderDetail.map((item) => (
+              <div key={item.id} className="flex gap-4 border-b pb-4">
                 <img
-                  src={item.productDetail.image[0]}
+                  src={item.productDetail?.image?.[0]}
                   alt=""
                   className="w-20 h-20 object-cover rounded"
                 />
@@ -86,10 +108,11 @@ const OrderSuccessPage = () => {
               </div>
             ))}
           </div>
+
           <div className="mt-4 pt-4 border-t">
-            <p>Địa chỉ: {order.address}</p>
-            <p className="font-medium">
-              Tổng tiền: {order.orderDetail.reduce((total, item) => total + item.price * item.quantity, 0).toLocaleString('vi-VN')}₫
+            <p>Địa chỉ giao hàng: {latestOrder.address}</p>
+            <p className="font-medium text-lg mt-2">
+              Tổng tiền: {latestOrder.total.toLocaleString('vi-VN')}₫
             </p>
           </div>
         </div>
