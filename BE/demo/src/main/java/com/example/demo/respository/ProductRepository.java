@@ -19,7 +19,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     Optional<Product> findByName(String name);
 
-    @Query(value = "SELECT * FROM product WHERE LOWER(name) LIKE LOWER(CONCAT('%', :name, '%')) AND active = 1", nativeQuery = true)
+    @Query(value = "SELECT * FROM product WHERE LOWER(name) LIKE LOWER(CONCAT('%', :name, '%')) AND active = 1 ORDER BY name ASC LIMIT 1", nativeQuery = true)
     List<Product> findActiveProductsByName(@Param("name") String name);
 
 }
