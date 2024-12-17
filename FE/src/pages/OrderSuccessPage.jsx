@@ -1,18 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link,useNavigate } from 'react-router-dom';
 import axios from 'axios';
+
 import { toast } from 'react-hot-toast';
 
 const OrderSuccessPage = () => {
   const { orderId } = useParams();
   const [order, setOrder] = useState(null);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const username = JSON.parse(localStorage.getItem('user')).username;
-        const response = await axios.get(`http://localhost:8081/saleShoes/orders/username?username=${username}`);
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+          toast.error('Vui lòng đăng nhập để xem lịch sử đơn hàng');
+          navigate('/signin');
+          return;
+        }
+
+        const response = await axios.get(`http://localhost:8081/saleShoes/orders/username?username=${user.username}`);
         if (response.data?.result) {
           setOrder(response.data.result);
         }

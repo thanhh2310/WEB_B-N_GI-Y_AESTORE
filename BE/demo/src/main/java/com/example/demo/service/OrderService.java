@@ -33,6 +33,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -213,6 +215,13 @@ public class OrderService {
         // Lưu lại đơn hàng sau khi thay đổi trạng thái
         orderRepository.save(order);
         return orderMapper.tOrderResponse(order);
+    }
+
+    public List<OrderResponse> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        return orders.stream()
+                .map(orderMapper::tOrderResponse) // Sử dụng method reference
+                .collect(Collectors.toList());
     }
 
 }

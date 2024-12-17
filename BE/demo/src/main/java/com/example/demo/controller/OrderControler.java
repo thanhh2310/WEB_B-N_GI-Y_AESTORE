@@ -62,4 +62,11 @@ public class OrderControler {
                 .result(updatedOrder)
                 .build();
     }
+
+    @GetMapping("/all")
+    public ApiResponse<List<OrderResponse>> getAllOrders() {
+        return ApiResponse.<List<OrderResponse>>builder()
+                .result(orderService.getAllOrders())
+                .build();
+    }
 }
