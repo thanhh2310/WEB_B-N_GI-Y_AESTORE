@@ -29,5 +29,6 @@ public class OrderRequest {
 
    private Integer userId;
    private String address;
+   private String paymentMethod;
 
 }

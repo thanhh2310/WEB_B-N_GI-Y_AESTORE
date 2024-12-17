@@ -7,11 +7,12 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity
 @Table(name = "OrderDetail")
-
+@NoArgsConstructor
 public class OrderDetail {
 
     @Id
