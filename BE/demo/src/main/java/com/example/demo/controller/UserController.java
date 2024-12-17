@@ -47,9 +47,9 @@ public class UserController {
     }
 
     @GetMapping
-    public ApiResponse<List<User>> getAll() {
-        List<User> colors = userService.getAll();  // Gọi service để lấy tất cả Color
-        return ApiResponse.<List<User>>builder()
+    public ApiResponse<List<UserResponse>> getAll() {
+        List<UserResponse> colors = userService.getAll();  // Gọi service để lấy tất cả Color
+        return ApiResponse.<List<UserResponse>>builder()
                 .code(200)
                 .message("All user fetched successfully")
                 .result(colors)

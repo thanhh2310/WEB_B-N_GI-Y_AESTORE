@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,9 +29,9 @@ public class PaymentController {
  
     private final PaymentService paymentService;
 
-    @PostMapping("/createPayment")
-    public PaymentResponse createPayment(HttpServletRequest req) throws UnsupportedEncodingException {
-        return paymentService.createPayment( req);  // Truyền req vào đây
+    @PostMapping("/createPayment/{orderId}")
+    public PaymentResponse createPayment(@PathVariable Integer orderId,HttpServletRequest req) throws UnsupportedEncodingException {
+        return paymentService.createPayment(req,orderId);  // Truyền req vào đây
     }
 }
 

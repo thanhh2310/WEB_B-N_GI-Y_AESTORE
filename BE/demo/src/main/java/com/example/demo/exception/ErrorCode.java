@@ -22,7 +22,9 @@ public enum ErrorCode {
     COUPON_NOT_FOUND(1018,"Mã giảm giá này không tồn tại"),
     ORDER_NOT_FOUND(1019,"Không có đơn hàng này"),
     NOT_ENOUGH_VALUE(1020,"Số lượng vượt quá cho phép"),
-    INVALID_ORDER_STATUS(1021,"Không có trạng thái đơn hàng này");
+    INVALID_ORDER_STATUS(1021,"Không có trạng thái đơn hàng này"),
+    PAYMENT_NOT_FOUND(1022,"Không có phương thức thanh toán này");
+    
     private final int code;
     private final String message;
 

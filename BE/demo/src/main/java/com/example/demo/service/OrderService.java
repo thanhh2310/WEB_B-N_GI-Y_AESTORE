@@ -16,10 +16,12 @@ import com.example.demo.model.CartDetail;
 import com.example.demo.model.Coupon;
 import com.example.demo.model.Order;
 import com.example.demo.model.OrderDetail;
+import com.example.demo.model.Payment;
 import com.example.demo.model.ProductDetail;
 import com.example.demo.model.User;
 import com.example.demo.respository.CouponRepository;
 import com.example.demo.respository.OrderRepository;
+import com.example.demo.respository.PaymentRepository;
 import com.example.demo.respository.ProductDetailRepository;
 import com.example.demo.respository.ProductRepository;
 import com.example.demo.respository.UserRepository;
@@ -50,6 +52,7 @@ public class OrderService {
     private final CouponRepository couponRepository;
     private final UserRepository userRepository;
     private final OrderMapper orderMapper;
+    private final PaymentRepository paymentRepository;
 
     public Order addCoupon(Integer Id, String code) {
         // Lấy đơn hàng dựa trên ID
@@ -86,37 +89,55 @@ public class OrderService {
     }
 
     public OrderResponse placeOrder(OrderRequest request) {
-
+        // Lấy giỏ hàng của người dùng
         Cart cart = cartService.getCartByUserId(request.getUserId());
         log.info(cart.getId() + "Vu");
+
+        // Tạo đơn hàng từ giỏ hàng
         Order order = create(cart);
         order.setAddress(request.getAddress());
 
         // Tạo chi tiết đơn hàng từ các sản phẩm trong giỏ hàng
         List<OrderDetail> orderItemList = createOrderDetails(order, cart);
         order.setOrderDetail(new HashSet<>(orderItemList));
+
         // Tính tổng giá trị đơn hàng
         BigDecimal total = getTotalPrice(orderItemList);
         order.setTotal(total);
-        // Lưu đơn hàng và xóa giỏ hàng
+
+        // Lấy phương thức thanh toán
+        Payment payment = paymentRepository.findByName(request.getPaymentMethod())
+                .orElseThrow(() -> new WebErrorConfig(ErrorCode.PAYMENT_NOT_FOUND));
+        order.setPayment(payment);
+
+        // Lưu đơn hàng vào cơ sở dữ liệu và xóa giỏ hàng
         Order savedOrder = orderRepository.save(order);
         cartService.clearCart(cart.getId());
+
+        // Trả về thông tin đơn hàng đã tạo
         return orderMapper.tOrderResponse(order);
     }
 
     private List<OrderDetail> createOrderDetails(Order order, Cart cart) {
         return cart.getItems().stream().map(cartItem -> {
             ProductDetail product = cartItem.getProductDetail();
+
+            // Kiểm tra xem số lượng sản phẩm có đủ để bán không
+            if (product.getQuantity() < cartItem.getQuantity()) {
+                throw new WebErrorConfig(ErrorCode.NOT_ENOUGH_VALUE);
+            }
+
+            // Giảm số lượng sản phẩm trong kho sau khi đã bán
             product.setQuantity(product.getQuantity() - cartItem.getQuantity());
             productDetailRepository.save(product);
+
+            // Tạo chi tiết đơn hàng
             return new OrderDetail(
                     order,
                     product,
                     cartItem.getQuantity(),
                     cartItem.getUnitPrice());
-
         }).toList();
-
     }
 
     private BigDecimal getTotalPrice(List<OrderDetail> orderDetails) {
@@ -190,8 +211,8 @@ public class OrderService {
         }
 
         // Lưu lại đơn hàng sau khi thay đổi trạng thái
-         orderRepository.save(order);
-         return orderMapper.tOrderResponse(order);
+        orderRepository.save(order);
+        return orderMapper.tOrderResponse(order);
     }
 
 }

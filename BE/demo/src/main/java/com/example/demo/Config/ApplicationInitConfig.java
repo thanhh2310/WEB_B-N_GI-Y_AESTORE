@@ -30,7 +30,7 @@ public class ApplicationInitConfig {
     BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
 
     @Bean
-    ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository,PaymentRepository paymentRepository) {
+    ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository, PaymentRepository paymentRepository) {
         return args -> {
             // Tạo và lưu các role ADMIN và USER nếu chưa tồn tại
             Role adminRole = roleRepository.findByName("ADMIN").orElseGet(() -> {
@@ -38,8 +38,8 @@ public class ApplicationInitConfig {
                 role.setName("ADMIN");
                 return roleRepository.save(role);
             });
-            
-             Role staffRole = roleRepository.findByName("STAFF").orElseGet(() -> {
+
+            Role staffRole = roleRepository.findByName("STAFF").orElseGet(() -> {
                 Role role = new Role();
                 role.setName("STAFF");
                 return roleRepository.save(role);
@@ -62,15 +62,22 @@ public class ApplicationInitConfig {
                 adminUser.setRoles(new HashSet<>(Set.of(adminRole)));  // Gán role ADMIN cho user admin
                 userRepository.save(adminUser);
             }
-            Payment payment =new Payment();
-            payment.setName("COD");
-            paymentRepository.save(payment);
-            Payment payment2=new Payment();
-            payment2.setName("VNPAY");
-            paymentRepository.save(payment2);
-            
+
+            // Kiểm tra xem "COD" đã tồn tại chưa, nếu chưa thì thêm vào
+            if (paymentRepository.findByName("COD").isEmpty()) {
+                Payment payment = new Payment();
+                payment.setName("COD");
+                paymentRepository.save(payment);
+            }
+
+            // Kiểm tra xem "VNPAY" đã tồn tại chưa, nếu chưa thì thêm vào
+            if (paymentRepository.findByName("VNPAY").isEmpty()) {
+                Payment payment2 = new Payment();
+                payment2.setName("VNPAY");
+                paymentRepository.save(payment2);
+            }
+
             // Kiểm tra nếu người dùng "user" chưa tồn tại trong cơ sở dữ liệu
-           
         };
     }
 
@@ -79,4 +86,6 @@ public class ApplicationInitConfig {
         return new BCryptPasswordEncoder();
     }
 }
+
+
 

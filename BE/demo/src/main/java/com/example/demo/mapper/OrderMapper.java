@@ -41,6 +41,7 @@ public class OrderMapper {
                 .coupons(coupons) // Ánh xạ coupons
                 .address(order.getAddress()) // Ánh xạ address
                 .dateCreate(order.getDateCreate())
+                .payment(order.getPayment().getName())
                 .build();
     }
 }

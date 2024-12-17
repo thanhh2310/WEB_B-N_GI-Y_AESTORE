@@ -27,7 +27,7 @@ public class UserMapper {
         user.setPassword(userRequest.getPassword());
         user.setEmail(userRequest.getEmail());
         user.setPhone(userRequest.getPhone());
-        
+
         user.setDob(userRequest.getDob());
         user.setGender(userRequest.getGender());
         user.setFullName(userRequest.getFullName());
@@ -37,8 +37,12 @@ public class UserMapper {
     }
 
     public UserResponse toUserResponse(User user) {
+        if (user == null) {
+            return null; // Trả về null nếu User là null
+        }
 
-        UserResponse userResponse = UserResponse.builder()
+        // Kiểm tra thông tin của user có null hay không
+        UserResponse.UserResponseBuilder userResponseBuilder = UserResponse.builder()
                 .userId(user.getUserId())
                 .username(user.getUsername())
                 .email(user.getEmail())
@@ -46,10 +50,16 @@ public class UserMapper {
                 .status(user.getStatus())
                 .dob(user.getDob())
                 .gender(user.getGender())
-                .fullName(user.getFullName())
-                .cartId(user.getCart().getId())
-                .build();
+                .fullName(user.getFullName());
 
-        return userResponse;
+        // Kiểm tra Cart có null không, tránh lỗi NullPointerException
+        if (user.getCart() != null) {
+            userResponseBuilder.cartId(user.getCart().getId());
+        } else {
+            userResponseBuilder.cartId(null);  // Nếu Cart null, không gán giá trị
+        }
+
+        return userResponseBuilder.build();
     }
+
 }

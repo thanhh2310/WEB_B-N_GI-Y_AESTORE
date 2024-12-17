@@ -40,4 +40,7 @@ public class Order {
     @JsonManagedReference
     private Set<OrderDetail> orderDetail;
     private String address;
+    @ManyToOne
+    @JoinColumn(name = "PaymentID")
+    private Payment payment;
 }

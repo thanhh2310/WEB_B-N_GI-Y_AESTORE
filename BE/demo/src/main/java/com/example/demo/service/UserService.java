@@ -19,6 +19,7 @@ import com.example.demo.respository.UserRepository;
 import com.nimbusds.jose.JOSEException;
 import jakarta.mail.MessagingException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -103,8 +104,16 @@ public class UserService {
     }
 
     // Lấy tất cả người dùng đang hoạt động
-    public List<User> getAll() {
-        return userRepository.findAll();  // Lấy các user đang hoạt động
+    public List<UserResponse> getAll() {
+        List<User> users = userRepository.findAll();  // Lấy tất cả user
+        List<UserResponse> userResponses = new ArrayList<>();
+
+        for (User user : users) {
+            // Chuyển đổi từng User thành UserResponse và thêm vào danh sách
+            userResponses.add(userMapper.toUserResponse(user));
+        }
+
+        return userResponses;
     }
 
     // Lấy thông tin người dùng theo ID

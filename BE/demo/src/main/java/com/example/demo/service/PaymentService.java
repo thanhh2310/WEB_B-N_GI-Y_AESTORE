@@ -3,25 +3,38 @@ package com.example.demo.service;
 import com.example.demo.Config.Config;
 
 import com.example.demo.dto.response.PaymentResponse;
+import com.example.demo.exception.ErrorCode;
+import com.example.demo.exception.WebErrorConfig;
+import com.example.demo.mapper.OrderMapper;
+import com.example.demo.model.Order;
+import com.example.demo.respository.OrderRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import lombok.RequiredArgsConstructor;
+import org.eclipse.angus.mail.handlers.multipart_mixed;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class PaymentService {
 
-    public PaymentResponse createPayment(HttpServletRequest req) throws UnsupportedEncodingException {
+    private final OrderRepository orderRepository;
+
+    public PaymentResponse createPayment(HttpServletRequest req, Integer orderId) throws UnsupportedEncodingException {
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
         String orderType = "other";
+        Order order=orderRepository.findById(orderId).orElseThrow(()->new WebErrorConfig(ErrorCode.ORDER_NOT_FOUND));
+        BigDecimal total =order.getTotal();
         long amount = 100000 * 100;
-
+//        String bankCode = req.getParameter("bankCode");
 
         String vnp_TxnRef = Config.getRandomNumber(8);
         String vnp_IpAddr = Config.getIpAddress(req);
@@ -87,17 +100,17 @@ public class PaymentService {
         String vnp_SecureHash = Config.hmacSHA512(Config.secretKey, hashData.toString());
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
         String paymentUrl = Config.vnp_PayUrl + "?" + queryUrl;
-        PaymentResponse payemenDto = new PaymentResponse();
-        payemenDto.setUrl(paymentUrl);
-        payemenDto.setMessage("Success");
-        payemenDto.setStatus("OK");
 
-        return payemenDto;
+        // Trả về thông tin thanh toán
+        PaymentResponse paymentResponse = new PaymentResponse();
+        paymentResponse.setUrl(paymentUrl);
+        paymentResponse.setMessage("Success");
+        paymentResponse.setStatus("OK");
 
+        return paymentResponse;
     }
-    public boolean check(String responseCode){
-        if(responseCode.equals("00")) return true;
-        return false;
-        
+
+    public boolean check(String responseCode) {
+        return responseCode.equals("00");
     }
 }

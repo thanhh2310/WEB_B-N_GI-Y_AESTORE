@@ -32,4 +32,5 @@ public class OrderResponse {
     private String address;
     private String status;
     private BigDecimal total;
+    private String payment;
 }
