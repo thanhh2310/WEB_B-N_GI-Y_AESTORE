@@ -21,7 +21,7 @@ const OrderHistory = () => {
           return;
         }
 
-        const response = await axios.get(`http://localhost:8081/saleShoes/ordersusername?username=${user.username}`);
+        const response = await axios.get(`http://localhost:8081/saleShoes/orders/username?username=${user.username}`);
         if (response.data?.result) {
           setOrders(response.data.result);
         }

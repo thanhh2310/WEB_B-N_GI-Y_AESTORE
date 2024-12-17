@@ -320,7 +320,7 @@ const CheckoutPage = () => {
       if (!userId) {
         console.warn('No cartId found in user info');
       }
-      return userId || null; // Trả về cartId hoặc null
+      return userId || null; // Trả về userId hoặc null
     } catch (error) {
       console.error('Error fetching user info:', error.response?.data || error.message);
       toast.error( userId);
