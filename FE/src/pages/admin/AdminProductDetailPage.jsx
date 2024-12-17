@@ -222,7 +222,7 @@ const AdminProductDetailPage = () => {
   // Add Variant Modal Component
   const AddVariantModal = () => {
     const [variantForm, setVariantForm] = useState({
-      selectedColors: [],
+      selectedColor: '',
       selectedSizes: [],
       quantity: 1,
       price: 0,
@@ -256,13 +256,17 @@ const AdminProductDetailPage = () => {
     };
 
     const handleColorChange = (colorId) => {
-      const isSelected = variantForm.selectedColors.includes(colorId);
-      setVariantForm({
-        ...variantForm,
-        selectedColors: isSelected
-          ? variantForm.selectedColors.filter(id => id !== colorId)
-          : [...variantForm.selectedColors, colorId]
-      });
+      if (variantForm.selectedColor === colorId) {
+        setVariantForm({
+          ...variantForm,
+          selectedColor: ''
+        });
+      } else {
+        setVariantForm({
+          ...variantForm,
+          selectedColor: colorId
+        });
+      }
     };
 
     const handleSizeChange = (sizeId) => {
@@ -279,8 +283,8 @@ const AdminProductDetailPage = () => {
       e.preventDefault();
       try {
         // Validate form data
-        if (variantForm.selectedColors.length === 0) {
-          toast.error('Vui lòng chọn ít nhất một màu sắc');
+        if (!variantForm.selectedColor) {
+          toast.error('Vui lòng chọn một màu sắc');
           return;
         }
 
@@ -299,36 +303,35 @@ const AdminProductDetailPage = () => {
           return;
         }
 
-        // Tạo các biến thể cho mỗi combination của color và size
+        // Tạo các biến thể cho mỗi size với màu đã chọn
         const variants = [];
-        for (const colorId of variantForm.selectedColors) {
-          for (const sizeId of variantForm.selectedSizes) {
-            const selectedColor = colors.find(c => c.id === parseInt(colorId));
-            const selectedSize = sizes.find(s => s.id === parseInt(sizeId));
+        const selectedColor = colors.find(c => c.id === parseInt(variantForm.selectedColor));
+        
+        for (const sizeId of variantForm.selectedSizes) {
+          const selectedSize = sizes.find(s => s.id === parseInt(sizeId));
 
-            // Kiểm tra xem combination này đã tồn tại chưa
-            const existingVariant = Object.values(variantsByColor)
-              .flat()
-              .find(v => 
-                v.color === selectedColor.name && 
-                v.size === selectedSize.name
-              );
+          // Kiểm tra xem combination này đã tồn tại chưa
+          const existingVariant = Object.values(variantsByColor)
+            .flat()
+            .find(v => 
+              v.color === selectedColor.name && 
+              v.size === selectedSize.name
+            );
 
-            if (existingVariant) {
-              toast.error(`Biến thể ${selectedColor.name} - ${selectedSize.name} đã tồn tại`);
-              continue;
-            }
-
-            variants.push({
-              productId: parseInt(id),
-              color: selectedColor.name,
-              size: selectedSize.name,
-              quantity: parseInt(variantForm.quantity),
-              price: parseFloat(variantForm.price),
-              image: variantForm.imageUrls.filter(url => url.trim() !== ''),
-              active: true
-            });
+          if (existingVariant) {
+            toast.error(`Biến thể ${selectedColor.name} - ${selectedSize.name} đã tồn tại`);
+            continue;
           }
+
+          variants.push({
+            productId: parseInt(id),
+            color: selectedColor.name,
+            size: selectedSize.name,
+            quantity: parseInt(variantForm.quantity),
+            price: parseFloat(variantForm.price),
+            image: variantForm.imageUrls.filter(url => url.trim() !== ''),
+            active: true
+          });
         }
 
         // Gửi request tạo các biến thể
@@ -353,17 +356,18 @@ const AdminProductDetailPage = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Màu sắc (có thể chọn nhiều)
+                  Màu sắc (chọn một)
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {colors.map(color => (
                     <label
                       key={color.id}
-                      className="flex items-center space-x-2 p-2 border rounded cursor-pointer hover:bg-gray-50"
+                      className={`flex items-center space-x-2 p-2 border rounded cursor-pointer hover:bg-gray-50 
+                        ${variantForm.selectedColor === color.id.toString() ? 'bg-gray-100 border-black' : ''}`}
                     >
                       <input
-                        type="checkbox"
-                        checked={variantForm.selectedColors.includes(color.id.toString())}
+                        type="radio"
+                        checked={variantForm.selectedColor === color.id.toString()}
                         onChange={() => handleColorChange(color.id.toString())}
                         className="rounded border-gray-300"
                       />

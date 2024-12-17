@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [showSidebar, setShowSidebar] = useState(true);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
   useEffect(() => {
     // Kiểm tra token khi component mount
@@ -55,19 +57,36 @@ const HomePage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        setLoading(true);
         const response = await axios.get('http://localhost:8081/saleShoes/products');
         const productsData = response.data?.result || [];
-        setProducts(Array.isArray(productsData) ? productsData : []);
+        const products = Array.isArray(productsData) ? productsData : [];
+        setProducts(products);
+        
+        // Lọc sản phẩm theo search query
+        const searchQuery = searchParams.get('search')?.toLowerCase();
+        if (searchQuery) {
+          const filtered = products.filter(product => 
+            product.name.toLowerCase().includes(searchQuery) ||
+            product.category?.name.toLowerCase().includes(searchQuery) ||
+            product.brand?.name.toLowerCase().includes(searchQuery) ||
+            product.description?.toLowerCase().includes(searchQuery)
+          );
+          setFilteredProducts(filtered);
+        } else {
+          setFilteredProducts(products);
+        }
       } catch (error) {
         console.error('Error fetching products:', error);
         setProducts([]);
+        setFilteredProducts([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProducts();
-  }, []);
+  }, [searchParams]);
 
   const toggleSidebar = () => {
     setShowSidebar(!showSidebar);
@@ -118,9 +137,9 @@ const HomePage = () => {
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
             </div>
-          ) : products.length > 0 ? (
+          ) : filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {products.map(product => (
+              {filteredProducts.map(product => (
                 <ProductCard 
                   key={product.id} 
                   product={{
@@ -137,7 +156,11 @@ const HomePage = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-500">Không có sản phẩm nào</p>
+              <p className="text-gray-500">
+                {searchParams.get('search') 
+                  ? 'Không tìm thấy sản phẩm phù hợp'
+                  : 'Không có sản phẩm nào'}
+              </p>
             </div>
           )}
         </div>

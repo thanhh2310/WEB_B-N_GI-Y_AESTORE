@@ -34,22 +34,35 @@ const AdminSizePage = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      try {
-        // Kiểm tra xem màu sắc đã tồn tại hay chưa
-      const response = await axios.get(`http://localhost:8081/saleShoes/sizes/name?name=${formData.name}`);
-      if (response.data?.result) {
-        toast.error('Size đã tồn tại'); // Thông báo nếu màu sắc đã tồn tại
-        return; // Dừng lại nếu đã tồn tại
+      // Validate size range
+      const sizeNumber = parseInt(formData.name);
+      if (isNaN(sizeNumber)) {
+        toast.error('Size phải là số');
+        return;
       }
-      // Nếu chưa tồn tại, thực hiện tạo mới
-      await axios.post('http://localhost:8081/saleShoes/sizes', {
-        ...formData,
-        active: true
-      });
-      toast.success('Tạo kích thước thành công');
-      setShowCreateModal(false);
-      setFormData({ name: '', active: true });
-      fetchSizes();
+      
+      if (sizeNumber < 36 || sizeNumber > 44) {
+        toast.error('Size phải từ 36 đến 44');
+        return;
+      }
+
+      try {
+        // Kiểm tra xem size đã tồn tại hay chưa
+        const response = await axios.get(`http://localhost:8081/saleShoes/sizes/name?name=${formData.name}`);
+        if (response.data?.result) {
+          toast.error('Size đã tồn tại');
+          return;
+        }
+        
+        // Nếu chưa tồn tại, thực hiện tạo mới
+        await axios.post('http://localhost:8081/saleShoes/sizes', {
+          ...formData,
+          active: true
+        });
+        toast.success('Tạo kích thước thành công');
+        setShowCreateModal(false);
+        setFormData({ name: '', active: true });
+        fetchSizes();
       } catch (error) {
         if (error.response && error.response.status === 400) {
           // Size không tồn tại, tiếp tục tạo mới
@@ -62,13 +75,9 @@ const AdminSizePage = () => {
           setFormData({ name: '', active: true });
           fetchSizes();
         } else {
-          // Xử lý lỗi khác
           throw error;
         }
-        
       }
-
-      
     } catch (error) {
       console.error('Error creating size:', error);
       toast.error('Không thể tạo kích thước');
@@ -79,6 +88,18 @@ const AdminSizePage = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
+      // Validate size range
+      const sizeNumber = parseInt(formData.name);
+      if (isNaN(sizeNumber)) {
+        toast.error('Size phải là số');
+        return;
+      }
+      
+      if (sizeNumber < 36 || sizeNumber > 44) {
+        toast.error('Size phải từ 36 đến 44');
+        return;
+      }
+
       await axios.patch(`http://localhost:8081/saleShoes/sizes/${editingSize.id}`, {
         ...formData,
         active: editingSize.active
@@ -132,16 +153,21 @@ const AdminSizePage = () => {
       <div className="bg-white p-6 rounded-lg w-96">
         <h2 className="text-xl font-bold mb-4">Tạo kích thước mới</h2>
         <form onSubmit={handleCreate}>
-          <input
-            type="text"
-            placeholder="Tên kích thước"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-2 border rounded-md mb-4"
-            required
-            autoFocus
-          />
-          <div className="flex justify-end gap-2">
+          <div className="space-y-2">
+            <input
+              type="number"
+              min="36"
+              max="44"
+              placeholder="Nhập size (36-44)"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-4 py-2 border rounded-md mb-2"
+              required
+              autoFocus
+            />
+            <p className="text-sm text-gray-500">Size phải từ 36 đến 44</p>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
             <button
               type="button"
               onClick={() => setShowCreateModal(false)}
@@ -166,15 +192,20 @@ const AdminSizePage = () => {
       <div className="bg-white p-6 rounded-lg w-96">
         <h2 className="text-xl font-bold mb-4">Chỉnh sửa kích thước</h2>
         <form onSubmit={handleUpdate}>
-          <input
-            type="text"
-            placeholder="Tên kích thước"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-2 border rounded-md mb-4"
-            required
-          />
-          <div className="flex justify-end gap-2">
+          <div className="space-y-2">
+            <input
+              type="number"
+              min="36"
+              max="44"
+              placeholder="Nhập size (36-44)"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-4 py-2 border rounded-md mb-2"
+              required
+            />
+            <p className="text-sm text-gray-500">Size phải từ 36 đến 44</p>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
             <button
               type="button"
               onClick={() => {
