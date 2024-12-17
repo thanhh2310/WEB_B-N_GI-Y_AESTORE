@@ -9,6 +9,8 @@ import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.OrderResponse;
 import com.example.demo.model.Order;
 import com.example.demo.service.OrderService;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,9 +33,9 @@ public class OrderControler {
     private final OrderService orderService;
 
     @PostMapping
-    public ApiResponse<OrderResponse> create(@RequestBody OrderRequest request) {
+    public ApiResponse<OrderResponse> create(@RequestBody OrderRequest request, HttpServletRequest req) throws UnsupportedEncodingException {
         return ApiResponse.<OrderResponse>builder()
-                .result(orderService.placeOrder(request))
+                .result(orderService.placeOrder(request,req))
                 .build();
     }
 

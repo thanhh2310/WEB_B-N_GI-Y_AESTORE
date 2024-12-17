@@ -27,10 +27,11 @@ public class OrderResponse {
     private Date dateCreate;
 
     private Set<Coupon> coupons;
-
+    
     private Set<OrderDetailResponse> orderDetail;
     private String address;
     private String status;
     private BigDecimal total;
     private String payment;
+    private String url;
 }
