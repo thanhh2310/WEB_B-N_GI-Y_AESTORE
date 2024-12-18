@@ -284,7 +284,7 @@ const AdminProductDetailPage = () => {
       try {
         // Validate form data
         if (!variantForm.selectedColor) {
-          toast.error('Vui lòng chọn một màu sắc');
+          toast.error('Vui lòng chọn một màu s���c');
           return;
         }
 
@@ -562,6 +562,29 @@ const AdminProductDetailPage = () => {
         <div key={color} className="bg-white rounded-lg shadow mb-6">
           <div className="p-6">
             <h2 className="text-xl font-semibold mb-4">Màu: {color}</h2>
+            
+            {/* Hiển thị ảnh của variant đầu tiên của mỗi màu */}
+            {variants[0]?.image && variants[0].image.length > 0 && (
+              <div className="mb-4">
+                <h3 className="font-medium mb-2">Ảnh sản phẩm:</h3>
+                <div className="flex gap-4 overflow-x-auto pb-2">
+                  {variants[0].image.map((img, index) => (
+                    <div key={index} className="relative flex-shrink-0">
+                      <img
+                        src={img}
+                        alt={`${color} - ${index + 1}`}
+                        className="w-32 h-32 object-cover rounded-lg border"
+                        onError={(e) => {
+                          e.target.src = '/default-product.jpg';
+                          toast.error(`Không thể tải ảnh ${index + 1}`);
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50">
