@@ -676,9 +676,9 @@ const ProductDetail = () => {
               <h1 className="text-3xl font-bold">{product?.name}</h1>
               <p className="text-xl mt-2">
                 {selectedVariant 
-                  ? `${selectedVariant.price.toLocaleString('vi-VN')}đ` 
+                  ? `${selectedVariant.price.toLocaleString('vi-VN')} VND` 
                   : product?.minPrice 
-                    ? `${product.minPrice.toLocaleString('vi-VN')}đ`
+                    ? `${product.minPrice.toLocaleString('vi-VN')} VND`
                     : 'Liên hệ'}
               </p>
             </div>

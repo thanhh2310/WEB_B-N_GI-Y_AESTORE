@@ -13,8 +13,7 @@ const RegisterPage = () => {
     phone: '',
     fullName: '',
     gender: '',
-    dob: '',
-    address: ''
+    dob: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -99,13 +98,6 @@ const RegisterPage = () => {
       }
     }
 
-    // Address validation
-    if (!formData.address) {
-      newErrors.address = 'Address is required';
-    } else if (formData.address.length < 10) {
-      newErrors.address = 'Please enter a complete address';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -126,7 +118,6 @@ const RegisterPage = () => {
           fullName: formData.fullName.trim(),
           gender: genderCode,
           dob: formattedDob,
-          address: formData.address.trim(),
           active: true,
           email_verified: false
         });
@@ -161,8 +152,7 @@ const RegisterPage = () => {
         phone: '',
         fullName: '',
         gender: '',
-        dob: '',
-        address: ''
+        dob: ''
       });
     };
   }, []);
@@ -359,27 +349,6 @@ const RegisterPage = () => {
                   } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm`}
                 />
                 {errors.dob && <p className="mt-2 text-sm text-red-600">{errors.dob}</p>}
-              </div>
-            </div>
-
-            {/* Address */}
-            <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-                Address
-              </label>
-              <div className="mt-1">
-                <textarea
-                  id="address"
-                  name="address"
-                  rows={3}
-                  required
-                  value={formData.address}
-                  onChange={handleChange}
-                  className={`appearance-none block w-full px-3 py-2 border ${
-                    errors.address ? 'border-red-300' : 'border-gray-300'
-                  } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm`}
-                />
-                {errors.address && <p className="mt-2 text-sm text-red-600">{errors.address}</p>}
               </div>
             </div>
 

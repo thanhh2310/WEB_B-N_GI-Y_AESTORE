@@ -132,6 +132,7 @@ public class OrderService {
             PaymentResponse paymentResponse = paymentService.createPayment(req, order.getId());
             String url = paymentResponse.getUrl();
             orderResponse.setUrl(url);
+            orderResponse.setStatus("XACNHAN");
         } else {
             orderResponse.setUrl("");
         }
