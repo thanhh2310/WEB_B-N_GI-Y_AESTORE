@@ -133,6 +133,8 @@ public class OrderService {
             String url = paymentResponse.getUrl();
             orderResponse.setUrl(url);
             orderResponse.setStatus("XACNHAN");
+            order.setStatus("XACNHAN");
+            orderRepository.save(order);
         } else {
             orderResponse.setUrl("");
         }

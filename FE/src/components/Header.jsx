@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import logo_aestore from '../images/logo_aestore.png';
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,7 +62,7 @@ const Header = () => {
       {/* Top header */}
       <div className="bg-gray-100 px-8 py-2 flex justify-between items-center text-sm">
         <Link to="/">
-          <img src="/jordan.svg" alt="Jordan Logo" className="h-6" />
+          <img src={logo_aestore} alt="Jordan Logo" className="h-6" />
         </Link>
         <div className="flex gap-4">
           <Link to="/history">History</Link>
@@ -161,8 +162,8 @@ const Header = () => {
       {/* Main header */}
       <div className="px-8 py-4 flex justify-between items-center">
         <Link to="/">
-          <img src="/nike.svg" alt="Nike Logo" className="h-6" />
-        </Link>
+          <img src={logo_aestore} alt="Nike Logo" className="h-10" />
+        </Link> 
         
         <nav className="flex gap-8">
           <Link to="/new">New & Featured</Link>
@@ -212,4 +213,4 @@ const Header = () => {
   );
 };
 
-export default Header; 
+export default Header;
