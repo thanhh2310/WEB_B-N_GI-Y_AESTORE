@@ -50,7 +50,7 @@ const OrderSuccessPage = () => {
     );
   }
 
-  const latestOrder = orders[0];
+  const latestOrder = orders[orders.length - 1];
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);

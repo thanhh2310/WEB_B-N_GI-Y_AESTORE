@@ -222,12 +222,6 @@ const CartPage = () => {
               <span>{subtotal.toLocaleString('vi-VN')}₫</span>
             </div>
 
-            {/* Delivery & Handling */}
-            <div className="flex justify-between mb-4">
-              <span>Phí vận chuyển</span>
-              <span>Miễn phí</span>
-            </div>
-
             {/* Voucher Section */}
             <div className="mb-4">
               <div className="flex gap-2">

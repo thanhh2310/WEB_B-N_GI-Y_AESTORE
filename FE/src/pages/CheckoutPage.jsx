@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import { getProvinces, getDistricts, getWards, calculateShippingFee } from '../services/addressApi';
+import { getProvinces, getDistricts, getWards } from '../services/addressApi';
 import { ORDER_STATUS } from '../data/orderStatus';
 
 const CheckoutPage = () => {
@@ -15,7 +15,6 @@ const CheckoutPage = () => {
   const [wards, setWards] = useState([]);
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
-  const [shippingFee, setShippingFee] = useState(0);
   const [checkoutItems, setCheckoutItems] = useState([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState([]);
@@ -34,10 +33,9 @@ const CheckoutPage = () => {
   });
 
   // Tính toán giá tiền
-  const subtotal = cartItems.reduce((total, item) => 
+  const total = cartItems.reduce((total, item) => 
     total + (item.price * item.quantity), 0
   );
-  const total = subtotal + shippingFee;
 
   useEffect(() => {
     // Load cart items
@@ -123,9 +121,6 @@ const CheckoutPage = () => {
           setDistricts(data);
           setSelectedDistrict('');
           setWards([]);
-          // Tính phí ship
-          const fee = calculateShippingFee(selectedProvince);
-          setShippingFee(fee);
         } catch (error) {
           toast.error('Không thể tải danh sách quận huyện');
         }
@@ -357,9 +352,19 @@ const CheckoutPage = () => {
         localStorage.removeItem('cart');
         localStorage.removeItem('checkoutItems');
 
-        // Chuyển đến trang thành công
-        navigate(`/order-success/${response.data.result.id}`);
-        toast.success('Đặt hàng thành công!');
+        // Kiểm tra phương thức thanh toán từ response
+        if (response.data.result.payment === 'COD') {
+          // Nếu là COD, chuyển đến trang thành công
+          navigate(`/order-success/${response.data.result.id}`);
+          toast.success('Đặt hàng thành công!');
+        } else if (response.data.result.payment === 'VNPAY') {
+          // Nếu là VNPAY, chuyển đến URL thanh toán
+          if (response.data.result.url) {
+            window.location.href = response.data.result.url;
+          } else {
+            toast.error('Không nhận được link thanh toán');
+          }
+        }
       }
     } catch (error) {
       console.error('Error placing order:', error);
@@ -602,14 +607,6 @@ const CheckoutPage = () => {
 
             {/* Price Summary */}
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Tạm tính</span>
-                <span>{subtotal.toLocaleString('vi-VN')}₫</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Phí vận chuyển</span>
-                <span>{shippingFee.toLocaleString('vi-VN')}₫</span>
-              </div>
               <div className="flex justify-between font-medium text-lg pt-2 border-t">
                 <span>Tổng cộng</span>
                 <span>{total.toLocaleString('vi-VN')}₫</span>
